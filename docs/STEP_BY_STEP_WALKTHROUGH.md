@@ -80,6 +80,7 @@ Branch protection prevents you from accidentally pushing directly to `main`. It 
 2. **You'll see a form with many options**
 
 3. **In "Branch name pattern" field, type:**
+
    ```
    main
    ```
@@ -192,6 +193,7 @@ GitHub Actions runs your automated tests, linting, and builds every time you cre
 **Section 1: "Actions permissions"**
 
 1. **Select the radio button:**
+
    ```
    ⦿ Allow all actions and reusable workflows
    ```
@@ -210,6 +212,7 @@ GitHub Actions runs your automated tests, linting, and builds every time you cre
    - This allows workflows to push changes if needed
 
 2. **Check the box below it:**
+
    ```
    ✅ Allow GitHub Actions to create and approve pull requests
    ```

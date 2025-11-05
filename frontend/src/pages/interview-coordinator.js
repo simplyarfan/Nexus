@@ -283,9 +283,9 @@ Best regards,
         JSON.stringify(
           scheduleForm.ccEmails
             ? scheduleForm.ccEmails
-              .split(',')
-              .map((e) => e.trim())
-              .filter(Boolean)
+                .split(',')
+                .map((e) => e.trim())
+                .filter(Boolean)
             : [],
         ),
       );
@@ -294,9 +294,9 @@ Best regards,
         JSON.stringify(
           scheduleForm.bccEmails
             ? scheduleForm.bccEmails
-              .split(',')
-              .map((e) => e.trim())
-              .filter(Boolean)
+                .split(',')
+                .map((e) => e.trim())
+                .filter(Boolean)
             : [],
         ),
       );

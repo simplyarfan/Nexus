@@ -323,8 +323,13 @@ router.get('/outlook/callback', async (req, res) => {
     // Check if OAuth credentials are configured
     if (!process.env.OUTLOOK_CLIENT_ID || !process.env.OUTLOOK_CLIENT_SECRET) {
       console.error('❌ Outlook OAuth credentials not configured');
+      console.error('❌ OUTLOOK_CLIENT_ID:', process.env.OUTLOOK_CLIENT_ID ? 'Set' : 'Missing');
+      console.error(
+        '❌ OUTLOOK_CLIENT_SECRET:',
+        process.env.OUTLOOK_CLIENT_SECRET ? 'Set' : 'Missing',
+      );
       return res.redirect(
-        `${frontendUrl}/profile?outlook=error&message=Server configuration error`,
+        `${frontendUrl}/profile?outlook=error&message=Server configuration error - credentials missing`,
       );
     }
 
@@ -412,8 +417,15 @@ router.get('/outlook/callback', async (req, res) => {
     res.redirect(`${frontendUrl}/profile?outlook=connected`);
   } catch (error) {
     console.error('❌ Outlook OAuth callback error:', error.response?.data || error.message);
+    console.error('❌ Full error:', error);
     const frontendUrl = process.env.FRONTEND_URL || 'https://thesimpleai.netlify.app';
-    res.redirect(`${frontendUrl}/profile?outlook=error&message=Authentication failed`);
+    const errorMessage =
+      error.response?.data?.error_description ||
+      error.message ||
+      'Authentication failed. Please try again.';
+    res.redirect(
+      `${frontendUrl}/profile?outlook=error&message=${encodeURIComponent(errorMessage)}`,
+    );
   }
 });
 

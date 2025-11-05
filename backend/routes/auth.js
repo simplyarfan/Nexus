@@ -230,7 +230,7 @@ router.post(
 );
 
 /**
- * GET /outlook/auth - Initiate Outlook OAuth flow
+ * GET /outlook/auth - Initiate Outlook OAuth flow with PKCE
  */
 router.get('/outlook/auth', authenticateToken, async (req, res) => {
   try {
@@ -243,10 +243,28 @@ router.get('/outlook/auth', authenticateToken, async (req, res) => {
       });
     }
 
+    const crypto = require('crypto');
+
+    // Generate PKCE code_verifier (random string)
+    const codeVerifier = crypto.randomBytes(32).toString('base64url');
+
+    // Generate PKCE code_challenge (SHA256 hash of code_verifier)
+    const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+
+    // Store code_verifier temporarily in database (will be used in callback)
+    await database.connect();
+    await database.run(
+      `UPDATE users
+       SET outlook_pkce_verifier = $1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+      [codeVerifier, req.user.id],
+    );
+
     const backendUrl = process.env.BACKEND_URL || 'https://thesimpleai.vercel.app';
     const redirectUri = `${backendUrl}/api/auth/outlook/callback`;
 
-    // Build OAuth authorization URL
+    // Build OAuth authorization URL with PKCE
     const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
     authUrl.searchParams.append('client_id', process.env.OUTLOOK_CLIENT_ID);
     authUrl.searchParams.append('response_type', 'code');
@@ -258,6 +276,8 @@ router.get('/outlook/auth', authenticateToken, async (req, res) => {
     );
     authUrl.searchParams.append('state', req.user.id); // Pass user ID in state parameter
     authUrl.searchParams.append('prompt', 'select_account');
+    authUrl.searchParams.append('code_challenge', codeChallenge);
+    authUrl.searchParams.append('code_challenge_method', 'S256');
 
     res.json({
       success: true,
@@ -310,7 +330,22 @@ router.get('/outlook/callback', async (req, res) => {
 
     console.log('✅ Received OAuth callback for user:', userId);
 
-    // Exchange authorization code for tokens
+    // Retrieve code_verifier from database
+    await database.connect();
+    const user = await database.get('SELECT outlook_pkce_verifier FROM users WHERE id = $1', [
+      userId,
+    ]);
+
+    if (!user || !user.outlook_pkce_verifier) {
+      console.error('❌ No PKCE verifier found for user');
+      return res.redirect(
+        `${frontendUrl}/profile?outlook=error&message=Session expired. Please try again`,
+      );
+    }
+
+    const codeVerifier = user.outlook_pkce_verifier;
+
+    // Exchange authorization code for tokens with PKCE
     const axios = require('axios');
     const backendUrl = process.env.BACKEND_URL || 'https://thesimpleai.vercel.app';
     const redirectUri = `${backendUrl}/api/auth/outlook/callback`;
@@ -319,10 +354,10 @@ router.get('/outlook/callback', async (req, res) => {
       'https://login.microsoftonline.com/common/oauth2/v2.0/token',
       new URLSearchParams({
         client_id: process.env.OUTLOOK_CLIENT_ID,
-        client_secret: process.env.OUTLOOK_CLIENT_SECRET,
         code: code,
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',
+        code_verifier: codeVerifier,
         scope:
           'offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read',
       }),
@@ -357,14 +392,15 @@ router.get('/outlook/callback', async (req, res) => {
     // Calculate token expiration
     const expiresAt = new Date(Date.now() + expires_in * 1000);
 
-    // Store tokens in database
+    // Store tokens in database and clear PKCE verifier
     await database.connect();
     await database.run(
-      `UPDATE users 
+      `UPDATE users
        SET outlook_access_token = $1,
            outlook_refresh_token = $2,
            outlook_token_expires_at = $3,
            outlook_email = $4,
+           outlook_pkce_verifier = NULL,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $5`,
       [access_token, refresh_token, expiresAt.toISOString(), userEmail, userId],

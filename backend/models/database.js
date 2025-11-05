@@ -182,6 +182,7 @@ class Database {
           'ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_token_expires_at TIMESTAMP',
         );
         await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_email VARCHAR(255)');
+        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_pkce_verifier TEXT');
 
         // 2FA columns
         await this.run(

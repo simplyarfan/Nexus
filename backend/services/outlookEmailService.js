@@ -279,8 +279,8 @@ class OutlookEmailService {
             </div>
 
             ${
-              data.googleFormLink
-                ? `
+  data.googleFormLink
+    ? `
             <div style="text-align: center; margin: 32px 0;">
                 <a href="${data.googleFormLink}" class="button">
                     📝 Complete Pre-Interview Form
@@ -290,8 +290,8 @@ class OutlookEmailService {
                 </p>
             </div>
             `
-                : ''
-            }
+    : ''
+}
             
             <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0;">
                 <h4 style="margin: 0 0 8px 0; color: #1e40af;">💡 What to Expect</h4>
@@ -432,17 +432,17 @@ class OutlookEmailService {
                 <div class="detail-item">
                     <div class="detail-label">Date & Time:</div>
                     <div class="detail-value"><strong>${new Date(data.scheduledTime).toLocaleString(
-                      'en-US',
-                      {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        timeZoneName: 'short',
-                      },
-                    )}</strong></div>
+    'en-US',
+    {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    },
+  )}</strong></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Duration:</div>
@@ -459,8 +459,8 @@ class OutlookEmailService {
             </div>
             
             ${
-              data.meetingLink
-                ? `
+  data.meetingLink
+    ? `
             <div style="text-align: center; margin: 24px 0;">
                 <a href="${data.meetingLink}" class="meeting-link">
                     ${icon} Join Meeting
@@ -470,8 +470,8 @@ class OutlookEmailService {
                 </p>
             </div>
             `
-                : ''
-            }
+    : ''
+}
 
             <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin: 24px 0;">
                 <h4 style="margin: 0 0 8px 0; color: #065f46;">📆 Add to Calendar</h4>
@@ -532,17 +532,17 @@ class OutlookEmailService {
           })),
           ccRecipients: emailData.cc
             ? emailData.cc.map((email) => ({
-                emailAddress: {
-                  address: email,
-                },
-              }))
+              emailAddress: {
+                address: email,
+              },
+            }))
             : [],
           bccRecipients: emailData.bcc
             ? emailData.bcc.map((email) => ({
-                emailAddress: {
-                  address: email,
-                },
-              }))
+              emailAddress: {
+                address: email,
+              },
+            }))
             : [],
           attachments: emailData.attachments || [],
         },

@@ -285,15 +285,15 @@ app.get('/api/test', async (req, res) => {
     );
     results.checks.admin_user = adminUser
       ? {
-          status: 'OK',
-          email: adminUser.email,
-          name: `${adminUser.first_name} ${adminUser.last_name}`,
-          message: 'Admin user found',
-        }
+        status: 'OK',
+        email: adminUser.email,
+        name: `${adminUser.first_name} ${adminUser.last_name}`,
+        message: 'Admin user found',
+      }
       : {
-          status: 'MISSING',
-          message: 'No admin user found',
-        };
+        status: 'MISSING',
+        message: 'No admin user found',
+      };
 
     // Test 4: Check if new columns exist
     try {

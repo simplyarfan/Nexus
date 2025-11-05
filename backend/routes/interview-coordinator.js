@@ -298,9 +298,9 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
       details:
         process.env.NODE_ENV === 'development'
           ? {
-              stack: error.stack,
-              code: error.code,
-            }
+            stack: error.stack,
+            code: error.code,
+          }
           : undefined,
     });
   }
@@ -659,30 +659,30 @@ router.get('/calendar/:id/ics', authenticateToken, async (req, res) => {
 
     const icsContent = InterviewCoordinatorService
       ? InterviewCoordinatorService.generateICSInvite({
-          id: interview.id,
-          candidateName: interview.candidate_name,
-          candidateEmail: interview.candidate_email,
-          position: interview.job_title,
-          interviewType: interview.interview_type,
-          scheduledTime: interview.scheduled_time,
-          duration: interview.duration,
-          platform: interview.platform,
-          meetingLink: interview.meeting_link,
-        })
+        id: interview.id,
+        candidateName: interview.candidate_name,
+        candidateEmail: interview.candidate_email,
+        position: interview.job_title,
+        interviewType: interview.interview_type,
+        scheduledTime: interview.scheduled_time,
+        duration: interview.duration,
+        platform: interview.platform,
+        meetingLink: interview.meeting_link,
+      })
       : [
-          'BEGIN:VCALENDAR',
-          'VERSION:2.0',
-          'PRODID:-//Interview Coordinator//EN',
-          'CALSCALE:GREGORIAN',
-          'METHOD:REQUEST',
-          'BEGIN:VEVENT',
-          `UID:${interview.id}@interviewcoordinator.com`,
-          // Minimal fallback content
-          `SUMMARY:${interview.interview_type || 'Interview'} - ${interview.candidate_name}`,
-          `DESCRIPTION:Interview for ${interview.job_title}`,
-          'END:VEVENT',
-          'END:VCALENDAR',
-        ].join('\r\n');
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Interview Coordinator//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:REQUEST',
+        'BEGIN:VEVENT',
+        `UID:${interview.id}@interviewcoordinator.com`,
+        // Minimal fallback content
+        `SUMMARY:${interview.interview_type || 'Interview'} - ${interview.candidate_name}`,
+        `DESCRIPTION:Interview for ${interview.job_title}`,
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n');
 
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
     res.setHeader(

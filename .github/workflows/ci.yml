@@ -43,7 +43,7 @@ jobs:
       - name: Check code formatting
         run: |
           npm install -g prettier
-          prettier --check "**/*.{js,jsx,json,md}"
+          prettier --check "**/*.{js,jsx,json,md}" --ignore-path .prettierignore
 
   # backend-tests:
   #   name: Backend Tests

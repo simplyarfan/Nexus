@@ -359,6 +359,7 @@ router.get('/outlook/callback', async (req, res) => {
       'https://login.microsoftonline.com/common/oauth2/v2.0/token',
       new URLSearchParams({
         client_id: process.env.OUTLOOK_CLIENT_ID,
+        client_secret: process.env.OUTLOOK_CLIENT_SECRET,
         code: code,
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',

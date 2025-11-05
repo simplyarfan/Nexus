@@ -20,10 +20,8 @@ const nextConfig = {
     NEXT_PUBLIC_COMPANY_DOMAIN: process.env.NEXT_PUBLIC_COMPANY_DOMAIN || 'securemaxtech.com',
   },
 
-  // Disable server-side features for static export
-  experimental: {
-    esmExternals: false,
-  },
+  // Transpile GSAP modules for proper ES6 support
+  transpilePackages: ['gsap'],
 
   // Webpack configuration
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {

@@ -1,9 +1,11 @@
 # Outlook OAuth Setup Guide
 
 ## Overview
+
 This guide helps you set up Microsoft Outlook OAuth2 authentication for the Interview Coordinator email integration.
 
 ## Prerequisites
+
 - Azure account with access to Azure Active Directory
 - Admin permissions to create app registrations
 
@@ -21,6 +23,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
    - Click **+ New registration**
 
 3. **Fill in Application Details**
+
    ```
    Name: Nexus Interview Coordinator
    Supported account types: Accounts in this organizational directory only (Single tenant)
@@ -38,12 +41,14 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ## Step 2: Get Application Credentials
 
 ### Get Client ID
+
 1. After registration, you'll see the **Overview** page
 2. **Copy the "Application (client) ID"**
    - Example: `12345678-1234-1234-1234-123456789abc`
    - This is your `OUTLOOK_CLIENT_ID`
 
 ### Create Client Secret
+
 1. In the left sidebar, click **Certificates & secrets**
 2. Click **+ New client secret**
 3. Add description: `Interview Coordinator Secret`
@@ -54,6 +59,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
    - This is your `OUTLOOK_CLIENT_SECRET`
 
 ### Get Tenant ID
+
 1. Go back to **Overview** page
 2. **Copy the "Directory (tenant) ID"**
    - Example: `87654321-4321-4321-4321-9876543210ab`
@@ -85,6 +91,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ### Local Development (.env file)
 
 1. **Create `.env` file in the backend directory** if it doesn't exist:
+
    ```bash
    cd backend
    cp .env.example .env
@@ -108,6 +115,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 2. **Navigate to Settings → Environment Variables**
 
 3. **Add these variables**:
+
    ```
    Name: OUTLOOK_CLIENT_ID
    Value: 12345678-1234-1234-1234-123456789abc
@@ -174,26 +182,32 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ## Troubleshooting
 
 ### Error: "Outlook OAuth is not configured"
+
 - **Solution**: Make sure all 4 environment variables are set correctly
 - Restart your backend server after adding variables
 
 ### Error: "AADSTS700016: Application not found in directory"
+
 - **Solution**: Check that `OUTLOOK_CLIENT_ID` matches your Azure app
 - Verify `OUTLOOK_TENANT_ID` is correct
 
 ### Error: "invalid_client"
+
 - **Solution**: Check that `OUTLOOK_CLIENT_SECRET` is correct
 - The secret may have expired (check Azure → Certificates & secrets)
 
 ### Error: "redirect_uri_mismatch"
+
 - **Solution**: Ensure the redirect URI in Azure matches your `OUTLOOK_REDIRECT_URI`
 - Must match exactly (including http vs https)
 
 ### Error: "AADSTS65001: The user or administrator has not consented"
+
 - **Solution**: Click "Grant admin consent" in Azure → API permissions
 - Or have each user manually consent on first login
 
 ### Email not sending
+
 1. **Check Outlook connection status** in Profile → Email Integration
 2. **Reconnect Outlook** if showing disconnected
 3. **Check backend logs** for detailed error messages
@@ -204,21 +218,25 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ## Security Best Practices
 
 ### 1. Keep Secrets Safe
+
 - ✅ Never commit `.env` file to git
 - ✅ Use different secrets for dev and production
 - ✅ Rotate secrets periodically (every 6-12 months)
 
 ### 2. Use Service Account
+
 - ✅ Create a dedicated service account like `interviews@securemaxtech.com`
 - ✅ Don't use personal Outlook accounts for production
 - ✅ This account will appear as the sender of all interview emails
 
 ### 3. Monitor Usage
+
 - ✅ Review Azure AD sign-in logs regularly
 - ✅ Check for unusual authentication patterns
 - ✅ Set up alerts for failed authentications
 
 ### 4. Limit Permissions
+
 - ✅ Only request minimum necessary permissions
 - ✅ Current permissions: Mail.Send, User.Read, Calendars.ReadWrite
 - ✅ Don't add permissions you don't need
@@ -249,6 +267,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ```
 
 ### Token Flow
+
 1. User clicks "Connect Outlook" in frontend
 2. Frontend redirects to Azure AD authorization URL
 3. User signs in and grants permissions
@@ -272,6 +291,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ## Support
 
 If you encounter issues:
+
 1. Check the troubleshooting section above
 2. Review backend logs for detailed error messages
 3. Verify all Azure AD configurations

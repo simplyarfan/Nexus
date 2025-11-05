@@ -692,8 +692,8 @@ const BatchDetail = () => {
                           {matchedSkills.length === 0 &&
                             missingSkills.length === 0 &&
                             allSkills.length === 0 && (
-                              <p className="text-gray-500 text-sm">Skills analysis not available</p>
-                            )}
+                            <p className="text-gray-500 text-sm">Skills analysis not available</p>
+                          )}
 
                           {/* Skills Gap Chart */}
                           {(matchedSkills.length > 0 || missingSkills.length > 0) && (

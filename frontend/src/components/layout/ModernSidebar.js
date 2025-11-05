@@ -27,19 +27,19 @@ export default function ModernSidebar({ collapsed, onToggle }) {
 
   const navigationItems = isSuperAdmin
     ? [
-        { name: 'Dashboard', href: '/admin', icon: Home },
-        { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-        { name: 'Users', href: '/admin/users', icon: Users },
-        { name: 'Support', href: '/admin/tickets', icon: MessageSquare },
-        { name: 'System', href: '/admin/system', icon: Settings },
-      ]
+      { name: 'Dashboard', href: '/admin', icon: Home },
+      { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+      { name: 'Users', href: '/admin/users', icon: Users },
+      { name: 'Support', href: '/admin/tickets', icon: MessageSquare },
+      { name: 'System', href: '/admin/system', icon: Settings },
+    ]
     : [
-        { name: 'Dashboard', href: '/', icon: Home },
-        { name: 'CV Intelligence', href: '/cv-intelligence', icon: Brain },
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Interviews', href: '/interviews', icon: Calendar },
-        { name: 'Support', href: '/support/my-tickets', icon: MessageSquare },
-      ];
+      { name: 'Dashboard', href: '/', icon: Home },
+      { name: 'CV Intelligence', href: '/cv-intelligence', icon: Brain },
+      { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+      { name: 'Interviews', href: '/interviews', icon: Calendar },
+      { name: 'Support', href: '/support/my-tickets', icon: MessageSquare },
+    ];
 
   const handleLogout = async () => {
     await logout();

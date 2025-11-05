@@ -21,7 +21,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
       setSelectedTime({
         hour: String(hours % 12 || 12).padStart(2, '0'),
         minute: String(minutes).padStart(2, '0'),
-        period: hours >= 12 ? 'PM' : 'AM'
+        period: hours >= 12 ? 'PM' : 'AM',
       });
     }
   }, [value]);
@@ -78,14 +78,14 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
 
   const updateDateTime = (date, time) => {
     if (!date) return;
-    
+
     let hours = parseInt(time.hour);
     if (time.period === 'PM' && hours !== 12) hours += 12;
     if (time.period === 'AM' && hours === 12) hours = 0;
-    
+
     const newDate = new Date(date);
     newDate.setHours(hours, parseInt(time.minute), 0, 0);
-    
+
     // Format as datetime-local string
     const isoString = newDate.toISOString().slice(0, 16);
     onChange({ target: { value: isoString } });
@@ -93,10 +93,10 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
 
   const formatDisplayDate = () => {
     if (!selectedDate) return 'Select date';
-    return selectedDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return selectedDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
   };
 
@@ -141,7 +141,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
-      
+
       <div className="grid grid-cols-2 gap-3">
         {/* Date Picker Button */}
         <div className="relative" ref={calendarRef}>
@@ -287,7 +287,9 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                     >
                       {hours.map((h) => (
-                        <option key={h} value={h}>{h}</option>
+                        <option key={h} value={h}>
+                          {h}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -302,9 +304,13 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                       onChange={(e) => handleTimeChange('minute', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                     >
-                      {minutes.filter((m) => parseInt(m) % 5 === 0).map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
+                      {minutes
+                        .filter((m) => parseInt(m) % 5 === 0)
+                        .map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
                     </select>
                   </div>
 
@@ -345,15 +351,23 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                     {[
                       { label: '9:00 AM', hour: '09', minute: '00', period: 'AM' },
                       { label: '12:00 PM', hour: '12', minute: '00', period: 'PM' },
-                      { label: '3:00 PM', hour: '03', minute: '00', period: 'PM' }
+                      { label: '3:00 PM', hour: '03', minute: '00', period: 'PM' },
                     ].map((time) => (
                       <button
                         key={time.label}
                         type="button"
                         onClick={() => {
-                          setSelectedTime({ hour: time.hour, minute: time.minute, period: time.period });
+                          setSelectedTime({
+                            hour: time.hour,
+                            minute: time.minute,
+                            period: time.period,
+                          });
                           if (selectedDate) {
-                            updateDateTime(selectedDate, { hour: time.hour, minute: time.minute, period: time.period });
+                            updateDateTime(selectedDate, {
+                              hour: time.hour,
+                              minute: time.minute,
+                              period: time.period,
+                            });
                           }
                         }}
                         className="px-2 py-1.5 text-xs bg-gray-50 hover:bg-orange-50 border border-gray-200 rounded-lg transition-colors"
@@ -390,12 +404,13 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
             <div>
               <div className="text-xs font-medium text-orange-600 mb-1">Scheduled for</div>
               <div className="text-sm font-semibold text-gray-900">
-                {selectedDate.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
-                  day: 'numeric', 
-                  year: 'numeric' 
-                })} at {formatDisplayTime()}
+                {selectedDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}{' '}
+                at {formatDisplayTime()}
               </div>
             </div>
             <button

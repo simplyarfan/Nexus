@@ -2,11 +2,11 @@ import { motion } from 'motion/react';
 import { useEffect, useRef, useState, useMemo } from 'react';
 
 const buildKeyframes = (from, steps) => {
-  const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
+  const keys = new Set([...Object.keys(from), ...steps.flatMap((s) => Object.keys(s))]);
 
   const keyframes = {};
-  keys.forEach(k => {
-    keyframes[k] = [from[k], ...steps.map(s => s[k])];
+  keys.forEach((k) => {
+    keyframes[k] = [from[k], ...steps.map((s) => s[k])];
   });
   return keyframes;
 };
@@ -21,9 +21,9 @@ const BlurText = ({
   rootMargin = '0px',
   animationFrom,
   animationTo,
-  easing = t => t,
+  easing = (t) => t,
   onAnimationComplete,
-  stepDuration = 0.35
+  stepDuration = 0.35,
 }) => {
   const elements = animateBy === 'words' ? text.split(' ') : text.split('');
   const [inView, setInView] = useState(false);
@@ -38,7 +38,7 @@ const BlurText = ({
           observer.unobserve(ref.current);
         }
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
     observer.observe(ref.current);
     return () => observer.disconnect();
@@ -47,8 +47,10 @@ const BlurText = ({
 
   const defaultFrom = useMemo(
     () =>
-      direction === 'top' ? { filter: 'blur(10px)', opacity: 0, y: -50 } : { filter: 'blur(10px)', opacity: 0, y: 50 },
-    [direction]
+      direction === 'top'
+        ? { filter: 'blur(10px)', opacity: 0, y: -50 }
+        : { filter: 'blur(10px)', opacity: 0, y: 50 },
+    [direction],
   );
 
   const defaultTo = useMemo(
@@ -56,11 +58,11 @@ const BlurText = ({
       {
         filter: 'blur(5px)',
         opacity: 0.5,
-        y: direction === 'top' ? 5 : -5
+        y: direction === 'top' ? 5 : -5,
       },
-      { filter: 'blur(0px)', opacity: 1, y: 0 }
+      { filter: 'blur(0px)', opacity: 1, y: 0 },
     ],
-    [direction]
+    [direction],
   );
 
   const fromSnapshot = animationFrom ?? defaultFrom;
@@ -68,7 +70,9 @@ const BlurText = ({
 
   const stepCount = toSnapshots.length + 1;
   const totalDuration = stepDuration * (stepCount - 1);
-  const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
+  const times = Array.from({ length: stepCount }, (_, i) =>
+    stepCount === 1 ? 0 : i / (stepCount - 1),
+  );
 
   return (
     <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
@@ -78,7 +82,7 @@ const BlurText = ({
         const spanTransition = {
           duration: totalDuration,
           times,
-          delay: (index * delay) / 1000
+          delay: (index * delay) / 1000,
         };
         spanTransition.ease = easing;
 

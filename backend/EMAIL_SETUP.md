@@ -1,7 +1,9 @@
 # Email Service Configuration Guide
 
 ## Problem
+
 The registration flow is failing because email verification codes cannot be sent. The backend logs show:
+
 ```
 ❌ [EMAIL] CRITICAL: Email credentials not configured
 ❌ [EMAIL] Set EMAIL_USER and EMAIL_PASS in Vercel environment variables
@@ -33,14 +35,15 @@ The registration flow is failing because email verification codes cannot be sent
    - Go to: Settings → Environment Variables
    - Add the following variables:
 
-   | Variable Name | Value | Environment |
-   |--------------|-------|-------------|
-   | `EMAIL_USER` | `your-email@securemaxtech.com` | Production, Preview, Development |
-   | `EMAIL_PASS` | `your-16-char-app-password` | Production, Preview, Development |
-   | `EMAIL_HOST` | `smtp.gmail.com` | Production, Preview, Development |
-   | `EMAIL_PORT` | `587` | Production, Preview, Development |
+   | Variable Name | Value                          | Environment                      |
+   | ------------- | ------------------------------ | -------------------------------- |
+   | `EMAIL_USER`  | `your-email@securemaxtech.com` | Production, Preview, Development |
+   | `EMAIL_PASS`  | `your-16-char-app-password`    | Production, Preview, Development |
+   | `EMAIL_HOST`  | `smtp.gmail.com`               | Production, Preview, Development |
+   | `EMAIL_PORT`  | `587`                          | Production, Preview, Development |
 
    **Example values:**
+
    ```bash
    EMAIL_USER=admin@securemaxtech.com
    EMAIL_PASS=abcd efgh ijkl mnop  # (16 characters from Gmail App Password)
@@ -58,15 +61,18 @@ The registration flow is failing because email verification codes cannot be sent
 After redeployment, check the Vercel logs:
 
 ✅ **Success logs should show:**
+
 ```
 ✅ [EMAIL] SMTP transporter created successfully
 ✅ [EMAIL] Using: admin@securemaxtech.com
 ```
 
 ❌ **If still failing:**
+
 ```
 ❌ [EMAIL] CRITICAL: Email credentials not configured
 ```
+
 → Variables not set correctly, check Vercel dashboard
 
 ### Step 4: Test Registration Flow
@@ -84,10 +90,12 @@ After redeployment, check the Vercel logs:
 ## Alternative: Use a Different Email Provider
 
 ### Option 1: Gmail (Recommended for Development)
+
 - **Pros**: Easy setup, reliable
 - **Cons**: Daily sending limits (500 emails/day), requires App Password
 
 ### Option 2: SendGrid (Recommended for Production)
+
 - **Pros**: High deliverability, 100 emails/day free tier, professional service
 - **Setup**:
   1. Sign up: https://sendgrid.com/
@@ -101,10 +109,12 @@ After redeployment, check the Vercel logs:
      ```
 
 ### Option 3: AWS SES (Recommended for Scale)
+
 - **Pros**: Lowest cost at scale ($0.10 per 1000 emails), high deliverability
 - **Cons**: Requires AWS account, more complex setup
 
 ### Option 4: Mailgun
+
 - **Pros**: Developer-friendly, generous free tier (5000 emails/month)
 - **Setup**: Similar to SendGrid
 
@@ -113,29 +123,37 @@ After redeployment, check the Vercel logs:
 ## Troubleshooting
 
 ### Issue: "Invalid login" or "Authentication failed"
+
 **Cause**: Incorrect email or password
-**Fix**: 
+**Fix**:
+
 - Verify EMAIL_USER is correct
 - Regenerate Gmail App Password
 - Ensure no spaces in password (Vercel might trim values)
 
 ### Issue: "Connection timeout"
+
 **Cause**: Firewall or port blocking
 **Fix**:
+
 - Verify EMAIL_PORT is 587 (TLS)
 - Try port 465 (SSL) if 587 fails
 - Check Vercel's serverless function timeout
 
 ### Issue: "Transporter not initialized"
+
 **Cause**: Environment variables not loaded
 **Fix**:
+
 - Verify variables are set for correct environment (Production/Preview)
 - Redeploy after adding variables
 - Check Vercel logs for "❌ [EMAIL] CRITICAL: Email credentials not configured"
 
 ### Issue: Emails sent but not received
+
 **Cause**: Spam filtering
 **Fix**:
+
 - Check spam/junk folder
 - Add sender to contacts
 - For production: Set up SPF/DKIM records for your domain
@@ -145,6 +163,7 @@ After redeployment, check the Vercel logs:
 ## Current Backend Behavior (After Fix)
 
 ### ✅ GOOD: Registration fails gracefully if email cannot be sent
+
 ```javascript
 // Backend now:
 1. Creates user in database
@@ -154,6 +173,7 @@ After redeployment, check the Vercel logs:
 ```
 
 ### ✅ GOOD: Frontend handles errors correctly
+
 ```javascript
 // Frontend now:
 1. Calls registration API
@@ -162,6 +182,7 @@ After redeployment, check the Vercel logs:
 ```
 
 ### ❌ BAD: Old behavior (fixed)
+
 ```javascript
 // Old backend (wrong):
 1. Created user
@@ -195,6 +216,7 @@ After redeployment, check the Vercel logs:
 ## Quick Reference
 
 ### Local Development (.env)
+
 ```bash
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
@@ -203,6 +225,7 @@ EMAIL_PASS=your_app_password
 ```
 
 ### Vercel Environment Variables
+
 ```bash
 # Navigate to:
 https://vercel.com/[your-username]/[project-name]/settings/environment-variables
@@ -211,6 +234,7 @@ https://vercel.com/[your-username]/[project-name]/settings/environment-variables
 ```
 
 ### Test Email Sending
+
 ```bash
 # Check backend logs in Vercel:
 https://vercel.com/[your-username]/[project-name]/logs

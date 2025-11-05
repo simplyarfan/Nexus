@@ -12,9 +12,9 @@ const securityHeaders = helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://thesimpleai.vercel.app", "https://thesimpleai.netlify.app"],
-      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://thesimpleai.vercel.app', 'https://thesimpleai.netlify.app'],
+      fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
@@ -23,16 +23,16 @@ const securityHeaders = helmet({
   hsts: {
     maxAge: 31536000, // 1 year
     includeSubDomains: true,
-    preload: true
+    preload: true,
   },
   frameguard: {
-    action: 'deny' // Prevent clickjacking
+    action: 'deny', // Prevent clickjacking
   },
   noSniff: true, // Prevent MIME type sniffing
   xssFilter: true, // Enable XSS filter
   referrerPolicy: {
-    policy: 'strict-origin-when-cross-origin'
-  }
+    policy: 'strict-origin-when-cross-origin',
+  },
 });
 
 /**
@@ -44,7 +44,7 @@ const apiLimiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per windowMs
   message: {
     success: false,
-    message: 'Too many requests from this IP, please try again later'
+    message: 'Too many requests from this IP, please try again later',
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
@@ -52,9 +52,9 @@ const apiLimiter = rateLimit({
     res.status(429).json({
       success: false,
       message: 'Too many requests, please try again later',
-      retryAfter: req.rateLimit.resetTime
+      retryAfter: req.rateLimit.resetTime,
     });
-  }
+  },
 });
 
 /**
@@ -67,16 +67,16 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true, // Don't count successful requests
   message: {
     success: false,
-    message: 'Too many login attempts, please try again later'
+    message: 'Too many login attempts, please try again later',
   },
   handler: (req, res) => {
     console.warn(`Rate limit exceeded for IP: ${req.ip} on ${req.path}`);
     res.status(429).json({
       success: false,
       message: 'Too many attempts, please try again in 15 minutes',
-      retryAfter: Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000)
+      retryAfter: Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000),
     });
-  }
+  },
 });
 
 /**
@@ -91,7 +91,7 @@ const corsOptions = {
       'https://thesimpleai.netlify.app',
       'https://test--thesimpleai.netlify.app', // Test branch preview
     ];
-    
+
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -104,7 +104,7 @@ const corsOptions = {
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count', 'X-Page-Count']
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
 };
 
 /**
@@ -113,7 +113,7 @@ const corsOptions = {
  */
 const requestSizeLimiter = {
   json: { limit: '10mb' }, // For JSON payloads
-  urlencoded: { limit: '10mb', extended: true } // For form data
+  urlencoded: { limit: '10mb', extended: true }, // For form data
 };
 
 /**
@@ -129,7 +129,7 @@ const securityLogger = (req, res, next) => {
   ];
 
   const url = req.url.toLowerCase();
-  const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(url));
+  const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(url));
 
   if (isSuspicious) {
     console.warn('🚨 Suspicious request detected:', {
@@ -137,7 +137,7 @@ const securityLogger = (req, res, next) => {
       method: req.method,
       url: req.url,
       userAgent: req.get('user-agent'),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -151,15 +151,15 @@ const securityLogger = (req, res, next) => {
 const ipWhitelist = (allowedIPs = []) => {
   return (req, res, next) => {
     const clientIP = req.ip || req.connection.remoteAddress;
-    
+
     if (allowedIPs.length > 0 && !allowedIPs.includes(clientIP)) {
       console.warn(`Access denied for IP: ${clientIP}`);
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: 'Access denied',
       });
     }
-    
+
     next();
   };
 };
@@ -172,5 +172,5 @@ module.exports = {
   corsOptions,
   requestSizeLimiter,
   securityLogger,
-  ipWhitelist
+  ipWhitelist,
 };

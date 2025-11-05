@@ -6,23 +6,23 @@ import { supportAPI } from '../../utils/api';
 import ErrorBoundary from '../../components/shared/ErrorBoundary';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  MessageCircle, 
+import {
+  Search,
+  Filter,
+  MessageCircle,
   MessageSquare,
-  User, 
-  Calendar, 
-  Tag, 
-  Clock, 
-  AlertCircle, 
-  CheckCircle, 
-  XCircle, 
+  User,
+  Calendar,
+  Tag,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
   LifeBuoy,
   ArrowLeft,
   Eye,
   Reply,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
 export default function TicketsManagement() {
@@ -48,15 +48,15 @@ export default function TicketsManagement() {
     try {
       setIsLoading(true);
       console.log('🎫 Fetching support tickets...');
-      
+
       const response = await supportAPI.getAllTickets();
       console.log('📋 Tickets API response:', response);
-      
+
       if (response && response.data && response.data.data) {
         // Backend returns: { success: true, data: { tickets: [...], pagination: {...} } }
         const ticketData = response.data.data.tickets || [];
         const paginationData = response.data.data.pagination || {};
-        
+
         console.log('🎫 Setting tickets:', ticketData);
         console.log('📄 Pagination:', paginationData);
         setTickets(Array.isArray(ticketData) ? ticketData : []);
@@ -70,7 +70,7 @@ export default function TicketsManagement() {
       console.error('Error details:', {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
       toast.error(`Failed to fetch tickets: ${error.response?.data?.message || error.message}`);
       setTickets([]);
@@ -82,22 +82,22 @@ export default function TicketsManagement() {
   const updateTicketStatus = async (ticketId, newStatus) => {
     try {
       console.log('🔧 Updating ticket status:', ticketId, 'to:', newStatus);
-      
+
       // Optimistically update the UI immediately
-      setTickets(prevTickets => 
-        prevTickets.map(ticket => 
-          ticket.id === ticketId 
+      setTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket.id === ticketId
             ? { ...ticket, status: newStatus, updated_at: new Date().toISOString() }
-            : ticket
-        )
+            : ticket,
+        ),
       );
-      
+
       const response = await supportAPI.updateTicketStatus(ticketId, newStatus);
       console.log('📝 Update response:', response);
-      
+
       // Check if response is successful
       const isSuccess = response?.data?.success || response?.success;
-      
+
       if (isSuccess) {
         toast.success('Ticket status updated');
         // Refresh in background to ensure consistency
@@ -105,14 +105,15 @@ export default function TicketsManagement() {
       } else {
         // Revert optimistic update on failure
         fetchTickets();
-        const errorMessage = response?.data?.message || response?.message || 'Failed to update ticket status';
+        const errorMessage =
+          response?.data?.message || response?.message || 'Failed to update ticket status';
         console.error('❌ Update failed:', response);
         toast.error(errorMessage);
       }
     } catch (error) {
       console.error('❌ Error updating ticket status:', error);
       console.error('Error details:', error.response?.data);
-      
+
       // Check if the error is actually a successful update (status 200)
       if (error.response?.status === 200 || error.response?.data?.success) {
         toast.success('Ticket status updated');
@@ -120,7 +121,9 @@ export default function TicketsManagement() {
       } else {
         // Revert optimistic update on failure
         fetchTickets();
-        toast.error(`Failed to update ticket status: ${error.response?.data?.message || error.message}`);
+        toast.error(
+          `Failed to update ticket status: ${error.response?.data?.message || error.message}`,
+        );
       }
     }
   };
@@ -168,10 +171,11 @@ export default function TicketsManagement() {
     }
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.user_email?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTickets = tickets.filter((ticket) => {
+    const matchesSearch =
+      ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.user_email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
@@ -191,17 +195,15 @@ export default function TicketsManagement() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-
         <Head>
           <title>Support Tickets - SimpleAI</title>
           <meta name="description" content="Manage user support requests and tickets" />
         </Head>
-        
+
         <div className="relative z-10">
-        
           <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Back to Dashboard Button */}
-            <motion.div 
+            <motion.div
               className="mb-6"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -217,9 +219,9 @@ export default function TicketsManagement() {
                 Back to Dashboard
               </motion.button>
             </motion.div>
-            
+
             {/* Header */}
-            <motion.div 
+            <motion.div
               className="mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -244,7 +246,7 @@ export default function TicketsManagement() {
             </motion.div>
 
             {/* Filters */}
-            <motion.div 
+            <motion.div
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -292,7 +294,7 @@ export default function TicketsManagement() {
             </motion.div>
 
             {/* Tickets List */}
-            <motion.div 
+            <motion.div
               className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -344,9 +346,7 @@ export default function TicketsManagement() {
                                 <div className="text-sm font-medium text-gray-900">
                                   {ticket.subject}
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  #{ticket.id}
-                                </div>
+                                <div className="text-sm text-gray-500">#{ticket.id}</div>
                               </div>
                             </div>
                           </td>
@@ -363,19 +363,21 @@ export default function TicketsManagement() {
                                 <div className="text-sm font-medium text-white">
                                   {ticket.user_name}
                                 </div>
-                                <div className="text-sm text-gray-400">
-                                  {ticket.user_email}
-                                </div>
+                                <div className="text-sm text-gray-400">{ticket.user_email}</div>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}
+                            >
                               {ticket.status?.replace('_', ' ')}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}
+                            >
                               {ticket.priority}
                             </span>
                           </td>

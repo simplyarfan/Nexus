@@ -2,33 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  User, 
-  Building2, 
-  Briefcase, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Building2,
+  Briefcase,
   Brain,
   ArrowRight,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 
 const Register = () => {
   const router = useRouter();
   const { register, loading, isAuthenticated } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     first_name: '',
     last_name: '',
-    job_title: ''
+    job_title: '',
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -43,11 +43,11 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -69,7 +69,8 @@ const Register = () => {
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';
+      newErrors.password =
+        'Password must contain uppercase, lowercase, number, and special character';
     }
 
     // Confirm password validation
@@ -83,7 +84,7 @@ const Register = () => {
     if (!formData.first_name.trim()) {
       newErrors.first_name = 'First name is required';
     }
-    
+
     if (!formData.last_name.trim()) {
       newErrors.last_name = 'Last name is required';
     }
@@ -94,24 +95,24 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const result = await register({
         email: formData.email,
         password: formData.password,
         firstName: formData.first_name,
         lastName: formData.last_name,
-        jobTitle: formData.job_title || undefined
+        jobTitle: formData.job_title || undefined,
       });
-      
+
       console.log('🔍 [REGISTER] Registration result:', result);
       console.log('🔍 [REGISTER] requiresVerification:', result.requiresVerification);
       console.log('🔍 [REGISTER] userId:', result.userId);
-      
+
       // CRITICAL: Only redirect on successful registration
       if (result.success && result.requiresVerification) {
         // Redirect to email verification page
@@ -160,7 +161,10 @@ const Register = () => {
             {/* First Name & Last Name */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="first_name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   First name
                 </label>
                 <input
@@ -222,9 +226,7 @@ const Register = () => {
                 } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
                 placeholder="john@example.com"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
             </div>
 
             {/* Job Title (Optional) */}
@@ -270,14 +272,15 @@ const Register = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Confirm password
               </label>
               <div className="relative">
@@ -299,7 +302,11 @@ const Register = () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
@@ -307,14 +314,13 @@ const Register = () => {
               )}
             </div>
 
-
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
               className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-red-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Creating account..." : "Create account"}
+              {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
           </form>
         </div>
@@ -323,7 +329,10 @@ const Register = () => {
         <div className="text-center mt-6">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-orange-600 hover:text-orange-500 font-semibold transition-colors">
+            <Link
+              href="/auth/login"
+              className="text-orange-600 hover:text-orange-500 font-semibold transition-colors"
+            >
               Sign in here
             </Link>
           </p>

@@ -19,7 +19,7 @@ const SplitText = ({
   rootMargin = '-100px',
   textAlign = 'center',
   tag = 'p',
-  onLetterAnimationComplete
+  onLetterAnimationComplete,
 }) => {
   const ref = useRef(null);
   const animationCompletedRef = useRef(false);
@@ -62,7 +62,7 @@ const SplitText = ({
       const start = `top ${startPct}%${sign}`;
 
       let targets;
-      const assignTargets = self => {
+      const assignTargets = (self) => {
         if (splitType.includes('chars') && self.chars.length) targets = self.chars;
         if (!targets && splitType.includes('words') && self.words.length) targets = self.words;
         if (!targets && splitType.includes('lines') && self.lines.length) targets = self.lines;
@@ -77,7 +77,7 @@ const SplitText = ({
         wordsClass: 'split-word',
         charsClass: 'split-char',
         reduceWhiteSpace: false,
-        onSplit: self => {
+        onSplit: (self) => {
           assignTargets(self);
           return gsap.fromTo(
             targets,
@@ -92,22 +92,22 @@ const SplitText = ({
                 start,
                 once: true,
                 fastScrollEnd: true,
-                anticipatePin: 0.4
+                anticipatePin: 0.4,
               },
               onComplete: () => {
                 animationCompletedRef.current = true;
                 onLetterAnimationComplete?.();
               },
               willChange: 'transform, opacity',
-              force3D: true
-            }
+              force3D: true,
+            },
           );
-        }
+        },
       });
       el._rbsplitInstance = splitInstance;
 
       return () => {
-        ScrollTrigger.getAll().forEach(st => {
+        ScrollTrigger.getAll().forEach((st) => {
           if (st.trigger === el) st.kill();
         });
         try {
@@ -130,17 +130,17 @@ const SplitText = ({
         threshold,
         rootMargin,
         fontsLoaded,
-        onLetterAnimationComplete
+        onLetterAnimationComplete,
       ],
-      scope: ref
-    }
+      scope: ref,
+    },
   );
 
   const renderTag = () => {
     const style = {
       textAlign,
       wordWrap: 'break-word',
-      willChange: 'transform, opacity'
+      willChange: 'transform, opacity',
     };
     const classes = `split-parent overflow-hidden inline-block whitespace-normal ${className}`;
     switch (tag) {

@@ -16,14 +16,16 @@ router.get('/check-env', (req, res) => {
     EMAIL_PORT: process.env.EMAIL_PORT || '587 (default)',
     NODE_ENV: process.env.NODE_ENV,
     // Show first 3 chars of email for verification
-    EMAIL_USER_PREFIX: process.env.EMAIL_USER ? process.env.EMAIL_USER.substring(0, 3) + '***' : 'N/A'
+    EMAIL_USER_PREFIX: process.env.EMAIL_USER
+      ? process.env.EMAIL_USER.substring(0, 3) + '***'
+      : 'N/A',
   };
 
   res.json({
     success: true,
     message: 'Email configuration status',
     config: emailConfig,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -32,7 +34,7 @@ router.post('/test-email', async (req, res) => {
   if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEBUG !== 'true') {
     return res.status(403).json({
       success: false,
-      message: 'Debug endpoints disabled in production'
+      message: 'Debug endpoints disabled in production',
     });
   }
 
@@ -43,7 +45,7 @@ router.post('/test-email', async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Email address required'
+        message: 'Email address required',
       });
     }
 
@@ -53,7 +55,7 @@ router.post('/test-email', async (req, res) => {
     res.json({
       success: true,
       message: 'Test email sent successfully!',
-      recipient: email
+      recipient: email,
     });
   } catch (error) {
     console.error('❌ [DEBUG] Test email failed:', error);
@@ -61,7 +63,7 @@ router.post('/test-email', async (req, res) => {
       success: false,
       message: 'Failed to send test email',
       error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 });

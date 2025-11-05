@@ -15,14 +15,14 @@ const responseTimeMiddleware = responseTime((req, res, time) => {
 // Request logging middleware
 const requestLogger = (req, res, next) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     const logLevel = res.statusCode >= 400 ? 'error' : 'info';
-    
+
     console[`${logLevel}`](`${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
   });
-  
+
   next();
 };
 
@@ -30,22 +30,22 @@ const requestLogger = (req, res, next) => {
 const memoryMonitor = (req, res, next) => {
   const used = process.memoryUsage();
   const memoryUsageMB = {
-    rss: Math.round(used.rss / 1024 / 1024 * 100) / 100,
-    heapTotal: Math.round(used.heapTotal / 1024 / 1024 * 100) / 100,
-    heapUsed: Math.round(used.heapUsed / 1024 / 1024 * 100) / 100,
-    external: Math.round(used.external / 1024 / 1024 * 100) / 100
+    rss: Math.round((used.rss / 1024 / 1024) * 100) / 100,
+    heapTotal: Math.round((used.heapTotal / 1024 / 1024) * 100) / 100,
+    heapUsed: Math.round((used.heapUsed / 1024 / 1024) * 100) / 100,
+    external: Math.round((used.external / 1024 / 1024) * 100) / 100,
   };
-  
+
   // Log memory usage if heap usage is high
   if (memoryUsageMB.heapUsed > 100) {
     console.warn('High memory usage:', memoryUsageMB);
   }
-  
+
   next();
 };
 
 module.exports = {
   responseTimeMiddleware,
   requestLogger,
-  memoryMonitor
+  memoryMonitor,
 };

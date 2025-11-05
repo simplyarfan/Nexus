@@ -25,7 +25,7 @@ class NotificationController {
         LEFT JOIN users u ON n.type = 'ticket_response' AND (n.metadata->>'responder_id')::int = u.id
         WHERE n.user_id = $1
       `;
-      
+
       const params = [req.user.id];
 
       // Filter by notification types if provided
@@ -36,14 +36,14 @@ class NotificationController {
       }
 
       if (unread_only === 'true') {
-        query += ` AND n.is_read = false`;
+        query += ' AND n.is_read = false';
       }
 
       query += `
         ORDER BY n.created_at DESC
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
-      
+
       params.push(limit, offset);
 
       const notifications = await database.all(query, params);
@@ -60,7 +60,7 @@ class NotificationController {
       }
 
       if (unread_only === 'true') {
-        countQuery += ` AND is_read = false`;
+        countQuery += ' AND is_read = false';
       }
 
       const totalCount = await database.get(countQuery, countParams);
@@ -73,16 +73,15 @@ class NotificationController {
             page: parseInt(page),
             limit: parseInt(limit),
             total: totalCount.total,
-            totalPages: Math.ceil(totalCount.total / limit)
-          }
-        }
+            totalPages: Math.ceil(totalCount.total / limit),
+          },
+        },
       });
-
     } catch (error) {
       console.error('Get notifications error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -93,34 +92,39 @@ class NotificationController {
       const { notification_id } = req.params;
 
       // Check if notification exists and belongs to user
-      const notification = await database.get(`
+      const notification = await database.get(
+        `
         SELECT * FROM notifications WHERE id = $1 AND user_id = $2
-      `, [notification_id, req.user.id]);
+      `,
+        [notification_id, req.user.id],
+      );
 
       if (!notification) {
         return res.status(404).json({
           success: false,
-          message: 'Notification not found'
+          message: 'Notification not found',
         });
       }
 
       // Mark as read
-      await database.run(`
+      await database.run(
+        `
         UPDATE notifications 
         SET is_read = true, read_at = CURRENT_TIMESTAMP 
         WHERE id = $1
-      `, [notification_id]);
+      `,
+        [notification_id],
+      );
 
       res.json({
         success: true,
-        message: 'Notification marked as read'
+        message: 'Notification marked as read',
       });
-
     } catch (error) {
       console.error('Mark notification as read error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -128,22 +132,24 @@ class NotificationController {
   // Mark all notifications as read
   static async markAllAsRead(req, res) {
     try {
-      await database.run(`
+      await database.run(
+        `
         UPDATE notifications 
         SET is_read = true, read_at = CURRENT_TIMESTAMP 
         WHERE user_id = $1 AND is_read = false
-      `, [req.user.id]);
+      `,
+        [req.user.id],
+      );
 
       res.json({
         success: true,
-        message: 'All notifications marked as read'
+        message: 'All notifications marked as read',
       });
-
     } catch (error) {
       console.error('Mark all notifications as read error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -152,7 +158,7 @@ class NotificationController {
   static async getUnreadCount(req, res) {
     try {
       const { types } = req.query;
-      
+
       let query = `
         SELECT COUNT(*) as count FROM notifications 
         WHERE user_id = $1 AND is_read = false
@@ -171,15 +177,14 @@ class NotificationController {
       res.json({
         success: true,
         data: {
-          unread_count: result.count || 0
-        }
+          unread_count: result.count || 0,
+        },
       });
-
     } catch (error) {
       console.error('Get unread count error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -187,10 +192,13 @@ class NotificationController {
   // Create notification (internal use)
   static async createNotification(userId, type, title, message, metadata = {}) {
     try {
-      const result = await database.run(`
+      const result = await database.run(
+        `
         INSERT INTO notifications (user_id, type, title, message, metadata)
         VALUES ($1, $2, $3, $4, $5) RETURNING id
-      `, [userId, type, title, message, JSON.stringify(metadata)]);
+      `,
+        [userId, type, title, message, JSON.stringify(metadata)],
+      );
 
       return result.rows?.[0]?.id || result.id;
     } catch (error) {
@@ -203,21 +211,27 @@ class NotificationController {
   static async createTicketResponseNotification(ticketId, responderId, message) {
     try {
       // Get ticket details
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT st.*, u.first_name, u.last_name 
         FROM support_tickets st
         JOIN users u ON st.user_id = u.id
         WHERE st.id = $1
-      `, [ticketId]);
+      `,
+        [ticketId],
+      );
 
       if (!ticket) {
         throw new Error('Ticket not found');
       }
 
       // Get responder details
-      const responder = await database.get(`
+      const responder = await database.get(
+        `
         SELECT first_name, last_name FROM users WHERE id = $1
-      `, [responderId]);
+      `,
+        [responderId],
+      );
 
       if (!responder) {
         throw new Error('Responder not found');
@@ -225,12 +239,12 @@ class NotificationController {
 
       const title = `Response to your ticket: ${ticket.subject}`;
       const notificationMessage = `${responder.first_name} ${responder.last_name} responded to your support ticket.`;
-      
+
       const metadata = {
         ticket_id: ticketId,
         responder_id: responderId,
         response_message: message,
-        ticket_subject: ticket.subject
+        ticket_subject: ticket.subject,
       };
 
       return await this.createNotification(
@@ -238,9 +252,8 @@ class NotificationController {
         'ticket_response',
         title,
         notificationMessage,
-        metadata
+        metadata,
       );
-
     } catch (error) {
       console.error('Create ticket response notification error:', error);
       throw error;
@@ -251,38 +264,44 @@ class NotificationController {
   static async createTicketStatusNotification(ticketId, newStatus, updatedBy) {
     try {
       // Get ticket details
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT st.*, u.first_name, u.last_name 
         FROM support_tickets st
         JOIN users u ON st.user_id = u.id
         WHERE st.id = $1
-      `, [ticketId]);
+      `,
+        [ticketId],
+      );
 
       if (!ticket) {
         throw new Error('Ticket not found');
       }
 
       // Get updater details
-      const updater = await database.get(`
+      const updater = await database.get(
+        `
         SELECT first_name, last_name FROM users WHERE id = $1
-      `, [updatedBy]);
+      `,
+        [updatedBy],
+      );
 
       const statusMessages = {
-        'open': 'reopened',
-        'in_progress': 'is now being worked on',
-        'resolved': 'has been resolved',
-        'closed': 'has been closed'
+        open: 'reopened',
+        in_progress: 'is now being worked on',
+        resolved: 'has been resolved',
+        closed: 'has been closed',
       };
 
       const title = `Ticket Status Update: ${ticket.subject}`;
       const notificationMessage = `Your support ticket ${statusMessages[newStatus] || `status changed to ${newStatus}`}.`;
-      
+
       const metadata = {
         ticket_id: ticketId,
         old_status: ticket.status,
         new_status: newStatus,
         updated_by: updatedBy,
-        ticket_subject: ticket.subject
+        ticket_subject: ticket.subject,
       };
 
       return await this.createNotification(
@@ -290,9 +309,8 @@ class NotificationController {
         'ticket_status_change',
         title,
         notificationMessage,
-        metadata
+        metadata,
       );
-
     } catch (error) {
       console.error('Create ticket status notification error:', error);
       throw error;
@@ -305,14 +323,17 @@ class NotificationController {
       const { notification_id } = req.params;
 
       // Check if notification exists and belongs to user
-      const notification = await database.get(`
+      const notification = await database.get(
+        `
         SELECT * FROM notifications WHERE id = $1 AND user_id = $2
-      `, [notification_id, req.user.id]);
+      `,
+        [notification_id, req.user.id],
+      );
 
       if (!notification) {
         return res.status(404).json({
           success: false,
-          message: 'Notification not found'
+          message: 'Notification not found',
         });
       }
 
@@ -321,14 +342,13 @@ class NotificationController {
 
       res.json({
         success: true,
-        message: 'Notification deleted successfully'
+        message: 'Notification deleted successfully',
       });
-
     } catch (error) {
       console.error('Delete notification error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }

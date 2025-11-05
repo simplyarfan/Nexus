@@ -20,7 +20,7 @@ class OutlookEmailService {
       await database.connect();
       const user = await database.get(
         'SELECT outlook_access_token, outlook_refresh_token, outlook_token_expires_at FROM users WHERE id = $1',
-        [userId]
+        [userId],
       );
 
       if (!user || !user.outlook_access_token) {
@@ -58,18 +58,20 @@ class OutlookEmailService {
     }
 
     try {
-      const response = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', 
+      const response = await axios.post(
+        'https://login.microsoftonline.com/common/oauth2/v2.0/token',
         new URLSearchParams({
           client_id: process.env.OUTLOOK_CLIENT_ID,
           client_secret: process.env.OUTLOOK_CLIENT_SECRET,
           refresh_token: refreshToken,
           grant_type: 'refresh_token',
-          scope: 'https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Mail.Read'
-        }), {
+          scope: 'https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Mail.Read',
+        }),
+        {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
       );
 
       const { access_token, refresh_token, expires_in } = response.data;
@@ -78,7 +80,7 @@ class OutlookEmailService {
       // Update tokens in database
       await database.run(
         'UPDATE users SET outlook_access_token = $1, outlook_refresh_token = $2, outlook_token_expires_at = $3 WHERE id = $4',
-        [access_token, refresh_token || refreshToken, expiresAt.toISOString(), userId]
+        [access_token, refresh_token || refreshToken, expiresAt.toISOString(), userId],
       );
 
       return access_token;
@@ -99,7 +101,7 @@ class OutlookEmailService {
       cc: data.ccEmails || [],
       bcc: data.bccEmails || [],
       subject: data.customSubject || `Interview Opportunity - ${data.position}`,
-      htmlBody: data.customContent ? this.wrapCustomContent(data.customContent) : htmlBody
+      htmlBody: data.customContent ? this.wrapCustomContent(data.customContent) : htmlBody,
     };
 
     return await this.sendEmail(userId, emailData);
@@ -108,12 +110,19 @@ class OutlookEmailService {
   /**
    * Send interview confirmation email with calendar invite (Stage 2)
    */
-  async sendInterviewConfirmation(userId, recipientEmail, data, icsContent, cvFileBuffer = null, cvFileName = null) {
+  async sendInterviewConfirmation(
+    userId,
+    recipientEmail,
+    data,
+    icsContent,
+    cvFileBuffer = null,
+    cvFileName = null,
+  ) {
     const htmlBody = this.generateInterviewConfirmationHTML(data);
 
     // Prepare attachments array
     const attachments = [];
-    
+
     // Add ICS calendar file
     if (icsContent) {
       const icsBase64 = Buffer.from(icsContent).toString('base64');
@@ -121,25 +130,29 @@ class OutlookEmailService {
         '@odata.type': '#microsoft.graph.fileAttachment',
         name: 'interview.ics',
         contentType: 'text/calendar',
-        contentBytes: icsBase64
+        contentBytes: icsBase64,
       });
     }
-    
+
     // Add CV attachment if provided
     if (cvFileBuffer && cvFileName) {
       const cvBase64 = cvFileBuffer.toString('base64');
       // Determine content type based on file extension
       const ext = cvFileName.split('.').pop().toLowerCase();
-      const contentType = ext === 'pdf' ? 'application/pdf' : 
-                          ext === 'doc' ? 'application/msword' :
-                          ext === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
-                          'application/octet-stream';
-      
+      const contentType =
+        ext === 'pdf'
+          ? 'application/pdf'
+          : ext === 'doc'
+            ? 'application/msword'
+            : ext === 'docx'
+              ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              : 'application/octet-stream';
+
       attachments.push({
         '@odata.type': '#microsoft.graph.fileAttachment',
         name: cvFileName,
         contentType: contentType,
-        contentBytes: cvBase64
+        contentBytes: cvBase64,
       });
     }
 
@@ -149,7 +162,7 @@ class OutlookEmailService {
       bcc: data.bccEmails || [],
       subject: data.customSubject || `Interview Scheduled - ${data.position}`,
       htmlBody: data.customContent ? this.wrapCustomContent(data.customContent) : htmlBody,
-      attachments: attachments
+      attachments: attachments,
     };
 
     return await this.sendEmail(userId, emailData);
@@ -161,7 +174,7 @@ class OutlookEmailService {
   wrapCustomContent(content) {
     // Convert line breaks to <br> tags
     const formattedContent = content.replace(/\n/g, '<br>');
-    
+
     return `
     <!DOCTYPE html>
     <html>
@@ -265,7 +278,9 @@ class OutlookEmailService {
                 </ol>
             </div>
 
-            ${data.googleFormLink ? `
+            ${
+  data.googleFormLink
+    ? `
             <div style="text-align: center; margin: 32px 0;">
                 <a href="${data.googleFormLink}" class="button">
                     📝 Complete Pre-Interview Form
@@ -274,7 +289,9 @@ class OutlookEmailService {
                     Form Link: ${data.googleFormLink}
                 </p>
             </div>
-            ` : ''}
+            `
+    : ''
+}
             
             <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0;">
                 <h4 style="margin: 0 0 8px 0; color: #1e40af;">💡 What to Expect</h4>
@@ -306,9 +323,9 @@ class OutlookEmailService {
    */
   generateInterviewConfirmationHTML(data) {
     const platformIcons = {
-      'teams': '👥',
-      'meet': '📹',
-      'zoom': '🎥'
+      teams: '👥',
+      meet: '📹',
+      zoom: '🎥',
     };
     const icon = platformIcons[data.platform?.toLowerCase()] || '📹';
 
@@ -414,15 +431,18 @@ class OutlookEmailService {
                 <h3 style="margin: 0 0 16px 0; color: #111827;">📅 Interview Details</h3>
                 <div class="detail-item">
                     <div class="detail-label">Date & Time:</div>
-                    <div class="detail-value"><strong>${new Date(data.scheduledTime).toLocaleString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      timeZoneName: 'short'
-                    })}</strong></div>
+                    <div class="detail-value"><strong>${new Date(data.scheduledTime).toLocaleString(
+    'en-US',
+    {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    },
+  )}</strong></div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Duration:</div>
@@ -438,7 +458,9 @@ class OutlookEmailService {
                 </div>
             </div>
             
-            ${data.meetingLink ? `
+            ${
+  data.meetingLink
+    ? `
             <div style="text-align: center; margin: 24px 0;">
                 <a href="${data.meetingLink}" class="meeting-link">
                     ${icon} Join Meeting
@@ -447,7 +469,9 @@ class OutlookEmailService {
                     Meeting Link: <a href="${data.meetingLink}" style="color: #3b82f6;">${data.meetingLink}</a>
                 </p>
             </div>
-            ` : ''}
+            `
+    : ''
+}
 
             <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin: 24px 0;">
                 <h4 style="margin: 0 0 8px 0; color: #065f46;">📆 Add to Calendar</h4>
@@ -499,47 +523,49 @@ class OutlookEmailService {
           subject: emailData.subject,
           body: {
             contentType: 'HTML',
-            content: emailData.htmlBody
+            content: emailData.htmlBody,
           },
-          toRecipients: emailData.to.map(email => ({
+          toRecipients: emailData.to.map((email) => ({
             emailAddress: {
-              address: email
-            }
+              address: email,
+            },
           })),
-          ccRecipients: emailData.cc ? emailData.cc.map(email => ({
-            emailAddress: {
-              address: email
-            }
-          })) : [],
-          bccRecipients: emailData.bcc ? emailData.bcc.map(email => ({
-            emailAddress: {
-              address: email
-            }
-          })) : [],
-          attachments: emailData.attachments || []
+          ccRecipients: emailData.cc
+            ? emailData.cc.map((email) => ({
+              emailAddress: {
+                address: email,
+              },
+            }))
+            : [],
+          bccRecipients: emailData.bcc
+            ? emailData.bcc.map((email) => ({
+              emailAddress: {
+                address: email,
+              },
+            }))
+            : [],
+          attachments: emailData.attachments || [],
         },
-        saveToSentItems: true
+        saveToSentItems: true,
       };
 
-      const response = await axios.post(
-        `${this.graphApiUrl}/me/sendMail`,
-        message,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await axios.post(`${this.graphApiUrl}/me/sendMail`, message, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       return {
         success: true,
         messageId: response.headers['request-id'],
-        message: 'Email sent successfully'
+        message: 'Email sent successfully',
       };
     } catch (error) {
       console.error('❌ Failed to send email:', error.response?.data || error.message);
-      throw new Error(`Failed to send email: ${error.response?.data?.error?.message || error.message}`);
+      throw new Error(
+        `Failed to send email: ${error.response?.data?.error?.message || error.message}`,
+      );
     }
   }
 }

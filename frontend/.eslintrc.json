@@ -1,0 +1,32 @@
+{
+  "extends": ["next/core-web-vitals", "eslint:recommended"],
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "prefer-const": "warn",
+    "eqeqeq": ["error", "always"],
+    "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
+    "semi": ["error", "always"],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "comma-dangle": ["error", "always-multiline"],
+    "no-trailing-spaces": "error",
+    "eol-last": ["error", "always"],
+    "arrow-spacing": ["error", { "before": true, "after": true }],
+    "object-curly-spacing": ["error", "always"],
+    "array-bracket-spacing": ["error", "never"]
+  }
+}

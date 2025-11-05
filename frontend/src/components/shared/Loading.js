@@ -1,30 +1,23 @@
 import React from 'react';
 
-const Loading = ({ 
-  size = 'medium', 
-  text = 'Loading...', 
-  fullScreen = false,
-  className = '' 
-}) => {
+const Loading = ({ size = 'medium', text = 'Loading...', fullScreen = false, className = '' }) => {
   const sizeClasses = {
     small: 'h-4 w-4',
     medium: 'h-8 w-8',
-    large: 'h-12 w-12'
+    large: 'h-12 w-12',
   };
 
-  const containerClasses = fullScreen 
+  const containerClasses = fullScreen
     ? 'fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50'
     : 'flex items-center justify-center p-4';
 
   return (
     <div className={`${containerClasses} ${className}`}>
       <div className="flex flex-col items-center">
-        <div className={`animate-spin rounded-full border-4 border-gray-200 border-t-blue-600 ${sizeClasses[size]}`}></div>
-        {text && (
-          <p className="mt-2 text-sm text-gray-600 animate-pulse">
-            {text}
-          </p>
-        )}
+        <div
+          className={`animate-spin rounded-full border-4 border-gray-200 border-t-blue-600 ${sizeClasses[size]}`}
+        ></div>
+        {text && <p className="mt-2 text-sm text-gray-600 animate-pulse">{text}</p>}
       </div>
     </div>
   );
@@ -37,9 +30,7 @@ export const SkeletonLoader = ({ lines = 3, className = '' }) => {
       {Array.from({ length: lines }).map((_, index) => (
         <div
           key={index}
-          className={`h-4 bg-gray-200 rounded mb-2 ${
-            index === lines - 1 ? 'w-3/4' : 'w-full'
-          }`}
+          className={`h-4 bg-gray-200 rounded mb-2 ${index === lines - 1 ? 'w-3/4' : 'w-full'}`}
         ></div>
       ))}
     </div>

@@ -3,11 +3,11 @@ const cors = require('cors');
 require('dotenv').config();
 
 // Import security middleware
-const { 
-  securityHeaders, 
-  cors: corsMiddleware, 
+const {
+  securityHeaders,
+  cors: corsMiddleware,
   securityLogger,
-  requestSizeLimiter 
+  requestSizeLimiter,
 } = require('./middleware/security');
 
 // Import logger
@@ -16,7 +16,14 @@ const logger = require('./utils/logger');
 // Import database
 const database = require('./models/database');
 // Load routes with error handling
-let authRoutes, analyticsRoutes, supportRoutes, cvRoutes, notificationRoutes, initRoutes, interviewRoutes, debugEmailRoutes;
+let authRoutes,
+  analyticsRoutes,
+  supportRoutes,
+  cvRoutes,
+  notificationRoutes,
+  initRoutes,
+  interviewRoutes,
+  debugEmailRoutes;
 
 // Load each route individually with error handling
 try {
@@ -84,15 +91,15 @@ const conditionalLogger = (req, res, next) => {
   if (!logger.shouldLog(req)) {
     return next();
   }
-  
+
   const start = Date.now();
-  
+
   // Log response only
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.logRequest(req, res, duration);
   });
-  
+
   next();
 };
 
@@ -104,15 +111,17 @@ app.set('trust proxy', true);
 
 // Compression middleware (gzip)
 const compression = require('compression');
-app.use(compression({
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  },
-  level: 6 // Balance between speed and compression
-}));
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    level: 6, // Balance between speed and compression
+  }),
+);
 
 // Apply security headers
 app.use(securityHeaders);
@@ -120,31 +129,28 @@ app.use(securityHeaders);
 // CORS Configuration - Environment-driven
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   // Get allowed origins from environment or use defaults
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : [
-        'https://thesimpleai.netlify.app',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000'
-      ];
-  
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+    : ['https://thesimpleai.netlify.app', 'http://localhost:3000', 'http://127.0.0.1:3000'];
+
   // Allow Netlify preview deployments and main site
-  const isNetlifyDomain = origin && (
-    origin.includes('thesimpleai.netlify.app') || 
-    origin.includes('netlify.app')
-  );
-  
+  const isNetlifyDomain =
+    origin && (origin.includes('thesimpleai.netlify.app') || origin.includes('netlify.app'));
+
   if (allowedOrigins.includes(origin) || isNetlifyDomain) {
     res.header('Access-Control-Allow-Origin', origin);
   }
-  
+
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Admin-Secret,Cache-Control,Pragma');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Admin-Secret,Cache-Control,Pragma',
+  );
   res.header('Access-Control-Expose-Headers', 'Content-Length,X-Request-ID');
-  
+
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -168,7 +174,7 @@ if (!process.env.JWT_REFRESH_SECRET) {
 }
 
 // Initialize database connection (non-blocking)
-database.connect().catch(error => {
+database.connect().catch((error) => {
   console.error('❌ Database connection failed:', error);
   // Don't exit process, let it continue for health checks
 });
@@ -200,7 +206,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     message: 'SimpleAI Enterprise Backend is running!',
     database: database.isConnected ? 'connected' : 'disconnected',
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -214,13 +220,13 @@ app.get('/api/cache/stats', authenticateToken, requireSuperAdmin, async (req, re
     res.json({
       success: true,
       data: stats,
-      message: 'Cache statistics retrieved'
+      message: 'Cache statistics retrieved',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Failed to get cache stats',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -231,13 +237,13 @@ app.delete('/api/cache/clear/:pattern', authenticateToken, requireSuperAdmin, as
     await cacheService.clearCache(pattern);
     res.json({
       success: true,
-      message: `Cache cleared for pattern: ${pattern}`
+      message: `Cache cleared for pattern: ${pattern}`,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Failed to clear cache',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -248,15 +254,15 @@ app.get('/api/test', async (req, res) => {
   if (process.env.NODE_ENV === 'production') {
     return res.status(403).json({
       success: false,
-      message: 'This endpoint is disabled in production'
+      message: 'This endpoint is disabled in production',
     });
   }
-  
+
   const results = {
     success: true,
     message: 'API Health Check',
     timestamp: new Date().toISOString(),
-    checks: {}
+    checks: {},
   };
 
   try {
@@ -266,23 +272,28 @@ app.get('/api/test', async (req, res) => {
 
     // Test 2: Users table exists and has data
     const userCount = await database.get('SELECT COUNT(*) as count FROM users');
-    results.checks.users_table = { 
-      status: 'OK', 
+    results.checks.users_table = {
+      status: 'OK',
       count: parseInt(userCount.count),
-      message: `${userCount.count} users found`
+      message: `${userCount.count} users found`,
     };
 
     // Test 3: Admin user exists
-    const adminUser = await database.get('SELECT email, role, first_name, last_name FROM users WHERE role = $1', ['superadmin']);
-    results.checks.admin_user = adminUser ? {
-      status: 'OK',
-      email: adminUser.email,
-      name: `${adminUser.first_name} ${adminUser.last_name}`,
-      message: 'Admin user found'
-    } : {
-      status: 'MISSING',
-      message: 'No admin user found'
-    };
+    const adminUser = await database.get(
+      'SELECT email, role, first_name, last_name FROM users WHERE role = $1',
+      ['superadmin'],
+    );
+    results.checks.admin_user = adminUser
+      ? {
+        status: 'OK',
+        email: adminUser.email,
+        name: `${adminUser.first_name} ${adminUser.last_name}`,
+        message: 'Admin user found',
+      }
+      : {
+        status: 'MISSING',
+        message: 'No admin user found',
+      };
 
     // Test 4: Check if new columns exist
     try {
@@ -298,36 +309,38 @@ app.get('/api/test', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Health check failed',
-      error: error.message
+      error: error.message,
     });
   }
 });
-
 
 // Database seeding endpoint (development only)
 app.post('/api/admin/seed-database', async (req, res) => {
   try {
     // Only allow in development or with special header
-    if (process.env.NODE_ENV === 'production' && req.headers['x-admin-secret'] !== process.env.ADMIN_SECRET) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      req.headers['x-admin-secret'] !== process.env.ADMIN_SECRET
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: 'Access denied',
       });
     }
-    
+
     const { seedDatabase } = require('./scripts/seed-database');
     await seedDatabase();
-    
+
     res.json({
       success: true,
-      message: 'Database seeded successfully'
+      message: 'Database seeded successfully',
     });
   } catch (error) {
     console.error('Database seeding error:', error);
     res.status(500).json({
       success: false,
       message: 'Database seeding failed',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -346,7 +359,7 @@ app.get('/', (req, res) => {
       analytics: '/api/analytics/*',
       support: '/api/support/*',
       cvIntelligence: '/api/cv-intelligence/*',
-      notifications: '/api/notifications/*'
+      notifications: '/api/notifications/*',
     },
     routesLoaded: {
       auth: !!authRoutes,
@@ -355,15 +368,19 @@ app.get('/', (req, res) => {
       cv: !!cvRoutes,
       notifications: !!notificationRoutes,
       init: !!initRoutes,
-      interview: !!interviewRoutes
-    }
+      interview: !!interviewRoutes,
+    },
   });
 });
 
 // Route loading status check removed
 
 // Import cache middleware
-const { longCacheMiddleware, shortCacheMiddleware, cacheInvalidationMiddleware } = require('./middleware/cache');
+const {
+  longCacheMiddleware,
+  shortCacheMiddleware,
+  cacheInvalidationMiddleware,
+} = require('./middleware/cache');
 
 // DIRECT AUTH ENDPOINT - BYPASS ROUTE LOADING
 app.post('/api/auth/login', async (req, res) => {
@@ -392,7 +409,12 @@ if (analyticsRoutes) {
   app.use('/api/analytics', longCacheMiddleware, analyticsRoutes);
 }
 if (supportRoutes) {
-  app.use('/api/support', shortCacheMiddleware, cacheInvalidationMiddleware(['api:support*']), supportRoutes);
+  app.use(
+    '/api/support',
+    shortCacheMiddleware,
+    cacheInvalidationMiddleware(['api:support*']),
+    supportRoutes,
+  );
 }
 if (cvRoutes) {
   app.use('/api/cv-intelligence', cvRoutes);
@@ -403,7 +425,12 @@ if (cvRoutes) {
   console.error('❌ CV Intelligence routes failed to load - cvRoutes is:', cvRoutes);
 }
 if (notificationRoutes) {
-  app.use('/api/notifications', shortCacheMiddleware, cacheInvalidationMiddleware(['api:notifications*']), notificationRoutes);
+  app.use(
+    '/api/notifications',
+    shortCacheMiddleware,
+    cacheInvalidationMiddleware(['api:notifications*']),
+    notificationRoutes,
+  );
 }
 if (initRoutes) {
   app.use('/api/init', initRoutes);
@@ -425,14 +452,13 @@ if (debugEmailRoutes && process.env.NODE_ENV !== 'production') {
 
 // Debug refresh token endpoint removed - security risk in production
 
-
 // Debug support tickets endpoint removed - not needed in production
 
 app.get('/api/system/health', async (req, res) => {
   try {
     await database.connect();
     const dbTest = await database.get('SELECT 1 as test');
-    
+
     res.json({
       success: true,
       data: {
@@ -440,12 +466,12 @@ app.get('/api/system/health', async (req, res) => {
         api: 'healthy',
         database: 'healthy',
         storage: 'healthy',
-        memory: 'healthy'
+        memory: 'healthy',
       },
       status: 'healthy',
       database: 'connected',
       uptime: process.uptime(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.json({
@@ -455,13 +481,13 @@ app.get('/api/system/health', async (req, res) => {
         api: 'healthy',
         database: 'error',
         storage: 'healthy',
-        memory: 'healthy'
+        memory: 'healthy',
       },
       status: 'degraded',
       database: 'disconnected',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -469,17 +495,19 @@ app.get('/api/system/health', async (req, res) => {
 app.get('/api/system/metrics', async (req, res) => {
   try {
     await database.connect();
-    
+
     // Get basic system metrics
     const uptime = process.uptime();
     const memUsage = process.memoryUsage();
-    
+
     // Calculate uptime in days
     const uptimeDays = (uptime / (24 * 60 * 60)).toFixed(1);
-    
+
     // Get user count for active users metric
-    const userCount = await database.get('SELECT COUNT(*) as count FROM users WHERE is_active = true');
-    
+    const userCount = await database.get(
+      'SELECT COUNT(*) as count FROM users WHERE is_active = true',
+    );
+
     res.json({
       success: true,
       data: {
@@ -491,15 +519,15 @@ app.get('/api/system/metrics', async (req, res) => {
         cpuUsage: 0,
         memoryUsage: Math.floor((memUsage.heapUsed / memUsage.heapTotal) * 100),
         diskUsage: 0,
-        recentEvents: []
-      }
+        recentEvents: [],
+      },
     });
   } catch (error) {
     console.error('System metrics error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch system metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -507,14 +535,14 @@ app.get('/api/system/metrics', async (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('❌ Server Error:', err);
-  
+
   // SECURITY: Never expose stack traces in production
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   res.status(err.status || 500).json({
     success: false,
     message: isDevelopment ? err.message : 'Internal server error',
-    ...(isDevelopment && { error: err.message, stack: err.stack })
+    ...(isDevelopment && { error: err.message, stack: err.stack }),
   });
 });
 
@@ -524,7 +552,7 @@ app.use('*', (req, res) => {
     success: false,
     message: 'Route not found',
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 });
 

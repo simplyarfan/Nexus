@@ -5,7 +5,7 @@ const baseConfig = {
   standardHeaders: true,
   legacyHeaders: false,
   // Trust Vercel's proxy (required for serverless)
-  trustProxy: true
+  trustProxy: true,
 };
 
 // General API rate limiting
@@ -16,12 +16,12 @@ const generalLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.',
-    retryAfter: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000) / 1000)
+    retryAfter: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000) / 1000),
   },
   skip: (req) => {
     // Skip rate limiting for health checks
     return req.path === '/health' || req.path === '/api/health';
-  }
+  },
 });
 
 // Strict rate limiting for authentication endpoints
@@ -32,9 +32,9 @@ const authLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again in 15 minutes.',
-    retryAfter: 15 * 60
+    retryAfter: 15 * 60,
   },
-  skipSuccessfulRequests: true // Don't count successful requests
+  skipSuccessfulRequests: true, // Don't count successful requests
 });
 
 // Password reset rate limiting
@@ -45,7 +45,7 @@ const passwordResetLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many password reset attempts, please try again in 1 hour.',
-    retryAfter: 60 * 60
+    retryAfter: 60 * 60,
   },
 });
 
@@ -57,10 +57,10 @@ const emailVerificationLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many verification email requests, please try again in 5 minutes.',
-    retryAfter: 5 * 60
+    retryAfter: 5 * 60,
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
 // File upload rate limiting
@@ -71,8 +71,8 @@ const uploadLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many file uploads, please try again in 1 hour.',
-    retryAfter: 60 * 60
-  }
+    retryAfter: 60 * 60,
+  },
 });
 
 // CV batch creation rate limiting
@@ -83,8 +83,8 @@ const cvBatchLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many CV batch creation requests, please try again in 1 hour.',
-    retryAfter: 60 * 60
-  }
+    retryAfter: 60 * 60,
+  },
 });
 
 // Support ticket rate limiting
@@ -95,8 +95,8 @@ const ticketLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many support tickets created today, please try again tomorrow.',
-    retryAfter: 24 * 60 * 60
-  }
+    retryAfter: 24 * 60 * 60,
+  },
 });
 
 // API documentation rate limiting (more lenient)
@@ -107,8 +107,8 @@ const docsLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many requests to documentation endpoints.',
-    retryAfter: 15 * 60
-  }
+    retryAfter: 15 * 60,
+  },
 });
 
 // Analytics rate limiting (for admins)
@@ -119,8 +119,8 @@ const analyticsLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many analytics requests, please try again in 5 minutes.',
-    retryAfter: 5 * 60
-  }
+    retryAfter: 5 * 60,
+  },
 });
 
 // Export rate limiting
@@ -131,8 +131,8 @@ const exportLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many export requests, please try again in 1 hour.',
-    retryAfter: 60 * 60
-  }
+    retryAfter: 60 * 60,
+  },
 });
 
 // Create a custom rate limiter factory
@@ -141,7 +141,7 @@ const createRateLimiter = (options = {}) => {
     windowMs = 15 * 60 * 1000,
     max = 100,
     message = 'Too many requests, please try again later.',
-    skipSuccessfulRequests = false
+    skipSuccessfulRequests = false,
   } = options;
 
   return rateLimit({
@@ -151,9 +151,9 @@ const createRateLimiter = (options = {}) => {
     message: {
       success: false,
       message,
-      retryAfter: Math.ceil(windowMs / 1000)
+      retryAfter: Math.ceil(windowMs / 1000),
     },
-    skipSuccessfulRequests
+    skipSuccessfulRequests,
   });
 };
 
@@ -165,25 +165,25 @@ const strictLimiter = rateLimit({
   message: {
     success: false,
     message: 'Access temporarily restricted. Please try again later.',
-    retryAfter: 60 * 60
-  }
+    retryAfter: 60 * 60,
+  },
 });
 
 // Dynamic rate limiting based on user role
 const createRoleBasedLimiter = (limits = {}) => {
   return (req, res, next) => {
     const userRole = req.user?.role || 'anonymous';
-    
+
     const roleLimits = {
       anonymous: { windowMs: 15 * 60 * 1000, max: 20 },
       user: { windowMs: 15 * 60 * 1000, max: 100 },
       admin: { windowMs: 15 * 60 * 1000, max: 500 },
       superadmin: { windowMs: 15 * 60 * 1000, max: 1000 },
-      ...limits
+      ...limits,
     };
 
     const limit = roleLimits[userRole] || roleLimits.anonymous;
-    
+
     const limiter = rateLimit({
       ...baseConfig,
       windowMs: limit.windowMs,
@@ -191,12 +191,12 @@ const createRoleBasedLimiter = (limits = {}) => {
       message: {
         success: false,
         message: `Too many requests for ${userRole} role, please try again later.`,
-        retryAfter: Math.ceil(limit.windowMs / 1000)
+        retryAfter: Math.ceil(limit.windowMs / 1000),
       },
       keyGenerator: (req) => {
         // Use user ID for authenticated users, IP for anonymous
         return req.user?.id ? `user:${req.user.id}` : req.ip;
-      }
+      },
     });
 
     return limiter(req, res, next);
@@ -211,8 +211,8 @@ const burstProtection = rateLimit({
   message: {
     success: false,
     message: 'Too many rapid requests, please slow down.',
-    retryAfter: 60
-  }
+    retryAfter: 60,
+  },
 });
 
 module.exports = {
@@ -229,5 +229,5 @@ module.exports = {
   strictLimiter,
   burstProtection,
   createRateLimiter,
-  createRoleBasedLimiter
+  createRoleBasedLimiter,
 };

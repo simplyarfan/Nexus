@@ -15,7 +15,7 @@ export const StaggeredMenu = ({
   changeMenuColorOnOpen = true,
   accentColor = '#5227FF',
   onMenuOpen,
-  onMenuClose
+  onMenuClose,
 }) => {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
@@ -88,11 +88,16 @@ export const StaggeredMenu = ({
     itemEntranceTweenRef.current?.kill();
 
     const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
-    const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
+    const numberEls = Array.from(
+      panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'),
+    );
     const socialTitle = panel.querySelector('.sm-socials-title');
     const socialLinks = Array.from(panel.querySelectorAll('.sm-socials-link'));
 
-    const layerStates = layers.map(el => ({ el, start: Number(gsap.getProperty(el, 'xPercent')) }));
+    const layerStates = layers.map((el) => ({
+      el,
+      start: Number(gsap.getProperty(el, 'xPercent')),
+    }));
     const panelStart = Number(gsap.getProperty(panel, 'xPercent'));
 
     if (itemEls.length) gsap.set(itemEls, { yPercent: 140, rotate: 10 });
@@ -103,7 +108,12 @@ export const StaggeredMenu = ({
     const tl = gsap.timeline({ paused: true });
 
     layerStates.forEach((ls, i) => {
-      tl.fromTo(ls.el, { xPercent: ls.start }, { xPercent: 0, duration: 0.5, ease: 'power4.out' }, i * 0.07);
+      tl.fromTo(
+        ls.el,
+        { xPercent: ls.start },
+        { xPercent: 0, duration: 0.5, ease: 'power4.out' },
+        i * 0.07,
+      );
     });
 
     const lastTime = layerStates.length ? (layerStates.length - 1) * 0.07 : 0;
@@ -114,7 +124,7 @@ export const StaggeredMenu = ({
       panel,
       { xPercent: panelStart },
       { xPercent: 0, duration: panelDuration, ease: 'power4.out' },
-      panelInsertTime
+      panelInsertTime,
     );
 
     if (itemEls.length) {
@@ -123,15 +133,26 @@ export const StaggeredMenu = ({
 
       tl.to(
         itemEls,
-        { yPercent: 0, rotate: 0, duration: 1, ease: 'power4.out', stagger: { each: 0.1, from: 'start' } },
-        itemsStart
+        {
+          yPercent: 0,
+          rotate: 0,
+          duration: 1,
+          ease: 'power4.out',
+          stagger: { each: 0.1, from: 'start' },
+        },
+        itemsStart,
       );
 
       if (numberEls.length) {
         tl.to(
           numberEls,
-          { duration: 0.6, ease: 'power2.out', ['--sm-num-opacity']: 1, stagger: { each: 0.08, from: 'start' } },
-          itemsStart + 0.1
+          {
+            duration: 0.6,
+            ease: 'power2.out',
+            ['--sm-num-opacity']: 1,
+            stagger: { each: 0.08, from: 'start' },
+          },
+          itemsStart + 0.1,
         );
       }
     }
@@ -139,7 +160,8 @@ export const StaggeredMenu = ({
     if (socialTitle || socialLinks.length) {
       const socialsStart = panelInsertTime + panelDuration * 0.4;
 
-      if (socialTitle) tl.to(socialTitle, { opacity: 1, duration: 0.5, ease: 'power2.out' }, socialsStart);
+      if (socialTitle)
+        tl.to(socialTitle, { opacity: 1, duration: 0.5, ease: 'power2.out' }, socialsStart);
       if (socialLinks.length) {
         tl.to(
           socialLinks,
@@ -149,9 +171,9 @@ export const StaggeredMenu = ({
             duration: 0.55,
             ease: 'power3.out',
             stagger: { each: 0.08, from: 'start' },
-            onComplete: () => gsap.set(socialLinks, { clearProps: 'opacity' })
+            onComplete: () => gsap.set(socialLinks, { clearProps: 'opacity' }),
           },
-          socialsStart + 0.04
+          socialsStart + 0.04,
         );
       }
     }
@@ -197,7 +219,9 @@ export const StaggeredMenu = ({
         const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
         if (itemEls.length) gsap.set(itemEls, { yPercent: 140, rotate: 10 });
 
-        const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
+        const numberEls = Array.from(
+          panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'),
+        );
         if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
 
         const socialTitle = panel.querySelector('.sm-socials-title');
@@ -206,11 +230,11 @@ export const StaggeredMenu = ({
         if (socialLinks.length) gsap.set(socialLinks, { y: 25, opacity: 0 });
 
         busyRef.current = false;
-      }
+      },
     });
   }, [position]);
 
-  const animateIcon = useCallback(opening => {
+  const animateIcon = useCallback((opening) => {
     const icon = iconRef.current;
     const h = plusHRef.current;
     const v = plusVRef.current;
@@ -234,18 +258,23 @@ export const StaggeredMenu = ({
   }, []);
 
   const animateColor = useCallback(
-    opening => {
+    (opening) => {
       const btn = toggleBtnRef.current;
       if (!btn) return;
       colorTweenRef.current?.kill();
       if (changeMenuColorOnOpen) {
         const targetColor = opening ? openMenuButtonColor : menuButtonColor;
-        colorTweenRef.current = gsap.to(btn, { color: targetColor, delay: 0.18, duration: 0.3, ease: 'power2.out' });
+        colorTweenRef.current = gsap.to(btn, {
+          color: targetColor,
+          delay: 0.18,
+          duration: 0.3,
+          ease: 'power2.out',
+        });
       } else {
         gsap.set(btn, { color: menuButtonColor });
       }
     },
-    [openMenuButtonColor, menuButtonColor, changeMenuColorOnOpen]
+    [openMenuButtonColor, menuButtonColor, changeMenuColorOnOpen],
   );
 
   React.useEffect(() => {
@@ -259,7 +288,7 @@ export const StaggeredMenu = ({
     }
   }, [changeMenuColorOnOpen, menuButtonColor, openMenuButtonColor]);
 
-  const animateText = useCallback(opening => {
+  const animateText = useCallback((opening) => {
     const inner = textInnerRef.current;
     if (!inner) return;
 
@@ -287,7 +316,7 @@ export const StaggeredMenu = ({
     textCycleAnimRef.current = gsap.to(inner, {
       yPercent: -finalShift,
       duration: 0.5 + lineCount * 0.07,
-      ease: 'power4.out'
+      ease: 'power4.out',
     });
   }, []);
 
@@ -312,7 +341,9 @@ export const StaggeredMenu = ({
   return (
     <div className="sm-scope w-full h-full">
       <div
-        className={(className ? className + ' ' : '') + 'staggered-menu-wrapper relative w-full h-full z-40'}
+        className={
+          (className ? className + ' ' : '') + 'staggered-menu-wrapper relative w-full h-full z-40'
+        }
         style={accentColor ? { ['--sm-accent']: accentColor } : undefined}
         data-position={position}
         data-open={open || undefined}
@@ -324,7 +355,7 @@ export const StaggeredMenu = ({
         >
           {(() => {
             const raw = colors && colors.length ? colors.slice(0, 4) : ['#1e1e22', '#35353c'];
-            let arr = [...raw];
+            const arr = [...raw];
             if (arr.length >= 3) {
               const mid = Math.floor(arr.length / 2);
               arr.splice(mid, 1);
@@ -343,7 +374,10 @@ export const StaggeredMenu = ({
           className="staggered-menu-header absolute top-0 left-0 w-full flex items-center justify-between p-[2em] bg-transparent pointer-events-none z-20"
           aria-label="Main navigation header"
         >
-          <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="Logo">
+          <div
+            className="sm-logo flex items-center select-none pointer-events-auto"
+            aria-label="Logo"
+          >
             <img
               src={logoUrl || '/src/assets/logos/reactbits-gh-white.svg'}
               alt="Logo"
@@ -396,7 +430,7 @@ export const StaggeredMenu = ({
 
         {/* Backdrop overlay when menu is open */}
         {open && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9996]"
             onClick={toggleMenu}
             aria-hidden="true"
@@ -418,7 +452,10 @@ export const StaggeredMenu = ({
             >
               {items && items.length ? (
                 items.map((it, idx) => (
-                  <li className="sm-panel-itemWrap relative overflow-hidden leading-none" key={it.label + idx}>
+                  <li
+                    className="sm-panel-itemWrap relative overflow-hidden leading-none"
+                    key={it.label + idx}
+                  >
                     <a
                       className="sm-panel-item relative text-black font-semibold text-[4rem] cursor-pointer leading-none tracking-[-2px] uppercase transition-[background,color] duration-150 ease-linear inline-block no-underline pr-[1.4em]"
                       href={it.link}
@@ -432,7 +469,10 @@ export const StaggeredMenu = ({
                   </li>
                 ))
               ) : (
-                <li className="sm-panel-itemWrap relative overflow-hidden leading-none" aria-hidden="true">
+                <li
+                  className="sm-panel-itemWrap relative overflow-hidden leading-none"
+                  aria-hidden="true"
+                >
                   <span className="sm-panel-item relative text-black font-semibold text-[4rem] cursor-pointer leading-none tracking-[-2px] uppercase transition-[background,color] duration-150 ease-linear inline-block no-underline pr-[1.4em]">
                     <span className="sm-panel-itemLabel inline-block [transform-origin:50%_100%] will-change-transform">
                       No items
@@ -443,8 +483,13 @@ export const StaggeredMenu = ({
             </ul>
 
             {displaySocials && socialItems && socialItems.length > 0 && (
-              <div className="sm-socials mt-auto pt-8 flex flex-col gap-3" aria-label="Social links">
-                <h3 className="sm-socials-title m-0 text-base font-medium [color:var(--sm-accent,#ff0000)]">Socials</h3>
+              <div
+                className="sm-socials mt-auto pt-8 flex flex-col gap-3"
+                aria-label="Social links"
+              >
+                <h3 className="sm-socials-title m-0 text-base font-medium [color:var(--sm-accent,#ff0000)]">
+                  Socials
+                </h3>
                 <ul
                   className="sm-socials-list list-none m-0 p-0 flex flex-row items-center gap-4 flex-wrap"
                   role="list"

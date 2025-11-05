@@ -9,14 +9,14 @@ const logFormat = winston.format.combine(
       return `${timestamp} [${level.toUpperCase()}]: ${message}\n${stack}`;
     }
     return `${timestamp} [${level.toUpperCase()}]: ${message}`;
-  })
+  }),
 );
 
 // Define log format for JSON (production/serverless)
 const jsonFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
-  winston.format.json()
+  winston.format.json(),
 );
 
 // Create the logger - CONSOLE ONLY for serverless compatibility
@@ -27,12 +27,12 @@ const logger = winston.createLogger({
   transports: [
     // Console transport (works in all environments including serverless)
     new winston.transports.Console({
-      format: process.env.NODE_ENV === 'production' ? jsonFormat : winston.format.combine(
-        winston.format.colorize(),
-        logFormat
-      )
-    })
-  ]
+      format:
+        process.env.NODE_ENV === 'production'
+          ? jsonFormat
+          : winston.format.combine(winston.format.colorize(), logFormat),
+    }),
+  ],
 });
 
 // Add request logging helper
@@ -43,7 +43,7 @@ logger.logRequest = (req, res, duration) => {
     status: res.statusCode,
     duration: `${duration}ms`,
     ip: req.ip,
-    userAgent: req.get('user-agent')
+    userAgent: req.get('user-agent'),
   };
 
   if (res.statusCode >= 400) {
@@ -58,7 +58,7 @@ logger.logSecurityEvent = (event, details) => {
   logger.warn('Security Event', {
     event,
     ...details,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
@@ -68,22 +68,21 @@ logger.logQuery = (query, duration, error = null) => {
     logger.error('Database query failed', {
       query: query.substring(0, 100), // Truncate long queries
       duration: `${duration}ms`,
-      error: error.message
+      error: error.message,
     });
   } else if (duration > 1000) {
     // Log slow queries
     logger.warn('Slow query detected', {
       query: query.substring(0, 100),
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
     });
   } else if (process.env.LOG_LEVEL === 'debug') {
     logger.debug('Query executed', {
       query: query.substring(0, 100),
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
     });
   }
 };
-
 
 // Add development-only logging helper
 logger.dev = (...args) => {
@@ -95,7 +94,7 @@ logger.dev = (...args) => {
 // Add conditional logging (skip certain paths)
 logger.shouldLog = (req) => {
   const skipPaths = ['/health', '/favicon.ico', '/api/test'];
-  return !skipPaths.some(path => req.url.includes(path));
+  return !skipPaths.some((path) => req.url.includes(path));
 };
 
 module.exports = logger;

@@ -11,58 +11,69 @@ class CVIntelligenceHR01 {
     this.apiKey = process.env.OPENAI_API_KEY;
     this.apiUrl = 'https://api.openai.com/v1/chat/completions';
     this.model = 'gpt-3.5-turbo'; // Using available model instead of Llama 3.1
-    
+
     // Check if API key is configured
     if (!this.apiKey) {
       console.error('❌ OPENAI_API_KEY not configured in environment variables');
     }
-    
+
     // Smart skill matching mappings
     this.skillSynonyms = {
-      'agile': ['agile frameworks', 'agile methodology', 'agile approach', 'agile best practices', 'agile development'],
-      'scrum': ['scrum practices', 'scrum framework', 'scrum techniques', 'scrum methodology'],
+      agile: [
+        'agile frameworks',
+        'agile methodology',
+        'agile approach',
+        'agile best practices',
+        'agile development',
+      ],
+      scrum: ['scrum practices', 'scrum framework', 'scrum techniques', 'scrum methodology'],
       'conflict-resolution': ['resolve conflicts', 'conflict management', 'conflict resolution'],
-      'coaching': ['servant leadership', 'mentoring', 'team coaching', 'leadership coaching'],
-      'facilitation': ['facilitating', 'facilitate', 'workshop facilitation'],
-      'kanban': ['kanban board', 'kanban methodology'],
-      'javascript': ['js', 'javascript', 'ecmascript'],
-      'python': ['py', 'python'],
-      'react': ['reactjs', 'react.js'],
-      'node': ['nodejs', 'node.js'],
-      'sql': ['mysql', 'postgresql', 'sql server', 'database'],
+      coaching: ['servant leadership', 'mentoring', 'team coaching', 'leadership coaching'],
+      facilitation: ['facilitating', 'facilitate', 'workshop facilitation'],
+      kanban: ['kanban board', 'kanban methodology'],
+      javascript: ['js', 'javascript', 'ecmascript'],
+      python: ['py', 'python'],
+      react: ['reactjs', 'react.js'],
+      node: ['nodejs', 'node.js'],
+      sql: ['mysql', 'postgresql', 'sql server', 'database'],
       'ci/cd': ['continuous integration', 'continuous deployment', 'devops'],
-      'aws': ['amazon web services', 'cloud', 'ec2', 's3'],
-      'docker': ['containerization', 'containers'],
-      'kubernetes': ['k8s', 'container orchestration']
+      aws: ['amazon web services', 'cloud', 'ec2', 's3'],
+      docker: ['containerization', 'containers'],
+      kubernetes: ['k8s', 'container orchestration'],
     };
   }
-  
+
   /**
    * SMART SKILL MATCHING - Semantic understanding of skills
    */
   smartSkillMatch(requiredSkill, candidateSkills) {
     const required = requiredSkill.toLowerCase().trim();
-    
+
     // Direct match
-    if (candidateSkills.some(s => s.toLowerCase().trim() === required)) {
+    if (candidateSkills.some((s) => s.toLowerCase().trim() === required)) {
       return true;
     }
-    
+
     // Check if required skill is in our synonym map
     for (const [baseSkill, synonyms] of Object.entries(this.skillSynonyms)) {
       // If required skill matches base or any synonym
-      if (required === baseSkill || synonyms.some(syn => required.includes(syn) || syn.includes(required))) {
+      if (
+        required === baseSkill ||
+        synonyms.some((syn) => required.includes(syn) || syn.includes(required))
+      ) {
         // Check if candidate has base skill or any synonym
-        return candidateSkills.some(candidateSkill => {
+        return candidateSkills.some((candidateSkill) => {
           const candidate = candidateSkill.toLowerCase().trim();
-          return candidate === baseSkill || 
-                 synonyms.some(syn => candidate.includes(syn) || syn.includes(candidate));
+          return (
+            candidate === baseSkill ||
+            synonyms.some((syn) => candidate.includes(syn) || syn.includes(candidate))
+          );
         });
       }
     }
-    
+
     // Partial match (contains)
-    return candidateSkills.some(s => {
+    return candidateSkills.some((s) => {
       const candidate = s.toLowerCase().trim();
       return candidate.includes(required) || required.includes(candidate);
     });
@@ -73,26 +84,25 @@ class CVIntelligenceHR01 {
    */
   async processJobDescription(fileBuffer, fileName) {
     try {
-      
       // Parse the JD document
       const fileType = fileName.split('.').pop().toLowerCase();
       const parsedJD = await this.parseDocument(fileBuffer, fileType);
-      
+
       // parseDocument returns { rawText, layoutBlocks, metadata }
       const jdText = parsedJD.rawText || parsedJD.text || '';
-      
+
       if (!jdText || jdText.trim().length === 0) {
         console.error('❌ JD text is empty after parsing!');
         return {
           success: false,
           error: 'Failed to extract text from JD file',
-          requirements: { skills: [], experience: [], education: [], mustHave: [] }
+          requirements: { skills: [], experience: [], education: [], mustHave: [] },
         };
       }
-      
+
       // Extract requirements using AI
       const requirements = await this.extractJobRequirements(jdText);
-      
+
       // Normalize extracted skills
       if (requirements.skills) {
         requirements.skills = this.normalizeSkills(requirements.skills);
@@ -100,11 +110,11 @@ class CVIntelligenceHR01 {
       if (requirements.mustHave) {
         requirements.mustHave = this.normalizeSkills(requirements.mustHave);
       }
-      
+
       return {
         success: true,
         requirements: requirements,
-        fileName: fileName
+        fileName: fileName,
       };
     } catch (error) {
       console.error('❌ Error processing JD:', error);
@@ -112,7 +122,7 @@ class CVIntelligenceHR01 {
       return {
         success: false,
         error: error.message,
-        requirements: { skills: [], experience: [], education: [], mustHave: [] }
+        requirements: { skills: [], experience: [], education: [], mustHave: [] },
       };
     }
   }
@@ -121,28 +131,34 @@ class CVIntelligenceHR01 {
    * NORMALIZE SKILLS - Remove redundant words and standardize
    */
   normalizeSkills(skills) {
-    if (!Array.isArray(skills)) return [];
-    
-    return skills.map(skill => {
-      let normalized = skill.trim();
-      
-      // Remove redundant words
-      normalized = normalized
-        .replace(/\s+(frameworks?|practices?|methodology|methodologies|techniques?|skills?|development)\s*$/i, '')
-        .trim();
-      
-      return normalized;
-    }).filter(s => s.length > 0);
+    if (!Array.isArray(skills)) {
+      return [];
+    }
+
+    return skills
+      .map((skill) => {
+        let normalized = skill.trim();
+
+        // Remove redundant words
+        normalized = normalized
+          .replace(
+            /\s+(frameworks?|practices?|methodology|methodologies|techniques?|skills?|development)\s*$/i,
+            '',
+          )
+          .trim();
+
+        return normalized;
+      })
+      .filter((s) => s.length > 0);
   }
 
   /**
    * Extract job requirements from JD text using AI ONLY
    */
   async extractJobRequirements(jdText) {
-    
     // Add timestamp to prevent caching
     const timestamp = Date.now();
-    
+
     const prompt = `[EXTRACTION_${timestamp}] Extract ALL skills and requirements from this job description. Return ONLY valid JSON:
 
 {
@@ -173,46 +189,52 @@ Extract EXACT phrases from the document, not generic terms.
 Return valid JSON only:`;
 
     try {
-      const response = await axios.post(this.apiUrl, {
-        model: this.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        max_tokens: 1500
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        this.apiUrl,
+        {
+          model: this.model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          max_tokens: 1500,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       const content = response.data.choices[0].message.content.trim();
-      
+
       // Remove any markdown formatting
       const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
       const requirements = JSON.parse(cleanContent);
-      
+
       // VALIDATE that we got actual skills, not garbage
       if (requirements.skills && requirements.skills.includes('PDF parsing')) {
         console.error('❌ AI returned garbage skills including "PDF parsing" - rejecting response');
         throw new Error('AI returned invalid skills');
       }
-      
-      if (requirements.skills && requirements.skills.includes('Scrum') && jdText.toLowerCase().includes('ai engineer')) {
+
+      if (
+        requirements.skills &&
+        requirements.skills.includes('Scrum') &&
+        jdText.toLowerCase().includes('ai engineer')
+      ) {
         console.error('❌ AI returned Scrum skills for AI Engineer JD - rejecting response');
         throw new Error('AI returned wrong skills for job type');
       }
-      
+
       return requirements;
-      
     } catch (error) {
       console.error('❌ Error extracting JD requirements via AI:', error);
       console.error('❌ Full error:', error.response?.data || error.message);
-      
+
       // NO FALLBACK - FAIL COMPLETELY
       throw new Error(`JD extraction failed: ${error.message}`);
     }
   }
-
 
   /**
    * STEP 1: INGRESS - PDF/Docx upload → Supabase Storage
@@ -225,7 +247,7 @@ Return valid JSON only:`;
       fileName: fileName,
       fileUrl: `supabase://storage/${fileName}`,
       fileSize: fileBuffer.length,
-      fileType: fileName.split('.').pop()
+      fileType: fileName.split('.').pop(),
     };
   }
 
@@ -238,27 +260,29 @@ Return valid JSON only:`;
       try {
         const pdfData = await pdf(fileBuffer);
         text = pdfData.text || '';
-        
+
         if (!text || text.trim().length === 0) {
           throw new Error('PDF contains no extractable text');
         }
       } catch (e) {
         console.error('❌ PDF parsing failed:', e.message);
-        
+
         // Try with different options for corrupted PDFs
         try {
-          const pdfData = await pdf(fileBuffer, { 
+          const pdfData = await pdf(fileBuffer, {
             normalizeWhitespace: false,
-            disableCombineTextItems: false 
+            disableCombineTextItems: false,
           });
           text = pdfData.text || '';
-          
+
           if (!text || text.trim().length === 0) {
             throw new Error('PDF contains no extractable text even with alternative parsing');
           }
         } catch (e2) {
           console.error('❌ Alternative PDF parsing also failed:', e2.message);
-          throw new Error(`PDF is corrupted or unreadable. Please save as a new PDF or convert to TXT format. Error: ${e.message}`);
+          throw new Error(
+            `PDF is corrupted or unreadable. Please save as a new PDF or convert to TXT format. Error: ${e.message}`,
+          );
         }
       }
     } else {
@@ -274,8 +298,8 @@ Return valid JSON only:`;
       layoutBlocks: this.extractLayoutBlocks(text),
       metadata: {
         pageCount: 1,
-        wordCount: text.split(' ').length
-      }
+        wordCount: text.split(' ').length,
+      },
     };
   }
 
@@ -284,7 +308,7 @@ Return valid JSON only:`;
    */
   async extractEntities(text) {
     const entities = [];
-    
+
     // Email extraction with offsets
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
     let match;
@@ -295,7 +319,7 @@ Return valid JSON only:`;
         startOffset: match.index,
         endOffset: match.index + match[0].length,
         contextWindow: this.getContextWindow(text, match.index, 30),
-        confidence: 0.95
+        confidence: 0.95,
       });
     }
 
@@ -308,7 +332,7 @@ Return valid JSON only:`;
         startOffset: match.index,
         endOffset: match.index + match[0].length,
         contextWindow: this.getContextWindow(text, match.index, 30),
-        confidence: 0.90
+        confidence: 0.9,
       });
     }
 
@@ -321,7 +345,7 @@ Return valid JSON only:`;
         startOffset: match.index,
         endOffset: match.index + match[0].length,
         contextWindow: this.getContextWindow(text, match.index, 30),
-        confidence: 0.98
+        confidence: 0.98,
       });
     }
 
@@ -334,10 +358,10 @@ Return valid JSON only:`;
         startOffset: match.index,
         endOffset: match.index + match[0].length,
         contextWindow: this.getContextWindow(text, match.index, 30),
-        confidence: 0.80
+        confidence: 0.8,
       });
     }
-    
+
     // Name extraction - NEW: Extract candidate name from beginning of CV
     const nameRegex = /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gm;
     const lines = text.split('\n');
@@ -348,14 +372,18 @@ Return valid JSON only:`;
       if (nameMatch) {
         const name = nameMatch[1];
         // Skip if looks like company, university, or section header
-        if (!name.match(/\b(company|corporation|inc|ltd|llc|university|college|school|institute|resume|curriculum|vitae|cv)\b/i)) {
+        if (
+          !name.match(
+            /\b(company|corporation|inc|ltd|llc|university|college|school|institute|resume|curriculum|vitae|cv)\b/i,
+          )
+        ) {
           entities.push({
             type: 'PERSON',
             value: name,
             startOffset: text.indexOf(name),
             endOffset: text.indexOf(name) + name.length,
             contextWindow: this.getContextWindow(text, text.indexOf(name), 30),
-            confidence: 0.85
+            confidence: 0.85,
           });
           break; // Take first valid name match
         }
@@ -453,29 +481,33 @@ ${text}
 Return only the JSON object, no other text:`;
 
     try {
-      const response = await axios.post(this.apiUrl, {
-        model: this.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        max_tokens: 2000
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        this.apiUrl,
+        {
+          model: this.model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          max_tokens: 2000,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       const jsonText = response.data.choices[0].message.content.trim();
       // Remove markdown code blocks if present
       const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
-      
+
       const structuredData = JSON.parse(cleanJson);
-      
+
       // Validate structure
       if (!structuredData.personal || !structuredData.skills) {
         throw new Error('Invalid extraction structure - missing required fields');
       }
-      
+
       return structuredData;
     } catch (error) {
       console.error('❌ CV extraction failed:', error.message);
@@ -491,21 +523,22 @@ Return only the JSON object, no other text:`;
 
     // Bind personal info to entities
     if (structuredData.personal) {
-      Object.keys(structuredData.personal).forEach(field => {
+      Object.keys(structuredData.personal).forEach((field) => {
         const value = structuredData.personal[field];
         if (value && value !== 'Not found') {
-          const entity = entities.find(e => 
-            e.value.toLowerCase().includes(value.toLowerCase()) ||
-            value.toLowerCase().includes(e.value.toLowerCase())
+          const entity = entities.find(
+            (e) =>
+              e.value.toLowerCase().includes(value.toLowerCase()) ||
+              value.toLowerCase().includes(e.value.toLowerCase()),
           );
-          
+
           if (entity) {
             evidenceMap[field] = {
               value: value,
               startOffset: entity.startOffset,
               endOffset: entity.endOffset,
               contextWindow: entity.contextWindow,
-              confidence: entity.confidence
+              confidence: entity.confidence,
             };
           }
         }
@@ -524,24 +557,22 @@ Return only the JSON object, no other text:`;
       semanticScore: 0,
       recencyScore: 0,
       impactScore: 0,
-      overallScore: 0
+      overallScore: 0,
     };
 
     // Must-have gate (boolean rules)
     if (jobRequirements.mustHave) {
-      const mustHaveMatches = jobRequirements.mustHave.filter(skill =>
-        structuredData.skills?.some(candidateSkill => 
-          candidateSkill.toLowerCase().includes(skill.toLowerCase())
-        )
+      const mustHaveMatches = jobRequirements.mustHave.filter((skill) =>
+        structuredData.skills?.some((candidateSkill) =>
+          candidateSkill.toLowerCase().includes(skill.toLowerCase()),
+        ),
       );
       scores.mustHaveScore = (mustHaveMatches.length / jobRequirements.mustHave.length) * 40;
     }
 
     // Semantic similarity (would use pgvector in production)
-    scores.semanticScore = await this.calculateSemanticSimilarity(
-      structuredData, 
-      jobRequirements
-    ) * 30;
+    scores.semanticScore =
+      (await this.calculateSemanticSimilarity(structuredData, jobRequirements)) * 30;
 
     // Recency weight
     scores.recencyScore = this.calculateRecencyScore(structuredData.experience) * 20;
@@ -550,8 +581,8 @@ Return only the JSON object, no other text:`;
     scores.impactScore = this.calculateImpactScore(structuredData.experience) * 10;
 
     // Overall score
-    scores.overallScore = scores.mustHaveScore + scores.semanticScore + 
-                         scores.recencyScore + scores.impactScore;
+    scores.overallScore =
+      scores.mustHaveScore + scores.semanticScore + scores.recencyScore + scores.impactScore;
 
     return scores;
   }
@@ -564,19 +595,19 @@ Return only the JSON object, no other text:`;
       fieldValidityRate: 0,
       evidenceCoverage: 0,
       disagreementRate: 0,
-      issues: []
+      issues: [],
     };
 
     // Date sanity checks
     const currentYear = new Date().getFullYear();
-    structuredData.experience?.forEach(exp => {
+    structuredData.experience?.forEach((exp) => {
       const startYear = parseInt(exp.startDate);
       const endYear = parseInt(exp.endDate);
-      
+
       if (startYear > currentYear || endYear > currentYear + 1) {
         verification.issues.push(`Future date detected: ${exp.company}`);
       }
-      
+
       if (startYear > endYear && exp.endDate !== 'Present') {
         verification.issues.push(`Invalid date range: ${exp.company}`);
       }
@@ -597,29 +628,29 @@ Return only the JSON object, no other text:`;
    */
   async processResume(fileBuffer, fileName, jobRequirements) {
     const processingStart = Date.now();
-    
+
     try {
       // Step 1: Ingress
       const ingressData = await this.ingressDocument(fileBuffer, fileName);
-      
+
       // Step 2: Parsing
       const parseData = await this.parseDocument(fileBuffer, ingressData.fileType);
-      
+
       // Step 3: Entity extraction
       const entities = await this.extractEntities(parseData.rawText);
-      
+
       // Step 4: LLM extraction
       const structuredData = await this.extractStructuredData(parseData.rawText, entities);
-      
+
       // Step 5: Evidence binding
       const evidenceMap = this.bindEvidence(structuredData, entities, parseData.rawText);
-      
+
       // Step 6: Scoring
       const scores = await this.calculateScores(structuredData, jobRequirements, entities);
-      
+
       // Step 7: Verification
       const verification = await this.verifyExtraction(structuredData, parseData.rawText, entities);
-      
+
       return {
         success: true,
         resumeId: ingressData.fileId,
@@ -633,15 +664,14 @@ Return only the JSON object, no other text:`;
         metadata: {
           fieldValidityRate: verification.fieldValidityRate,
           evidenceCoverage: verification.evidenceCoverage,
-          disagreementRate: verification.disagreementRate
-        }
+          disagreementRate: verification.disagreementRate,
+        },
       };
-      
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        processingTime: Date.now() - processingStart
+        processingTime: Date.now() - processingStart,
       };
     }
   }
@@ -655,14 +685,20 @@ Return only the JSON object, no other text:`;
     return text.split('\n\n').map((block, index) => ({
       id: index,
       text: block.trim(),
-      type: this.detectBlockType(block)
+      type: this.detectBlockType(block),
     }));
   }
 
   detectBlockType(block) {
-    if (block.includes('@')) return 'contact';
-    if (block.match(/\d{4}/)) return 'experience';
-    if (block.toLowerCase().includes('university') || block.toLowerCase().includes('degree')) return 'education';
+    if (block.includes('@')) {
+      return 'contact';
+    }
+    if (block.match(/\d{4}/)) {
+      return 'experience';
+    }
+    if (block.toLowerCase().includes('university') || block.toLowerCase().includes('degree')) {
+      return 'education';
+    }
     return 'text';
   }
 
@@ -673,13 +709,13 @@ Return only the JSON object, no other text:`;
   }
 
   getFallbackStructure(entities, rawText = '') {
-    const emailEntity = entities.find(e => e.type === 'EMAIL');
-    const phoneEntity = entities.find(e => e.type === 'PHONE');
-    const linkedinEntity = entities.find(e => e.type === 'LINKEDIN');
-    
+    const emailEntity = entities.find((e) => e.type === 'EMAIL');
+    const phoneEntity = entities.find((e) => e.type === 'PHONE');
+    const linkedinEntity = entities.find((e) => e.type === 'LINKEDIN');
+
     // Extract name from entities or text
     let name = 'Name not found';
-    const nameEntity = entities.find(e => e.type === 'PERSON');
+    const nameEntity = entities.find((e) => e.type === 'PERSON');
     if (nameEntity) {
       name = this.normalizeName(nameEntity.value);
     } else {
@@ -693,11 +729,11 @@ Return only the JSON object, no other text:`;
 
     // Extract basic skills from text using common patterns
     const skills = this.extractBasicSkills(rawText);
-    
+
     // Extract basic experience info
     const experience = this.extractBasicExperience(rawText);
-    
-    // Extract basic education info  
+
+    // Extract basic education info
     const education = this.extractBasicEducation(rawText);
 
     return {
@@ -706,57 +742,98 @@ Return only the JSON object, no other text:`;
         email: emailEntity?.value || 'Email not found',
         phone: phoneEntity?.value || 'Phone not found',
         location: 'Location not specified',
-        linkedin: linkedinEntity?.value || 'LinkedIn not found'
+        linkedin: linkedinEntity?.value || 'LinkedIn not found',
       },
       experience: experience,
       education: education,
       skills: skills,
-      certifications: []
+      certifications: [],
     };
   }
 
   normalizeName(name) {
-    if (!name || name === 'Name not found') return name;
-    
+    if (!name || name === 'Name not found') {
+      return name;
+    }
+
     return name
       .toLowerCase()
       .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
 
   extractBasicSkills(text) {
-    if (!text) return [];
-    
+    if (!text) {
+      return [];
+    }
+
     const commonSkills = [
-      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'HTML', 'CSS', 'SQL',
-      'MongoDB', 'PostgreSQL', 'Git', 'Docker', 'AWS', 'Azure', 'TypeScript',
-      'Angular', 'Vue.js', 'Express', 'Django', 'Flask', 'Spring', 'Laravel',
-      'PHP', 'C++', 'C#', '.NET', 'Ruby', 'Go', 'Rust', 'Swift', 'Kotlin',
-      'Machine Learning', 'Data Science', 'AI', 'DevOps', 'Kubernetes',
-      'Jenkins', 'CI/CD', 'Agile', 'Scrum', 'Project Management'
+      'JavaScript',
+      'Python',
+      'Java',
+      'React',
+      'Node.js',
+      'HTML',
+      'CSS',
+      'SQL',
+      'MongoDB',
+      'PostgreSQL',
+      'Git',
+      'Docker',
+      'AWS',
+      'Azure',
+      'TypeScript',
+      'Angular',
+      'Vue.js',
+      'Express',
+      'Django',
+      'Flask',
+      'Spring',
+      'Laravel',
+      'PHP',
+      'C++',
+      'C#',
+      '.NET',
+      'Ruby',
+      'Go',
+      'Rust',
+      'Swift',
+      'Kotlin',
+      'Machine Learning',
+      'Data Science',
+      'AI',
+      'DevOps',
+      'Kubernetes',
+      'Jenkins',
+      'CI/CD',
+      'Agile',
+      'Scrum',
+      'Project Management',
     ];
-    
+
     const foundSkills = [];
     const textLower = text.toLowerCase();
-    
-    commonSkills.forEach(skill => {
+
+    commonSkills.forEach((skill) => {
       if (textLower.includes(skill.toLowerCase())) {
         foundSkills.push(skill);
       }
     });
-    
+
     return foundSkills.slice(0, 10); // Limit to 10 skills
   }
 
   extractBasicExperience(text) {
-    if (!text) return [];
-    
+    if (!text) {
+      return [];
+    }
+
     // Simple pattern matching for experience
     const lines = text.split('\n');
     const experience = [];
-    
-    lines.forEach(line => {
+
+    lines.forEach((line) => {
       // Look for company/role patterns
       if (line.match(/\b(developer|engineer|manager|analyst|designer|consultant)\b/i)) {
         experience.push({
@@ -764,36 +841,38 @@ Return only the JSON object, no other text:`;
           role: line.trim().substring(0, 50),
           startDate: 'Date not specified',
           endDate: 'Date not specified',
-          achievements: []
+          achievements: [],
         });
       }
     });
-    
+
     return experience.slice(0, 3); // Limit to 3 experiences
   }
 
   extractBasicEducation(text) {
-    if (!text) return [];
-    
+    if (!text) {
+      return [];
+    }
+
     const education = [];
     const textLower = text.toLowerCase();
-    
+
     // Look for degree patterns
     const degrees = ['bachelor', 'master', 'phd', 'diploma', 'certificate'];
     const fields = ['computer science', 'engineering', 'business', 'mathematics', 'physics'];
-    
-    degrees.forEach(degree => {
+
+    degrees.forEach((degree) => {
       if (textLower.includes(degree)) {
-        const field = fields.find(f => textLower.includes(f)) || 'Field not specified';
+        const field = fields.find((f) => textLower.includes(f)) || 'Field not specified';
         education.push({
           institution: 'Institution not specified',
           degree: degree.charAt(0).toUpperCase() + degree.slice(1),
           field: field.charAt(0).toUpperCase() + field.slice(1),
-          year: 'Year not specified'
+          year: 'Year not specified',
         });
       }
     });
-    
+
     return education.slice(0, 2); // Limit to 2 education entries
   }
 
@@ -802,46 +881,67 @@ Return only the JSON object, no other text:`;
     // In production: use actual pgvector embeddings
     const candidateText = JSON.stringify(structuredData).toLowerCase();
     const jobText = JSON.stringify(jobRequirements).toLowerCase();
-    
-    const commonWords = candidateText.split(' ').filter(word => 
-      jobText.includes(word) && word.length > 3
-    );
-    
+
+    const commonWords = candidateText
+      .split(' ')
+      .filter((word) => jobText.includes(word) && word.length > 3);
+
     return Math.min(1.0, commonWords.length / 20);
   }
 
   calculateRecencyScore(experience) {
-    if (!experience || experience.length === 0) return 0;
-    
+    if (!experience || experience.length === 0) {
+      return 0;
+    }
+
     const currentYear = new Date().getFullYear();
-    const mostRecentYear = Math.max(...experience.map(exp => {
-      const endYear = exp.endDate === 'Present' ? currentYear : parseInt(exp.endDate);
-      return endYear || 0;
-    }));
-    
+    const mostRecentYear = Math.max(
+      ...experience.map((exp) => {
+        const endYear = exp.endDate === 'Present' ? currentYear : parseInt(exp.endDate);
+        return endYear || 0;
+      }),
+    );
+
     const yearsAgo = currentYear - mostRecentYear;
-    
-    if (yearsAgo <= 5) return 1.0;
-    if (yearsAgo <= 10) return 0.5;
+
+    if (yearsAgo <= 5) {
+      return 1.0;
+    }
+    if (yearsAgo <= 10) {
+      return 0.5;
+    }
     return 0.25;
   }
 
   calculateImpactScore(experience) {
-    if (!experience || experience.length === 0) return 0;
-    
-    const impactVerbs = ['implemented', 'built', 'owned', 'led', 'created', 'developed', 'managed', 'increased', 'reduced', 'improved'];
+    if (!experience || experience.length === 0) {
+      return 0;
+    }
+
+    const impactVerbs = [
+      'implemented',
+      'built',
+      'owned',
+      'led',
+      'created',
+      'developed',
+      'managed',
+      'increased',
+      'reduced',
+      'improved',
+    ];
     let impactCount = 0;
-    
-    experience.forEach(exp => {
-      exp.achievements?.forEach(achievement => {
-        impactVerbs.forEach(verb => {
+
+    experience.forEach((exp) => {
+      exp.achievements?.forEach((achievement) => {
+        impactVerbs.forEach((verb) => {
           if (achievement.toLowerCase().includes(verb)) {
             impactCount++;
           }
         });
       });
     });
-    
+
     return Math.min(1.0, impactCount / 5);
   }
 
@@ -867,7 +967,7 @@ Return only the JSON object, no other text:`;
    */
   async assessCVHolistically(cvText, jobRequirements) {
     const jdText = JSON.stringify(jobRequirements, null, 2);
-    
+
     const prompt = `You are a world-class HR expert and talent acquisition specialist. Analyze this CV holistically against the job requirements.
 
 JOB REQUIREMENTS:
@@ -903,22 +1003,26 @@ ANALYSIS GUIDELINES:
 Return only the JSON object:`;
 
     try {
-      const response = await axios.post(this.apiUrl, {
-        model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.5, // Higher temperature for more nuanced analysis
-        max_tokens: 1500
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        this.apiUrl,
+        {
+          model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.5, // Higher temperature for more nuanced analysis
+          max_tokens: 1500,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       const jsonText = response.data.choices[0].message.content.trim();
       const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
       const assessment = JSON.parse(cleanJson);
-      
+
       return assessment;
     } catch (error) {
       console.error('Holistic assessment failed:', error.message);
@@ -932,7 +1036,7 @@ Return only the JSON object:`;
         experienceRelevance: 'Assessment failed',
         culturalFit: 'Assessment failed',
         recommendation: 'Pass',
-        detailedReasoning: 'Unable to assess candidate due to technical error'
+        detailedReasoning: 'Unable to assess candidate due to technical error',
       };
     }
   }
@@ -1001,21 +1105,25 @@ QUESTION GENERATION RULES:
 Return only the JSON object:`;
 
     try {
-      const response = await axios.post(this.apiUrl, {
-        model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4,
-        max_tokens: 2000
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        this.apiUrl,
+        {
+          model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.4,
+          max_tokens: 2000,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       const jsonText = response.data.choices[0].message.content.trim();
       const questions = JSON.parse(jsonText);
-      
+
       return questions;
     } catch (error) {
       console.error('Interview question generation failed:', error.message);
@@ -1023,7 +1131,7 @@ Return only the JSON object:`;
         technicalQuestions: [],
         behavioralQuestions: [],
         gapQuestions: [],
-        scenarioQuestions: []
+        scenarioQuestions: [],
       };
     }
   }
@@ -1037,7 +1145,7 @@ Return only the JSON object:`;
       name: c.name || 'Candidate ' + (idx + 1),
       assessment: c.assessment,
       keySkills: c.structuredData?.skills?.slice(0, 10) || [],
-      experience: c.structuredData?.experience?.map(e => `${e.role} at ${e.company}`) || []
+      experience: c.structuredData?.experience?.map((e) => `${e.role} at ${e.company}`) || [],
     }));
 
     const prompt = `You are a world-class HR expert. Rank these ${candidates.length} candidates from BEST to WORST for the given position.
@@ -1073,21 +1181,25 @@ Be specific in your reasoning. Reference actual experience and skills from each 
 Return only the JSON array:`;
 
     try {
-      const response = await axios.post(this.apiUrl, {
-        model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        max_tokens: 2000
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        this.apiUrl,
+        {
+          model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.2,
+          max_tokens: 2000,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       const jsonText = response.data.choices[0].message.content.trim();
       const rankings = JSON.parse(jsonText);
-      
+
       return rankings;
     } catch (error) {
       console.error('Intelligent ranking failed:', error.message);
@@ -1097,7 +1209,7 @@ Return only the JSON array:`;
         rank: idx + 1,
         name: c.name || 'Candidate ' + (idx + 1),
         rankingReason: 'Ranked based on overall assessment score',
-        recommendationLevel: c.assessment?.recommendation || 'Maybe'
+        recommendationLevel: c.assessment?.recommendation || 'Maybe',
       }));
     }
   }

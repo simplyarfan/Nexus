@@ -19,7 +19,7 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email) {
       toast.error('Please enter your email address');
       return;
@@ -64,14 +64,16 @@ const ForgotPassword = () => {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
             <p className="text-gray-600">
-              If an account exists with <strong>{email}</strong>, we've sent password reset instructions to that address.
+              If an account exists with <strong>{email}</strong>, we&apos;ve sent password reset
+              instructions to that address.
             </p>
           </div>
 
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-blue-800">
-              <strong>💡 Tip:</strong> The link will expire in 1 hour. Check your spam folder if you don't see it within a few minutes.
+              <strong>💡 Tip:</strong> The link will expire in 1 hour. Check your spam folder if you
+              don&apos;t see it within a few minutes.
             </p>
           </div>
 
@@ -102,7 +104,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Back button */}
-        <Link 
+        <Link
           href="/auth/login"
           className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors"
         >
@@ -117,16 +119,15 @@ const ForgotPassword = () => {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Forgot your password?</h1>
           <p className="text-gray-600">
-            No worries! Enter your email address and we'll send you a link to reset your password.
+            No worries! Enter your email address and we&apos;ll send you a link to reset your
+            password.
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
             <input
               type="email"
               required

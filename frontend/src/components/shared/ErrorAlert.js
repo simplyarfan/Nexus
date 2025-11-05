@@ -6,13 +6,13 @@ import { AlertCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
  * Displays consistent error messages across the application
  */
 
-const ErrorAlert = ({ 
+const ErrorAlert = ({
   type = 'error', // 'error', 'warning', 'info', 'success'
-  title, 
-  message, 
+  title,
+  message,
   details = null,
   onClose = null,
-  className = ''
+  className = '',
 }) => {
   const types = {
     error: {
@@ -21,7 +21,7 @@ const ErrorAlert = ({
       icon: <XCircle className="w-5 h-5 text-red-600" />,
       titleColor: 'text-red-900',
       messageColor: 'text-red-800',
-      closeColor: 'text-red-600 hover:text-red-800'
+      closeColor: 'text-red-600 hover:text-red-800',
     },
     warning: {
       bg: 'bg-yellow-50',
@@ -29,7 +29,7 @@ const ErrorAlert = ({
       icon: <AlertTriangle className="w-5 h-5 text-yellow-600" />,
       titleColor: 'text-yellow-900',
       messageColor: 'text-yellow-800',
-      closeColor: 'text-yellow-600 hover:text-yellow-800'
+      closeColor: 'text-yellow-600 hover:text-yellow-800',
     },
     info: {
       bg: 'bg-blue-50',
@@ -37,7 +37,7 @@ const ErrorAlert = ({
       icon: <Info className="w-5 h-5 text-blue-600" />,
       titleColor: 'text-blue-900',
       messageColor: 'text-blue-800',
-      closeColor: 'text-blue-600 hover:text-blue-800'
+      closeColor: 'text-blue-600 hover:text-blue-800',
     },
     success: {
       bg: 'bg-green-50',
@@ -45,8 +45,8 @@ const ErrorAlert = ({
       icon: <AlertCircle className="w-5 h-5 text-green-600" />,
       titleColor: 'text-green-900',
       messageColor: 'text-green-800',
-      closeColor: 'text-green-600 hover:text-green-800'
-    }
+      closeColor: 'text-green-600 hover:text-green-800',
+    },
   };
 
   const style = types[type] || types.error;
@@ -54,20 +54,10 @@ const ErrorAlert = ({
   return (
     <div className={`${style.bg} border ${style.border} rounded-xl p-4 ${className}`}>
       <div className="flex items-start">
-        <div className="flex-shrink-0">
-          {style.icon}
-        </div>
+        <div className="flex-shrink-0">{style.icon}</div>
         <div className="ml-3 flex-1">
-          {title && (
-            <h3 className={`text-sm font-semibold ${style.titleColor} mb-1`}>
-              {title}
-            </h3>
-          )}
-          {message && (
-            <div className={`text-sm ${style.messageColor}`}>
-              {message}
-            </div>
-          )}
+          {title && <h3 className={`text-sm font-semibold ${style.titleColor} mb-1`}>{title}</h3>}
+          {message && <div className={`text-sm ${style.messageColor}`}>{message}</div>}
           {details && Array.isArray(details) && details.length > 0 && (
             <ul className={`mt-2 text-sm ${style.messageColor} list-disc list-inside space-y-1`}>
               {details.map((detail, index) => (
@@ -76,9 +66,7 @@ const ErrorAlert = ({
             </ul>
           )}
           {details && !Array.isArray(details) && (
-            <div className={`mt-2 text-xs ${style.messageColor} opacity-75`}>
-              {details}
-            </div>
+            <div className={`mt-2 text-xs ${style.messageColor} opacity-75`}>{details}</div>
           )}
         </div>
         {onClose && (
@@ -132,21 +120,21 @@ export const parseAPIError = (error) => {
       type: 'error',
       title: data.error?.code || 'Request Failed',
       message: data.error?.message || data.message || 'An error occurred',
-      details: data.error?.details || null
+      details: data.error?.details || null,
     };
   } else if (error.request) {
     // Request made but no response
     return {
       type: 'error',
       title: 'Network Error',
-      message: 'Unable to connect to server. Please check your internet connection.'
+      message: 'Unable to connect to server. Please check your internet connection.',
     };
   } else {
     // Something else happened
     return {
       type: 'error',
       title: 'Error',
-      message: error.message || 'An unexpected error occurred'
+      message: error.message || 'An unexpected error occurred',
     };
   }
 };

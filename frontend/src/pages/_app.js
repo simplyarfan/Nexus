@@ -1,7 +1,7 @@
-import '../styles/globals.css'
-import { AuthProvider } from '../contexts/AuthContext'
-import { Toaster } from 'react-hot-toast'
-import ErrorBoundary from '../components/shared/ErrorBoundary'
+import '../styles/globals.css';
+import { AuthProvider } from '../contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
+import ErrorBoundary from '../components/shared/ErrorBoundary';
 
 // Production version - clean interface
 export default function App({ Component, pageProps }) {
@@ -33,5 +33,5 @@ export default function App({ Component, pageProps }) {
         />
       </AuthProvider>
     </ErrorBoundary>
-  )
+  );
 }

@@ -1,21 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const AnalyticsController = require('../controllers/AnalyticsController');
-const { 
-  authenticateToken, 
-  requireSuperAdmin,
-  trackActivity 
-} = require('../middleware/auth');
-const {
-  analyticsLimiter,
-  exportLimiter
-} = require('../middleware/rateLimiting');
+const { authenticateToken, requireSuperAdmin, trackActivity } = require('../middleware/auth');
+const { analyticsLimiter, exportLimiter } = require('../middleware/rateLimiting');
 const {
   validatePagination,
   validateTimeframe,
   validateUserId,
   validateAgentId,
-  validateExportFormat
+  validateExportFormat,
 } = require('../middleware/validation');
 
 // All analytics routes require superadmin access
@@ -24,55 +17,62 @@ router.use(requireSuperAdmin);
 router.use(analyticsLimiter);
 
 // Dashboard overview statistics
-router.get('/dashboard',
+router.get(
+  '/dashboard',
   trackActivity('analytics_dashboard_viewed'),
-  AnalyticsController.getDashboard
+  AnalyticsController.getDashboard,
 );
 
 // User analytics
-router.get('/users',
+router.get(
+  '/users',
   validatePagination,
   validateTimeframe,
   trackActivity('user_analytics_viewed'),
-  AnalyticsController.getUserAnalytics
+  AnalyticsController.getUserAnalytics,
 );
 
 // Agent usage analytics
-router.get('/agents',
+router.get(
+  '/agents',
   validateTimeframe,
   trackActivity('agent_analytics_viewed'),
-  AnalyticsController.getAgentAnalytics
+  AnalyticsController.getAgentAnalytics,
 );
 
 // CV Intelligence analytics
-router.get('/cv-intelligence',
+router.get(
+  '/cv-intelligence',
   validateTimeframe,
   trackActivity('cv_analytics_viewed'),
-  AnalyticsController.getCVAnalytics
+  AnalyticsController.getCVAnalytics,
 );
 
 // System analytics
-router.get('/system',
+router.get(
+  '/system',
   validateTimeframe,
   trackActivity('system_analytics_viewed'),
-  AnalyticsController.getSystemAnalytics
+  AnalyticsController.getSystemAnalytics,
 );
 
 // Detailed user activity
-router.get('/users/:user_id/activity',
+router.get(
+  '/users/:user_id/activity',
   validateUserId,
   validatePagination,
   trackActivity('user_activity_viewed'),
-  AnalyticsController.getUserActivity
+  AnalyticsController.getUserActivity,
 );
 
 // Export analytics data
-router.get('/export',
+router.get(
+  '/export',
   exportLimiter,
   validateTimeframe,
   validateExportFormat,
   trackActivity('analytics_exported'),
-  AnalyticsController.exportAnalytics
+  AnalyticsController.exportAnalytics,
 );
 
 module.exports = router;

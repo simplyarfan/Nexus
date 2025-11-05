@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend to Vercel
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        run: echo "✅ Backend auto-deploys via Vercel GitHub integration"
+        # Vercel automatically deploys when you push to main
+        # No additional action needed if Vercel GitHub app is installed
+
+  deploy-frontend:
+    name: Deploy Frontend to Netlify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Netlify
+        run: echo "✅ Frontend auto-deploys via Netlify GitHub integration"
+        # Netlify automatically deploys when you push to main
+        # No additional action needed if Netlify GitHub app is installed
+
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Deployment Status
+        run: |
+          echo "🚀 Deployment process completed"
+          echo "Backend: ${{ needs.deploy-backend.result }}"
+          echo "Frontend: ${{ needs.deploy-frontend.result }}"

@@ -17,14 +17,14 @@ export default async function handler(req, res) {
     // - AWS SES
     // - Nodemailer with SMTP
     // - EmailJS (client-side)
-    
+
     console.log('Contact form submission:', {
       firstName,
       lastName,
       email,
       company,
       message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Simulate email sending
@@ -42,22 +42,21 @@ export default async function handler(req, res) {
         ${message}
         
         Submitted at: ${new Date().toLocaleString()}
-      `
+      `,
     };
 
     console.log('Email would be sent:', emailData);
 
     // Return success
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'Message sent successfully!',
       data: {
         firstName,
         lastName,
         email,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
-
   } catch (error) {
     console.error('Contact form error:', error);
     res.status(500).json({ message: 'Failed to send message' });

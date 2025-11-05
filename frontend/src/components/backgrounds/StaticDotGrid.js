@@ -12,7 +12,7 @@ export default function StaticDotGrid({
   dotColor = '#ff6b35',
   backgroundColor = 'transparent',
   spacing = 40,
-  className = ''
+  className = '',
 }) {
   const canvasRef = useRef(null);
 
@@ -22,7 +22,7 @@ export default function StaticDotGrid({
 
     const ctx = canvas.getContext('2d');
     const parent = canvas.parentElement;
-    
+
     const resizeCanvas = () => {
       canvas.width = parent.offsetWidth;
       canvas.height = parent.offsetHeight;
@@ -31,7 +31,7 @@ export default function StaticDotGrid({
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       if (backgroundColor !== 'transparent') {
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);

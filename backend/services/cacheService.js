@@ -16,11 +16,11 @@ class CacheService {
     try {
       // Check if Redis URL is configured
       const redisUrl = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
-      
+
       if (!redisUrl) {
         return null;
       }
-      
+
       // Create Redis connection
       this.redis = new Redis(redisUrl, {
         retryDelayOnFailover: 100,
@@ -31,19 +31,18 @@ class CacheService {
         commandTimeout: 5000,
         // Handle connection errors gracefully
         retryDelayOnClusterDown: 300,
-        enableAutoPipelining: true
+        enableAutoPipelining: true,
       });
 
       // Test connection
       await this.redis.ping();
       this.isConnected = true;
-      
+
       // Handle connection events
       this.redis.on('error', (error) => {
         console.error('❌ Redis connection error:', error.message);
         this.isConnected = false;
       });
-
 
       return this.redis;
     } catch (error) {
@@ -58,7 +57,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return false;
+        if (!this.redis) {
+          return false;
+        }
       }
 
       const cacheKey = `cv_analysis:${key}`;
@@ -75,16 +76,18 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return null;
+        if (!this.redis) {
+          return null;
+        }
       }
 
       const cacheKey = `cv_analysis:${key}`;
       const cached = await this.redis.get(cacheKey);
-      
+
       if (cached) {
         return JSON.parse(cached);
       }
-      
+
       return null;
     } catch (error) {
       console.error('❌ Cache read failed:', error.message);
@@ -97,7 +100,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return false;
+        if (!this.redis) {
+          return false;
+        }
       }
 
       const cacheKey = `api:${endpoint}:${this.hashParams(params)}`;
@@ -114,16 +119,18 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return null;
+        if (!this.redis) {
+          return null;
+        }
       }
 
       const cacheKey = `api:${endpoint}:${this.hashParams(params)}`;
       const cached = await this.redis.get(cacheKey);
-      
+
       if (cached) {
         return JSON.parse(cached);
       }
-      
+
       return null;
     } catch (error) {
       console.error('❌ API cache read failed:', error.message);
@@ -136,7 +143,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return false;
+        if (!this.redis) {
+          return false;
+        }
       }
 
       const cacheKey = `session:${userId}`;
@@ -153,7 +162,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return null;
+        if (!this.redis) {
+          return null;
+        }
       }
 
       const cacheKey = `session:${userId}`;
@@ -170,7 +181,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return false;
+        if (!this.redis) {
+          return false;
+        }
       }
 
       const keys = await this.redis.keys(pattern);
@@ -189,16 +202,18 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return null;
+        if (!this.redis) {
+          return null;
+        }
       }
 
       const info = await this.redis.info('memory');
       const keyCount = await this.redis.dbsize();
-      
+
       return {
         connected: this.isConnected,
         keyCount,
-        memoryInfo: info
+        memoryInfo: info,
       };
     } catch (error) {
       console.error('❌ Cache stats failed:', error.message);
@@ -211,7 +226,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return null;
+        if (!this.redis) {
+          return null;
+        }
       }
 
       const cached = await this.redis.get(key);
@@ -227,7 +244,9 @@ class CacheService {
     try {
       if (!this.redis || !this.isConnected) {
         await this.connect();
-        if (!this.redis) return false;
+        if (!this.redis) {
+          return false;
+        }
       }
 
       await this.redis.setex(key, ttl, JSON.stringify(value));
@@ -240,8 +259,10 @@ class CacheService {
 
   // Helper function to hash parameters for consistent cache keys
   hashParams(params) {
-    if (!params) return 'no-params';
-    
+    if (!params) {
+      return 'no-params';
+    }
+
     const crypto = require('crypto');
     const paramString = typeof params === 'string' ? params : JSON.stringify(params);
     return crypto.createHash('md5').update(paramString).digest('hex').substring(0, 8);

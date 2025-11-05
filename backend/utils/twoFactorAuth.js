@@ -12,7 +12,7 @@ class TwoFactorAuth {
   static generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
-  
+
   /**
    * Get OTP expiry time (10 minutes from now)
    * @returns {Date} Expiry timestamp
@@ -20,7 +20,7 @@ class TwoFactorAuth {
   static getExpiryTime() {
     return new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
   }
-  
+
   /**
    * Verify OTP code
    * @param {string} inputCode - Code entered by user
@@ -32,21 +32,21 @@ class TwoFactorAuth {
     if (!storedCode || !expiryTime) {
       return { valid: false, reason: 'NO_CODE' };
     }
-    
+
     const now = new Date();
     const expiry = new Date(expiryTime);
-    
+
     if (now > expiry) {
       return { valid: false, reason: 'EXPIRED' };
     }
-    
+
     if (inputCode !== storedCode) {
       return { valid: false, reason: 'INVALID' };
     }
-    
+
     return { valid: true };
   }
-  
+
   /**
    * Generate a secret for authenticator apps (future enhancement)
    * @param {string} email - User email
@@ -66,7 +66,7 @@ function generate2FACode() {
   const code = TwoFactorAuth.generateOTP();
   const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
   const expiresAt = TwoFactorAuth.getExpiryTime();
-  
+
   return { code, hashedCode, expiresAt };
 }
 
@@ -81,21 +81,21 @@ function verify2FACode(inputCode, storedHashedCode, expiryTime) {
   if (!storedHashedCode || !expiryTime) {
     return { valid: false, reason: 'NO_CODE' };
   }
-  
+
   const now = new Date();
   const expiry = new Date(expiryTime);
-  
+
   if (now > expiry) {
     return { valid: false, reason: 'EXPIRED' };
   }
-  
+
   // Hash the input code and compare with stored hash
   const inputHash = crypto.createHash('sha256').update(inputCode).digest('hex');
-  
+
   if (inputHash !== storedHashedCode) {
     return { valid: false, reason: 'INVALID' };
   }
-  
+
   return { valid: true };
 }
 

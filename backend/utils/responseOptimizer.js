@@ -11,9 +11,13 @@ class ResponseOptimizer {
    * @returns {Object} Object with only selected fields
    */
   static selectFields(obj, fields) {
-    if (!obj) return null;
-    if (!fields || fields.length === 0) return obj;
-    
+    if (!obj) {
+      return null;
+    }
+    if (!fields || fields.length === 0) {
+      return obj;
+    }
+
     return fields.reduce((acc, field) => {
       if (obj[field] !== undefined) {
         acc[field] = obj[field];
@@ -29,7 +33,9 @@ class ResponseOptimizer {
    * @returns {Object} Sanitized user object
    */
   static sanitizeUser(user, includeFields = []) {
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     const safe = {
       id: user.id,
@@ -44,7 +50,7 @@ class ResponseOptimizer {
       last_login: user.last_login,
       // Add Outlook connection status without exposing tokens
       outlook_connected: !!(user.outlook_access_token || user.outlook_email),
-      outlook_email: user.outlook_email || null
+      outlook_email: user.outlook_email || null,
     };
 
     // Never include these sensitive fields
@@ -57,15 +63,13 @@ class ResponseOptimizer {
       'outlook_access_token',
       'outlook_refresh_token',
       'account_locked_until',
-      'failed_login_attempts'
+      'failed_login_attempts',
     ];
 
     // Remove any blacklisted fields that might have leaked through
-    blacklist.forEach(field => delete safe[field]);
+    blacklist.forEach((field) => delete safe[field]);
 
-    return includeFields.length > 0 
-      ? this.selectFields(safe, includeFields)
-      : safe;
+    return includeFields.length > 0 ? this.selectFields(safe, includeFields) : safe;
   }
 
   /**
@@ -74,7 +78,9 @@ class ResponseOptimizer {
    * @returns {Object} Sanitized ticket object
    */
   static sanitizeTicket(ticket) {
-    if (!ticket) return null;
+    if (!ticket) {
+      return null;
+    }
 
     return {
       id: ticket.id,
@@ -95,7 +101,7 @@ class ResponseOptimizer {
       email: ticket.email,
       assigned_first_name: ticket.assigned_first_name,
       assigned_last_name: ticket.assigned_last_name,
-      comment_count: ticket.comment_count
+      comment_count: ticket.comment_count,
     };
   }
 
@@ -105,7 +111,9 @@ class ResponseOptimizer {
    * @returns {Object} Sanitized comment object
    */
   static sanitizeComment(comment) {
-    if (!comment) return null;
+    if (!comment) {
+      return null;
+    }
 
     return {
       id: comment.id,
@@ -116,7 +124,7 @@ class ResponseOptimizer {
       created_at: comment.created_at,
       first_name: comment.first_name,
       last_name: comment.last_name,
-      role: comment.role
+      role: comment.role,
     };
   }
 
@@ -127,8 +135,10 @@ class ResponseOptimizer {
    * @returns {Array} Sanitized array
    */
   static sanitizeArray(items, sanitizer) {
-    if (!Array.isArray(items)) return [];
-    return items.map(item => sanitizer(item)).filter(item => item !== null);
+    if (!Array.isArray(items)) {
+      return [];
+    }
+    return items.map((item) => sanitizer(item)).filter((item) => item !== null);
   }
 
   /**
@@ -141,11 +151,15 @@ class ResponseOptimizer {
   static success(data, message = null, meta = null) {
     const response = {
       success: true,
-      data
+      data,
     };
 
-    if (message) response.message = message;
-    if (meta) response.meta = meta;
+    if (message) {
+      response.message = message;
+    }
+    if (meta) {
+      response.meta = meta;
+    }
 
     return response;
   }
@@ -160,11 +174,15 @@ class ResponseOptimizer {
   static error(message, errors = null, code = null) {
     const response = {
       success: false,
-      message
+      message,
     };
 
-    if (errors) response.errors = errors;
-    if (code) response.code = code;
+    if (errors) {
+      response.errors = errors;
+    }
+    if (code) {
+      response.code = code;
+    }
 
     return response;
   }
@@ -175,8 +193,10 @@ class ResponseOptimizer {
    * @returns {Object} Clean object
    */
   static removeEmpty(obj) {
-    if (!obj) return obj;
-    
+    if (!obj) {
+      return obj;
+    }
+
     return Object.entries(obj).reduce((acc, [key, value]) => {
       if (value !== null && value !== undefined) {
         acc[key] = value;
@@ -201,8 +221,8 @@ class ResponseOptimizer {
         limit: parseInt(limit),
         total: parseInt(total),
         totalPages: Math.ceil(total / limit),
-        hasMore: page * limit < total
-      }
+        hasMore: page * limit < total,
+      },
     };
   }
 }

@@ -52,7 +52,7 @@ const ResetPassword = () => {
     try {
       const response = await api.post('/auth/reset-password', {
         token,
-        newPassword
+        newPassword,
       });
 
       if (response.data.success) {
@@ -95,7 +95,8 @@ const ResetPassword = () => {
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-blue-800">
-              <strong>🔐 Security Note:</strong> For your security, all existing sessions have been logged out. You'll need to sign in again.
+              <strong>🔐 Security Note:</strong> For your security, all existing sessions have been
+              logged out. You&apos;ll need to sign in again.
             </p>
           </div>
 
@@ -120,17 +121,13 @@ const ResetPassword = () => {
             <Lock className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Set New Password</h1>
-          <p className="text-gray-600">
-            Please enter your new password below.
-          </p>
+          <p className="text-gray-600">Please enter your new password below.</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}

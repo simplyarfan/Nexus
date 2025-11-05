@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import Head from 'next/head';
 import emailService from '../services/emailService';
-import { 
+import {
   ArrowLeft,
   User,
   Mail,
@@ -17,7 +17,7 @@ import {
   EyeOff,
   CheckCircle,
   Calendar,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { authAPI } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -34,19 +34,19 @@ function ProfileSettings() {
   const [connectedEmail, setConnectedEmail] = useState({});
   const [googleCalendarStatus, setGoogleCalendarStatus] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
-  
+
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     jobTitle: '',
-    department: ''
+    department: '',
   });
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
   useEffect(() => {
@@ -56,7 +56,7 @@ function ProfileSettings() {
         lastName: user.last_name || '',
         email: user.email || '',
         jobTitle: user.job_title || '',
-        department: user.department || ''
+        department: user.department || '',
       });
     }
   }, [user]);
@@ -70,8 +70,8 @@ function ProfileSettings() {
         setConnectedEmail({
           outlook: {
             connected: true,
-            email: outlookStatus.email
-          }
+            email: outlookStatus.email,
+          },
         });
       }
     };
@@ -96,7 +96,7 @@ function ProfileSettings() {
   // Handle Google Calendar and Outlook connection results from URL query
   useEffect(() => {
     const { google_calendar, outlook, message } = router.query;
-    
+
     // Handle Google Calendar callback
     if (google_calendar === 'connected') {
       setGoogleCalendarStatus(true);
@@ -106,19 +106,19 @@ function ProfileSettings() {
       toast.error('Failed to connect Google Calendar');
       router.replace('/profile', undefined, { shallow: true });
     }
-    
+
     // Handle Outlook OAuth callback
     if (outlook === 'connected') {
       setActiveTab('email');
       toast.success('Outlook connected successfully!');
       // Reload Outlook status
-      emailService.checkOutlookStatus().then(status => {
+      emailService.checkOutlookStatus().then((status) => {
         if (status.isConnected) {
           setConnectedEmail({
             outlook: {
               connected: true,
-              email: status.email
-            }
+              email: status.email,
+            },
           });
         }
       });
@@ -204,13 +204,13 @@ function ProfileSettings() {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const response = await authAPI.updateProfile({
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         jobTitle: profileData.jobTitle,
-        department: profileData.department
+        department: profileData.department,
       });
 
       if (response.success) {
@@ -229,7 +229,7 @@ function ProfileSettings() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match');
       return;
@@ -241,11 +241,11 @@ function ProfileSettings() {
     }
 
     setLoading(true);
-    
+
     try {
       const response = await authAPI.changePassword({
         currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+        newPassword: passwordData.newPassword,
       });
 
       if (response.success) {
@@ -253,7 +253,7 @@ function ProfileSettings() {
         setPasswordData({
           currentPassword: '',
           newPassword: '',
-          confirmPassword: ''
+          confirmPassword: '',
         });
       } else {
         toast.error(response.message || 'Failed to change password');
@@ -268,9 +268,9 @@ function ProfileSettings() {
 
   const handleInputChange = (section, field, value) => {
     if (section === 'profile') {
-      setProfileData(prev => ({ ...prev, [field]: value }));
+      setProfileData((prev) => ({ ...prev, [field]: value }));
     } else if (section === 'password') {
-      setPasswordData(prev => ({ ...prev, [field]: value }));
+      setPasswordData((prev) => ({ ...prev, [field]: value }));
     }
   };
 
@@ -308,7 +308,9 @@ function ProfileSettings() {
                   <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-gray-600" />
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{user?.first_name} {user?.last_name}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {user?.first_name} {user?.last_name}
+                  </span>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -368,123 +370,126 @@ function ProfileSettings() {
             {/* Profile Information Tab */}
             {activeTab === 'profile' && (
               <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-orange-200/50 overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                    <User className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">Profile Information</h2>
-                    <p className="text-orange-100">Update your personal details</p>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={handleProfileUpdate} className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.firstName}
-                      onChange={(e) => handleInputChange('profile', 'firstName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Enter your first name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.lastName}
-                      onChange={(e) => handleInputChange('profile', 'lastName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Enter your last name"
-                    />
+                <div className="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Profile Information</h2>
+                      <p className="text-orange-100">Update your personal details</p>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    disabled
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Job Title
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.jobTitle}
-                      onChange={(e) => handleInputChange('profile', 'jobTitle', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Enter your job title"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Department
-                      {(user?.role === 'user') && (
-                        <span className="text-xs text-gray-500 ml-2">(Contact admin to change)</span>
-                      )}
-                    </label>
-                    {user?.role === 'user' ? (
-                      <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600">
-                        {profileData.department || 'No department assigned'}
-                      </div>
-                    ) : (
-                      <select
-                        value={profileData.department}
-                        onChange={(e) => handleInputChange('profile', 'department', e.target.value)}
+                <form onSubmit={handleProfileUpdate} className="p-8 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        First Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.firstName}
+                        onChange={(e) => handleInputChange('profile', 'firstName', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      >
-                        <option value="">Select Department</option>
-                        <option value="Human Resources">Human Resources</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Sales & Marketing">Sales & Marketing</option>
-                        <option value="IT">IT</option>
-                        <option value="Operations">Operations</option>
-                      </select>
-                    )}
+                        placeholder="Enter your first name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Last Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.lastName}
+                        onChange={(e) => handleInputChange('profile', 'lastName', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        placeholder="Enter your last name"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex justify-end pt-6 border-t border-gray-200">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex items-center px-8 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:from-orange-600 hover:to-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Updating...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Update Profile
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={profileData.email}
+                      disabled
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Job Title
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.jobTitle}
+                        onChange={(e) => handleInputChange('profile', 'jobTitle', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        placeholder="Enter your job title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Department
+                        {user?.role === 'user' && (
+                          <span className="text-xs text-gray-500 ml-2">
+                            (Contact admin to change)
+                          </span>
+                        )}
+                      </label>
+                      {user?.role === 'user' ? (
+                        <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600">
+                          {profileData.department || 'No department assigned'}
+                        </div>
+                      ) : (
+                        <select
+                          value={profileData.department}
+                          onChange={(e) =>
+                            handleInputChange('profile', 'department', e.target.value)
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        >
+                          <option value="">Select Department</option>
+                          <option value="Human Resources">Human Resources</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Sales & Marketing">Sales & Marketing</option>
+                          <option value="IT">IT</option>
+                          <option value="Operations">Operations</option>
+                        </select>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-6 border-t border-gray-200">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center px-8 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:from-orange-600 hover:to-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Update Profile
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
-
 
             {/* Email Integration Tab */}
             {activeTab === 'email' && (
@@ -496,7 +501,9 @@ function ProfileSettings() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">Email Integration</h2>
-                      <p className="text-blue-100">Connect your email for sending interview invitations</p>
+                      <p className="text-blue-100">
+                        Connect your email for sending interview invitations
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -513,13 +520,17 @@ function ProfileSettings() {
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">Outlook</h3>
                             {connectedEmail.outlook?.connected ? (
-                              <p className="text-sm text-green-600">Connected as {connectedEmail.outlook.email}</p>
+                              <p className="text-sm text-green-600">
+                                Connected as {connectedEmail.outlook.email}
+                              </p>
                             ) : (
-                              <p className="text-sm text-gray-500">Connect to send interview emails from your company Outlook</p>
+                              <p className="text-sm text-gray-500">
+                                Connect to send interview emails from your company Outlook
+                              </p>
                             )}
                           </div>
                         </div>
-                        
+
                         {connectedEmail.outlook?.connected ? (
                           <button
                             onClick={() => handleDisconnectEmail('outlook')}
@@ -557,13 +568,17 @@ function ProfileSettings() {
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">Google Calendar</h3>
                             {googleCalendarStatus ? (
-                              <p className="text-sm text-green-600">Connected - Create Google Meet links automatically</p>
+                              <p className="text-sm text-green-600">
+                                Connected - Create Google Meet links automatically
+                              </p>
                             ) : (
-                              <p className="text-sm text-gray-500">Connect to create interviews with Google Meet links</p>
+                              <p className="text-sm text-gray-500">
+                                Connect to create interviews with Google Meet links
+                              </p>
                             )}
                           </div>
                         </div>
-                        
+
                         {googleCalendarStatus ? (
                           <button
                             onClick={handleGoogleCalendarDisconnect}
@@ -586,7 +601,9 @@ function ProfileSettings() {
 
                     {/* Benefits */}
                     <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                      <h4 className="font-semibold text-red-900 mb-3">Benefits of Email Integration:</h4>
+                      <h4 className="font-semibold text-red-900 mb-3">
+                        Benefits of Email Integration:
+                      </h4>
                       <ul className="text-sm text-red-800 space-y-2">
                         <li className="flex items-center">
                           <CheckCircle className="w-4 h-4 mr-2 text-red-600" />
@@ -621,7 +638,9 @@ function ProfileSettings() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">Security Settings</h2>
-                      <p className="text-purple-100">Update your password and security preferences</p>
+                      <p className="text-purple-100">
+                        Update your password and security preferences
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -636,7 +655,9 @@ function ProfileSettings() {
                         <input
                           type={showCurrentPassword ? 'text' : 'password'}
                           value={passwordData.currentPassword}
-                          onChange={(e) => handleInputChange('password', 'currentPassword', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange('password', 'currentPassword', e.target.value)
+                          }
                           className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                           placeholder="Enter your current password"
                         />
@@ -645,7 +666,11 @@ function ProfileSettings() {
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
-                          {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          {showCurrentPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -658,7 +683,9 @@ function ProfileSettings() {
                         <input
                           type={showNewPassword ? 'text' : 'password'}
                           value={passwordData.newPassword}
-                          onChange={(e) => handleInputChange('password', 'newPassword', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange('password', 'newPassword', e.target.value)
+                          }
                           className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                           placeholder="Enter your new password"
                         />
@@ -667,7 +694,11 @@ function ProfileSettings() {
                           onClick={() => setShowNewPassword(!showNewPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
-                          {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          {showNewPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -680,7 +711,9 @@ function ProfileSettings() {
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           value={passwordData.confirmPassword}
-                          onChange={(e) => handleInputChange('password', 'confirmPassword', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange('password', 'confirmPassword', e.target.value)
+                          }
                           className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                           placeholder="Confirm your new password"
                         />
@@ -689,7 +722,11 @@ function ProfileSettings() {
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
-                          {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -719,7 +756,6 @@ function ProfileSettings() {
             )}
           </div>
         </div>
-
       </div>
     </>
   );

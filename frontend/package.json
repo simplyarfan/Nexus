@@ -1,13 +1,16 @@
 {
   "name": "enterprise-ai-hub",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Enterprise AI Hub - Modern AI Platform Frontend",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "node ./node_modules/next/dist/bin/next dev",
+    "build": "node ./node_modules/next/dist/bin/next build",
+    "start": "node ./node_modules/next/dist/bin/next start",
+    "lint": "node ./node_modules/next/dist/bin/next lint",
+    "lint:fix": "node ./node_modules/next/dist/bin/next lint --fix",
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --write \"**/*.{js,jsx,json,md,css}\"",
+    "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check \"**/*.{js,jsx,json,md,css}\""
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -24,7 +27,7 @@
     "lucide-react": "^0.292.0",
     "mathjs": "^14.8.1",
     "motion": "^12.23.22",
-    "next": "^14.0.3",
+    "next": "^14.2.33",
     "next-themes": "^0.2.1",
     "ogl": "^1.0.11",
     "postcss": "8.4.31",
@@ -38,7 +41,10 @@
   "devDependencies": {
     "critters": "^0.0.23",
     "eslint": "8.54.0",
-    "eslint-config-next": "14.0.3"
+    "eslint-config-next": "14.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=18.0.0"

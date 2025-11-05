@@ -8,8 +8,11 @@
     "dev": "nodemon server.js",
     "init-db": "node scripts/init-database.js",
     "seed-db": "node scripts/seed-database.js",
-    "test": "echo \"Tests coming soon...\"",
-    "lint": "echo \"Linting coming soon...\""
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
+    "lint:fix": "node ./node_modules/eslint/bin/eslint.js . --fix",
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --write \"**/*.{js,json,md}\"",
+    "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check \"**/*.{js,json,md}\"",
+    "test": "echo \"Tests coming soon...\""
   },
   "keywords": [
     "ai",
@@ -44,7 +47,11 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "nodemon": "^3.0.2",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=16.0.0"

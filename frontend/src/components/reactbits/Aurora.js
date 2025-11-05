@@ -121,7 +121,7 @@ export default function Aurora(props) {
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
-      antialias: true
+      antialias: true,
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -147,7 +147,7 @@ export default function Aurora(props) {
       delete geometry.attributes.uv;
     }
 
-    const colorStopsArray = colorStops.map(hex => {
+    const colorStopsArray = colorStops.map((hex) => {
       const c = new Color(hex);
       return [c.r, c.g, c.b];
     });
@@ -160,22 +160,22 @@ export default function Aurora(props) {
         uAmplitude: { value: amplitude },
         uColorStops: { value: colorStopsArray },
         uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
-        uBlend: { value: blend }
-      }
+        uBlend: { value: blend },
+      },
     });
 
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
     let animateId = 0;
-    const update = t => {
+    const update = (t) => {
       animateId = requestAnimationFrame(update);
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
       program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
       const stops = propsRef.current.colorStops ?? colorStops;
-      program.uniforms.uColorStops.value = stops.map(hex => {
+      program.uniforms.uColorStops.value = stops.map((hex) => {
         const c = new Color(hex);
         return [c.r, c.g, c.b];
       });

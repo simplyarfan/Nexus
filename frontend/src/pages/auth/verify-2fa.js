@@ -58,7 +58,7 @@ const Verify2FA = () => {
     }
 
     // Auto-submit when all fields filled
-    if (index === 5 && value && newCode.every(digit => digit)) {
+    if (index === 5 && value && newCode.every((digit) => digit)) {
       handleVerify(newCode.join(''));
     }
   };
@@ -74,7 +74,7 @@ const Verify2FA = () => {
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').trim();
-    
+
     if (/^\d{6}$/.test(pastedData)) {
       const newCode = pastedData.split('');
       setCode(newCode);
@@ -88,7 +88,7 @@ const Verify2FA = () => {
     if (verifying) return;
 
     const codeString = verificationCode || code.join('');
-    
+
     if (codeString.length !== 6) {
       toast.error('Please enter the complete 6-digit code');
       return;
@@ -99,7 +99,7 @@ const Verify2FA = () => {
     try {
       const response = await api.post('/auth/verify-2fa', {
         userId,
-        code: codeString
+        code: codeString,
       });
 
       if (response.data.success) {
@@ -109,7 +109,7 @@ const Verify2FA = () => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
 
         toast.success('Verification successful!');
-        
+
         const returnUrl = router.query.returnUrl || '/';
         router.push(returnUrl);
       } else {
@@ -145,7 +145,7 @@ const Verify2FA = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Back button */}
-        <Link 
+        <Link
           href="/auth/login"
           className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors"
         >
@@ -160,7 +160,7 @@ const Verify2FA = () => {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Two-Factor Authentication</h1>
           <p className="text-gray-600">
-            We've sent a 6-digit code to your email.
+            We&apos;ve sent a 6-digit code to your email.
             <br />
             Enter it below to complete your sign in.
           </p>
@@ -188,7 +188,7 @@ const Verify2FA = () => {
 
           <button
             type="submit"
-            disabled={verifying || code.some(digit => !digit)}
+            disabled={verifying || code.some((digit) => !digit)}
             className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-3 px-4 rounded-xl font-medium hover:from-orange-600 hover:to-red-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {verifying ? 'Verifying...' : 'Verify Code'}
@@ -198,15 +198,15 @@ const Verify2FA = () => {
         {/* Resend */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Didn't receive the code?{' '}
+            Didn&apos;t receive the code?{' '}
             <button
               onClick={async () => {
                 if (resendCooldown > 0 || resending) return;
-                
+
                 setResending(true);
                 try {
                   const response = await api.post('/auth/resend-2fa', { userId });
-                  
+
                   if (response.data.success) {
                     toast.success('A new code has been sent to your email');
                     setResendCooldown(60); // 60 second cooldown
@@ -225,12 +225,11 @@ const Verify2FA = () => {
               className="text-orange-600 hover:text-orange-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
               disabled={verifying || resending || resendCooldown > 0}
             >
-              {resending 
-                ? 'Sending...' 
-                : resendCooldown > 0 
-                  ? `Resend code (${resendCooldown}s)` 
-                  : 'Resend code'
-              }
+              {resending
+                ? 'Sending...'
+                : resendCooldown > 0
+                  ? `Resend code (${resendCooldown}s)`
+                  : 'Resend code'}
             </button>
           </p>
         </div>
@@ -238,7 +237,8 @@ const Verify2FA = () => {
         {/* Help text */}
         <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-xl">
           <p className="text-sm text-blue-800">
-            <strong>💡 Tip:</strong> Check your spam folder if you don't see the email within a few minutes.
+            <strong>💡 Tip:</strong> Check your spam folder if you don&apos;t see the email within a
+            few minutes.
           </p>
         </div>
       </div>

@@ -14,7 +14,7 @@ const {
   validateCategory,
   validateTimeframe,
   validateSearch,
-  validateSort
+  validateSort,
 } = require('../middleware/validation');
 
 // All routes require authentication
@@ -23,53 +23,59 @@ router.use(authenticateToken);
 // User routes (create and view own tickets)
 
 // Create new support ticket
-router.post('/',
+router.post(
+  '/',
   ticketLimiter,
   validateTicketCreation,
   trackActivity('support_ticket_created'),
-  SupportController.createTicket
+  SupportController.createTicket,
 );
 
 // Get user's tickets
-router.get('/my-tickets',
+router.get(
+  '/my-tickets',
   generalLimiter,
   validatePagination,
   validateStatus,
   validatePriority,
   trackActivity('user_tickets_viewed'),
-  SupportController.getUserTickets
+  SupportController.getUserTickets,
 );
 
 // Get specific ticket details
-router.get('/:ticket_id',
+router.get(
+  '/:ticket_id',
   generalLimiter,
   validateTicketId,
   trackActivity('ticket_details_viewed'),
-  SupportController.getTicketDetails
+  SupportController.getTicketDetails,
 );
 
 // Add comment to ticket
-router.post('/:ticket_id/comments',
+router.post(
+  '/:ticket_id/comments',
   generalLimiter,
   validateTicketId,
   validateTicketComment,
   trackActivity('ticket_comment_added'),
-  SupportController.addComment
+  SupportController.addComment,
 );
 
 // Update ticket (user can update their own, admin can update any)
-router.put('/:ticket_id',
+router.put(
+  '/:ticket_id',
   generalLimiter,
   validateTicketId,
   validateTicketUpdate,
   trackActivity('ticket_updated'),
-  SupportController.updateTicket
+  SupportController.updateTicket,
 );
 
 // Admin routes (manage all tickets)
 
 // Get all tickets (admin only)
-router.get('/admin/all',
+router.get(
+  '/admin/all',
   requireAdmin,
   generalLimiter,
   validatePagination,
@@ -79,24 +85,26 @@ router.get('/admin/all',
   validateSearch,
   validateSort,
   trackActivity('all_tickets_viewed'),
-  SupportController.getAllTickets
+  SupportController.getAllTickets,
 );
 
 // Get support statistics (admin only)
-router.get('/admin/stats',
+router.get(
+  '/admin/stats',
   requireAdmin,
   generalLimiter,
   validateTimeframe,
   trackActivity('support_stats_viewed'),
-  SupportController.getSupportStats
+  SupportController.getSupportStats,
 );
 
 // Delete ticket (admin only)
-router.delete('/:ticket_id',
+router.delete(
+  '/:ticket_id',
   requireAdmin,
   validateTicketId,
   trackActivity('ticket_deleted'),
-  SupportController.deleteTicket
+  SupportController.deleteTicket,
 );
 
 module.exports = router;

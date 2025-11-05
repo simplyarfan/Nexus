@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
-import { 
-  Users, 
-  FileText, 
-  Calendar, 
+import {
+  Users,
+  FileText,
+  Calendar,
   Settings,
   LogOut,
   User,
@@ -17,7 +17,7 @@ import {
   Menu,
   X,
   ChevronRight,
-  ChevronUp
+  ChevronUp,
 } from 'lucide-react';
 
 export default function LivelyHRDashboard() {
@@ -42,7 +42,7 @@ export default function LivelyHRDashboard() {
       description: 'Analyze resumes and rank candidates automatically',
       icon: Brain,
       color: 'from-orange-500 to-red-600', // UPDATED TO ORANGE THEME
-      route: '/cv-intelligence'
+      route: '/cv-intelligence',
     },
     {
       id: 'interview-coordinator',
@@ -50,30 +50,32 @@ export default function LivelyHRDashboard() {
       description: 'Schedule and manage interview processes',
       icon: Calendar,
       color: 'from-amber-500 to-orange-600', // UPDATED TO ORANGE THEME
-      route: '/interview-coordinator'
-    }
+      route: '/interview-coordinator',
+    },
   ];
 
   const quickActions = [
     { name: 'Create Ticket', icon: Plus, route: '/support/create-ticket' },
     { name: 'My Tickets', icon: MessageSquare, route: '/support/my-tickets' },
-    { name: 'Profile Settings', icon: User, route: '/profile' }
+    { name: 'Profile Settings', icon: User, route: '/profile' },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
@@ -92,7 +94,9 @@ export default function LivelyHRDashboard() {
         <nav className="mt-6 px-3">
           <div className="space-y-1">
             <div className="px-3 py-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">AI Agents</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                AI Agents
+              </p>
             </div>
             {aiAgents.map((agent) => (
               <button
@@ -100,7 +104,9 @@ export default function LivelyHRDashboard() {
                 onClick={() => router.push(agent.route)}
                 className="w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors group text-gray-700 hover:bg-gray-100 cursor-pointer"
               >
-                <div className={`w-10 h-10 bg-gradient-to-br ${agent.color} rounded-lg flex items-center justify-center mr-3`}>
+                <div
+                  className={`w-10 h-10 bg-gradient-to-br ${agent.color} rounded-lg flex items-center justify-center mr-3`}
+                >
                   <agent.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
@@ -111,7 +117,6 @@ export default function LivelyHRDashboard() {
               </button>
             ))}
           </div>
-
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
@@ -145,7 +150,7 @@ export default function LivelyHRDashboard() {
                 </button>
               </div>
             )}
-            
+
             {/* User Profile Button */}
             <button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -158,7 +163,9 @@ export default function LivelyHRDashboard() {
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
                 <p className="text-xs text-gray-500 truncate">HR Department</p>
               </div>
-              <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronUp
+                className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
+              />
             </button>
           </div>
         </div>
@@ -225,7 +232,9 @@ export default function LivelyHRDashboard() {
                 className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 transition-all hover:shadow-md cursor-pointer group"
               >
                 <div className="flex items-start space-x-4">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${agent.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-br ${agent.color} rounded-xl flex items-center justify-center flex-shrink-0`}
+                  >
                     <agent.icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
@@ -240,7 +249,6 @@ export default function LivelyHRDashboard() {
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </div>

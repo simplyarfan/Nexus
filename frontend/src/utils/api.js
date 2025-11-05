@@ -7,7 +7,7 @@ import jwtDecode from 'jwt-decode';
 // Environment-based API URL configuration
 const getApiBaseUrl = () => {
   let baseUrl;
-  
+
   // Use environment variable if available
   if (process.env.NEXT_PUBLIC_API_URL) {
     baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -24,7 +24,7 @@ const getApiBaseUrl = () => {
       baseUrl = 'https://thesimpleai.vercel.app';
     }
   }
-  
+
   return baseUrl;
 };
 
@@ -32,7 +32,7 @@ const API_BASE_URL = getApiBaseUrl();
 
 // Create optimized axios instance
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,  // Add /api prefix since backend routes are mounted at /api/*
+  baseURL: `${API_BASE_URL}/api`, // Add /api prefix since backend routes are mounted at /api/*
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -52,32 +52,32 @@ export const tokenManager = {
     const token = Cookies.get('refreshToken');
     return token;
   },
-  
+
   setTokens: (accessToken, refreshToken) => {
-    
-    const isProduction = typeof window !== 'undefined' && 
-      window.location.hostname !== 'localhost' && 
+    const isProduction =
+      typeof window !== 'undefined' &&
+      window.location.hostname !== 'localhost' &&
       window.location.hostname !== '127.0.0.1';
-    
+
     const cookieOptions = {
       expires: 30, // Increased from 7 to 30 days
       path: '/',
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax'
+      sameSite: isProduction ? 'none' : 'lax',
     };
-    
+
     Cookies.set('accessToken', accessToken, cookieOptions);
     Cookies.set('refreshToken', refreshToken, {
       ...cookieOptions,
-      expires: 90 // Increased from 30 to 90 days
+      expires: 90, // Increased from 30 to 90 days
     });
   },
-  
+
   clearTokens: () => {
     Cookies.remove('accessToken', { path: '/' });
     Cookies.remove('refreshToken', { path: '/' });
   },
-  
+
   isTokenExpired: (token) => {
     if (!token) return true;
     try {
@@ -87,7 +87,7 @@ export const tokenManager = {
       return true;
     }
   },
-  
+
   getUserFromToken: (token) => {
     if (!token) return null;
     try {
@@ -95,27 +95,27 @@ export const tokenManager = {
     } catch {
       return null;
     }
-  }
+  },
 };
 
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = tokenManager.getAccessToken();
-    
+
     if (token && !tokenManager.isTokenExpired(token)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Add request ID for tracking
     config.headers['X-Request-ID'] = Math.random().toString(36).substring(7);
-    
+
     return config;
   },
   (error) => {
     console.error('🔍 [API] Request interceptor error:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor with token refresh
@@ -125,21 +125,21 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       const refreshToken = tokenManager.getRefreshToken();
       if (refreshToken && !tokenManager.isTokenExpired(refreshToken)) {
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auth/refresh-token`, {
-            refreshToken
+            refreshToken,
           });
-          
+
           if (response.data?.success) {
             const { accessToken, refreshToken: newRefreshToken } = response.data.data;
             tokenManager.setTokens(accessToken, newRefreshToken || refreshToken);
-            
+
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
             return api(originalRequest);
           } else {
@@ -159,10 +159,10 @@ api.interceptors.response.use(
         }
       }
     }
-    
+
     console.error(`❌ ${error.response?.status || 'Network'} Error:`, error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 // API Endpoints
@@ -179,11 +179,11 @@ export const authAPI = {
   updateProfile: (data) => api.put('/auth/profile', data),
   getProfile: () => api.get('/auth/profile'),
   changePassword: (data) => api.put('/auth/change-password', data),
-  
+
   // 2FA methods
-  enable2FA: () => api.post('/auth/enable-2fa').then(res => res.data),
-  disable2FA: (password) => api.post('/auth/disable-2fa', { password }).then(res => res.data),
-  
+  enable2FA: () => api.post('/auth/enable-2fa').then((res) => res.data),
+  disable2FA: (password) => api.post('/auth/disable-2fa', { password }).then((res) => res.data),
+
   // Admin/Superadmin user management
   getAllUsers: (params) => api.get('/auth/users', { params }),
   getUser: (userId) => api.get(`/auth/users/${userId}`),
@@ -191,11 +191,11 @@ export const authAPI = {
   updateUser: (userId, userData) => api.put(`/auth/users/${userId}`, userData),
   deleteUser: (userId) => api.delete(`/auth/users/${userId}`),
   getStats: () => api.get('/auth/stats'),
-  
+
   // Google Calendar integration
-  getGoogleAuthUrl: () => api.get('/auth/google/auth').then(res => res.data),
-  getGoogleStatus: () => api.get('/auth/google/status').then(res => res.data),
-  disconnectGoogle: () => api.post('/auth/google/disconnect').then(res => res.data)
+  getGoogleAuthUrl: () => api.get('/auth/google/auth').then((res) => res.data),
+  getGoogleStatus: () => api.get('/auth/google/status').then((res) => res.data),
+  disconnectGoogle: () => api.post('/auth/google/disconnect').then((res) => res.data),
 };
 
 export const cvAPI = {
@@ -206,36 +206,34 @@ export const cvAPI = {
   getCandidates: (batchId) => api.get(`/cv-intelligence/batch/${batchId}/candidates`),
   processBatch: (batchId, jdFile, cvFiles, onProgress = null) => {
     const formData = new FormData();
-    
+
     // Add JD file
     if (jdFile) {
       formData.append('jdFile', jdFile);
     }
-    
+
     // Add CV files
     if (cvFiles && cvFiles.length > 0) {
       cvFiles.forEach((file) => {
         formData.append('cvFiles', file);
       });
     }
-    
+
     return api.post(`/cv-intelligence/batch/${batchId}/process`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 300000, // 5 minutes
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           onProgress(percentCompleted);
         }
-      }
+      },
     });
   },
-  exportBatch: (batchId, format = 'json') => api.get(`/cv-intelligence/batch/${batchId}/export`, {
-    params: { format }
-  }),
-  deleteBatch: (batchId) => api.delete(`/cv-intelligence/batch/${batchId}`)
+  exportBatch: (batchId, format = 'json') =>
+    api.get(`/cv-intelligence/batch/${batchId}/export`, {
+      params: { format },
+    }),
 };
 
 export const notificationsAPI = {
@@ -243,7 +241,7 @@ export const notificationsAPI = {
   getUnreadCount: (params) => api.get('/notifications/unread-count', { params }),
   markAsRead: (notificationId) => api.put(`/notifications/${notificationId}/read`),
   markAllAsRead: () => api.put('/notifications/mark-all-read'),
-  deleteNotification: (notificationId) => api.delete(`/notifications/${notificationId}`)
+  deleteNotification: (notificationId) => api.delete(`/notifications/${notificationId}`),
 };
 
 export const analyticsAPI = {
@@ -254,17 +252,17 @@ export const analyticsAPI = {
   getAgentAnalytics: (params) => api.get('/analytics/agents', { params }),
   getCVAnalytics: (params) => api.get('/analytics/cv-intelligence', { params }),
   getSystemAnalytics: (params) => api.get('/analytics/system', { params }),
-  exportAnalytics: (params) => api.get('/analytics/export', { params })
+  exportAnalytics: (params) => api.get('/analytics/export', { params }),
 };
 
 export const systemAPI = {
   getHealth: () => api.get('/system/health'),
   getMetrics: () => api.get('/system/metrics'),
-  getServices: () => api.get('/system/services')
+  getServices: () => api.get('/system/services'),
 };
 
 export const adminAPI = {
-  seedDatabase: () => api.post('/admin/seed-database')
+  seedDatabase: () => api.post('/admin/seed-database'),
 };
 
 export const supportAPI = {
@@ -272,22 +270,24 @@ export const supportAPI = {
   getMyTickets: (params) => api.get('/support/my-tickets', { params }),
   getAllTickets: (params) => api.get('/support/admin/all', { params }),
   getTicket: (ticketId) => api.get(`/support/${ticketId}`),
-  addComment: (ticketId, comment, isInternal = false) => api.post(`/support/${ticketId}/comments`, {
-    comment,
-    is_internal: isInternal
-  }),
+  addComment: (ticketId, comment, isInternal = false) =>
+    api.post(`/support/${ticketId}/comments`, {
+      comment,
+      is_internal: isInternal,
+    }),
   updateTicket: (ticketId, updateData) => api.put(`/support/${ticketId}`, updateData),
   updateTicketStatus: (ticketId, status) => api.put(`/support/${ticketId}`, { status }),
   deleteTicket: (ticketId) => api.delete(`/support/${ticketId}`),
-  getStats: (timeframe = '30d') => api.get('/support/admin/stats', { params: { timeframe } })
+  getStats: (timeframe = '30d') => api.get('/support/admin/stats', { params: { timeframe } }),
 };
 
 export const healthAPI = {
-  check: () => axios.get('https://thesimpleai.vercel.app/health', {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
+  check: () =>
+    axios.get('https://thesimpleai.vercel.app/health', {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }),
 };
 
 // Error handling utility

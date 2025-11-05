@@ -9,16 +9,14 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
-      <ModernSidebar 
-        collapsed={sidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      <ModernSidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
-      
+
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto">
-          {children}
-        </div>
+        <div className="h-full overflow-y-auto">{children}</div>
       </main>
     </div>
   );

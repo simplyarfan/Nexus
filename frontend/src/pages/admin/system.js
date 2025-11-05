@@ -6,12 +6,12 @@ import ErrorBoundary from '../../components/shared/ErrorBoundary';
 import { systemAPI, analyticsAPI, authAPI, supportAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { 
-  Server, 
-  Database, 
-  Cpu, 
-  HardDrive, 
-  Wifi, 
+import {
+  Server,
+  Database,
+  Cpu,
+  HardDrive,
+  Wifi,
   Activity,
   ArrowLeft,
   RefreshCw,
@@ -22,7 +22,7 @@ import {
   Zap,
   Sparkles,
   Users,
-  LifeBuoy
+  LifeBuoy,
 } from 'lucide-react';
 
 export default function SystemHealth() {
@@ -34,7 +34,7 @@ export default function SystemHealth() {
     api: { totalRequests: 0, successRate: '100%', avgResponseTime: '0ms' },
     users: { totalUsers: 0, activeUsers: 0, newToday: 0 },
     tickets: { totalTickets: 0, openTickets: 0, resolvedToday: 0 },
-    storage: { totalBatches: 0, totalFiles: 0, storageUsed: '0MB' }
+    storage: { totalBatches: 0, totalFiles: 0, storageUsed: '0MB' },
   });
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -53,59 +53,72 @@ export default function SystemHealth() {
     try {
       setIsLoading(true);
       console.log('🖥️ Fetching real system metrics...');
-      
+
       // Fetch multiple real data sources
-      const [systemResponse, analyticsResponse, usersResponse, ticketsResponse] = await Promise.all([
-        systemAPI.getMetrics().catch(e => ({ data: {} })),
-        analyticsAPI.getDashboardAnalytics().catch(e => ({ data: {} })),
-        authAPI.getAllUsers({ limit: 1 }).catch(e => ({ data: { data: { pagination: { total: 0 } } } })),
-        supportAPI.getAllTickets({ limit: 1 }).catch(e => ({ data: { data: { pagination: { total: 0 } } } }))
-      ]);
-      
-      console.log('📊 System responses:', { systemResponse, analyticsResponse, usersResponse, ticketsResponse });
-      
+      const [systemResponse, analyticsResponse, usersResponse, ticketsResponse] = await Promise.all(
+        [
+          systemAPI.getMetrics().catch((e) => ({ data: {} })),
+          analyticsAPI.getDashboardAnalytics().catch((e) => ({ data: {} })),
+          authAPI
+            .getAllUsers({ limit: 1 })
+            .catch((e) => ({ data: { data: { pagination: { total: 0 } } } })),
+          supportAPI
+            .getAllTickets({ limit: 1 })
+            .catch((e) => ({ data: { data: { pagination: { total: 0 } } } })),
+        ],
+      );
+
+      console.log('📊 System responses:', {
+        systemResponse,
+        analyticsResponse,
+        usersResponse,
+        ticketsResponse,
+      });
+
       const systemData = systemResponse.data || {};
       const analyticsData = analyticsResponse.data || {};
       const usersData = usersResponse.data?.data?.pagination || {};
       const ticketsData = ticketsResponse.data?.data?.pagination || {};
-      
+
       setSystemMetrics({
-        server: { 
-          status: 'online', 
-          uptime: systemData.uptime || '0 days', 
-          responseTime: '45ms' 
+        server: {
+          status: 'online',
+          uptime: systemData.uptime || '0 days',
+          responseTime: '45ms',
         },
-        database: { 
-          status: 'healthy', 
+        database: {
+          status: 'healthy',
           connections: Math.floor(Math.random() * 20) + 5, // Simulated active connections
-          queries: Math.floor(Math.random() * 1000) + 500 // Simulated query count
+          queries: Math.floor(Math.random() * 1000) + 500, // Simulated query count
         },
-        api: { 
+        api: {
           totalRequests: Math.floor(Math.random() * 10000) + 5000,
           successRate: '99.8%',
-          avgResponseTime: `${Math.floor(Math.random() * 100) + 50}ms`
+          avgResponseTime: `${Math.floor(Math.random() * 100) + 50}ms`,
         },
-        users: { 
+        users: {
           totalUsers: usersData.total || analyticsData.totalUsers || 0,
           activeUsers: analyticsData.activeUsers || Math.floor((usersData.total || 0) * 0.7),
-          newToday: Math.floor(Math.random() * 5) + 1
+          newToday: Math.floor(Math.random() * 5) + 1,
         },
-        tickets: { 
+        tickets: {
           totalTickets: ticketsData.total || analyticsData.totalTickets || 0,
           openTickets: analyticsData.openTickets || Math.floor((ticketsData.total || 0) * 0.3),
-          resolvedToday: Math.floor(Math.random() * 10) + 2
+          resolvedToday: Math.floor(Math.random() * 10) + 2,
         },
-        storage: { 
+        storage: {
           totalBatches: analyticsData.totalBatches || 0,
           totalFiles: Math.floor(Math.random() * 500) + 100,
-          storageUsed: `${Math.floor(Math.random() * 500) + 100}MB`
-        }
+          storageUsed: `${Math.floor(Math.random() * 500) + 100}MB`,
+        },
       });
-      
+
       setLastUpdated(new Date());
     } catch (error) {
       console.error('❌ Error fetching system metrics:', error);
-      toast.error(`Failed to fetch system metrics: ${error.response?.data?.message || error.message}`);
+      toast.error(
+        `Failed to fetch system metrics: ${error.response?.data?.message || error.message}`,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +173,7 @@ export default function SystemHealth() {
         <div className="text-center">
           <Server className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-400 mb-6">You don't have permission to access this page.</p>
+          <p className="text-gray-400 mb-6">You don&apos;t have permission to access this page.</p>
           <button
             onClick={() => router.push('/')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -173,7 +186,7 @@ export default function SystemHealth() {
   }
 
   const MetricCard = ({ title, icon: Icon, status, details, color }) => (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-xl border border-orange-200/50 rounded-2xl p-6 hover:bg-white/95 shadow-lg hover:shadow-xl transition-all duration-300"
       whileHover={{ scale: 1.02, y: -2 }}
       initial={{ opacity: 0, y: 20 }}
@@ -188,13 +201,11 @@ export default function SystemHealth() {
         </div>
         {getStatusIcon(status)}
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-gray-600 text-sm">Status</span>
-          <span className={`text-sm font-medium ${getStatusColor(status)}`}>
-            {status}
-          </span>
+          <span className={`text-sm font-medium ${getStatusColor(status)}`}>{status}</span>
         </div>
         {Object.entries(details).map(([key, value]) => (
           <div key={key} className="flex justify-between items-center">
@@ -209,14 +220,12 @@ export default function SystemHealth() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50 relative overflow-hidden">
-
         <Head>
           <title>System Health - SimpleAI</title>
           <meta name="description" content="System health monitoring and metrics" />
         </Head>
-        
+
         <div className="relative z-10">
-        
           <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Back to Dashboard Button */}
             <div className="mb-6">
@@ -230,9 +239,9 @@ export default function SystemHealth() {
                 Back to Dashboard
               </motion.button>
             </div>
-            
+
             {/* Header */}
-            <motion.div 
+            <motion.div
               className="mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -260,7 +269,9 @@ export default function SystemHealth() {
                       whileTap={{ scale: 0.95 }}
                       disabled={isLoading}
                     >
-                      <RefreshCw className={`w-4 h-4 mr-2 text-white ${isLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`w-4 h-4 mr-2 text-white ${isLoading ? 'animate-spin' : ''}`}
+                      />
                       Refresh
                     </motion.button>
                   </div>
@@ -276,14 +287,14 @@ export default function SystemHealth() {
             ) : (
               <>
                 {/* System Overview */}
-                <motion.div 
+                <motion.div
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 mb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                 >
                   <h2 className="text-xl font-bold text-white mb-6">System Overview</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -292,7 +303,7 @@ export default function SystemHealth() {
                       <h3 className="text-white font-medium mb-1">All Systems Operational</h3>
                       <p className="text-green-400 text-sm">Everything is running smoothly</p>
                     </div>
-                    
+
                     <div className="text-center">
                       <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                         <Activity className="w-8 h-8 text-blue-400" />
@@ -300,7 +311,7 @@ export default function SystemHealth() {
                       <h3 className="text-white font-medium mb-1">High Performance</h3>
                       <p className="text-blue-400 text-sm">Optimal response times</p>
                     </div>
-                    
+
                     <div className="text-center">
                       <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                         <Zap className="w-8 h-8 text-purple-400" />
@@ -319,22 +330,22 @@ export default function SystemHealth() {
                     status={systemMetrics.server.status}
                     details={{
                       uptime: systemMetrics.server.uptime,
-                      'response time': systemMetrics.server.responseTime
+                      'response time': systemMetrics.server.responseTime,
                     }}
                     color="text-green-600"
                   />
-                  
+
                   <MetricCard
                     title="Database"
                     icon={Database}
                     status={systemMetrics.database.status}
                     details={{
                       connections: systemMetrics.database.connections,
-                      queries: systemMetrics.database.queries
+                      queries: systemMetrics.database.queries,
                     }}
                     color="text-blue-600"
                   />
-                  
+
                   <MetricCard
                     title="API Performance"
                     icon={Activity}
@@ -342,11 +353,11 @@ export default function SystemHealth() {
                     details={{
                       'total requests': systemMetrics.api.totalRequests,
                       'success rate': systemMetrics.api.successRate,
-                      'avg response': systemMetrics.api.avgResponseTime
+                      'avg response': systemMetrics.api.avgResponseTime,
                     }}
                     color="text-orange-600"
                   />
-                  
+
                   <MetricCard
                     title="User Analytics"
                     icon={Users}
@@ -354,11 +365,11 @@ export default function SystemHealth() {
                     details={{
                       'total users': systemMetrics.users.totalUsers,
                       'active users': systemMetrics.users.activeUsers,
-                      'new today': systemMetrics.users.newToday
+                      'new today': systemMetrics.users.newToday,
                     }}
                     color="text-cyan-600"
                   />
-                  
+
                   <MetricCard
                     title="Support Tickets"
                     icon={LifeBuoy}
@@ -366,11 +377,11 @@ export default function SystemHealth() {
                     details={{
                       'total tickets': systemMetrics.tickets.totalTickets,
                       'open tickets': systemMetrics.tickets.openTickets,
-                      'resolved today': systemMetrics.tickets.resolvedToday
+                      'resolved today': systemMetrics.tickets.resolvedToday,
                     }}
                     color="text-amber-600"
                   />
-                  
+
                   <MetricCard
                     title="Data Storage"
                     icon={HardDrive}
@@ -378,7 +389,7 @@ export default function SystemHealth() {
                     details={{
                       'cv batches': systemMetrics.storage.totalBatches,
                       'total files': systemMetrics.storage.totalFiles,
-                      'storage used': systemMetrics.storage.storageUsed
+                      'storage used': systemMetrics.storage.storageUsed,
                     }}
                     color="text-red-600"
                   />

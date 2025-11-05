@@ -13,7 +13,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [mounted, setMounted] = useState(false);
 
@@ -24,7 +24,7 @@ const Login = () => {
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
     if (savedEmail && savedRememberMe) {
-      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setFormData((prev) => ({ ...prev, email: savedEmail }));
       setRememberMe(true);
     }
   }, []);
@@ -49,24 +49,24 @@ const Login = () => {
       }
 
       const result = await login({ ...formData, rememberMe });
-      
+
       // Check if email verification is required
       if (result.requiresVerification) {
         // Redirect immediately without toast - verify-email page will show message
         router.push(`/auth/verify-email?userId=${result.userId}&from=login`);
         return;
       }
-      
+
       if (result.success) {
         // Check if 2FA is required
         if (result.requires2FA) {
           toast.success(result.message || 'Verification code sent to your email');
           router.push({
             pathname: '/auth/verify-2fa',
-            query: { 
+            query: {
               userId: result.userId,
-              returnUrl: router.query.returnUrl || '/'
-            }
+              returnUrl: router.query.returnUrl || '/',
+            },
           });
         } else {
           toast.success('Welcome back!');
@@ -93,7 +93,7 @@ const Login = () => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   // Show loading during SSR or while mounting
@@ -122,9 +122,7 @@ const Login = () => {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
             <input
               type="email"
               required
@@ -136,9 +134,7 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -160,15 +156,18 @@ const Login = () => {
 
           <div className="flex items-center justify-between">
             <label className="flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" 
+                className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
               />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-            <Link href="/auth/forgot-password" className="text-sm text-orange-600 hover:text-orange-700">
+            <Link
+              href="/auth/forgot-password"
+              className="text-sm text-orange-600 hover:text-orange-700"
+            >
               Forgot your password?
             </Link>
           </div>
@@ -184,8 +183,11 @@ const Login = () => {
 
         <div className="mt-8 text-center">
           <p className="text-gray-600">
-            Don't have an account?{' '}
-            <Link href="/auth/register" className="text-orange-600 hover:text-orange-700 font-medium">
+            Don&apos;t have an account?{' '}
+            <Link
+              href="/auth/register"
+              className="text-orange-600 hover:text-orange-700 font-medium"
+            >
               Sign up for free
             </Link>
           </p>

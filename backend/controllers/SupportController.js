@@ -10,23 +10,27 @@ class SupportController {
         return res.status(400).json({
           success: false,
           message: 'Validation errors',
-          errors: errors.array()
+          errors: errors.array(),
         });
       }
 
       const { subject, description, priority = 'medium', category = 'general' } = req.body;
 
       // Create ticket
-      const result = await database.run(`
+      const result = await database.run(
+        `
         INSERT INTO support_tickets (user_id, subject, description, priority, category)
         VALUES ($1, $2, $3, $4, $5) RETURNING id
-      `, [req.user.id, subject, description, priority, category]);
+      `,
+        [req.user.id, subject, description, priority, category],
+      );
 
       // Get ticket ID from PostgreSQL result
       const ticketId = result.rows?.[0]?.id || result.id;
 
       // Get created ticket
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT 
           st.*,
           u.first_name,
@@ -35,26 +39,31 @@ class SupportController {
         FROM support_tickets st
         JOIN users u ON st.user_id = u.id
         WHERE st.id = $1
-      `, [ticketId]);
+      `,
+        [ticketId],
+      );
 
       // Track ticket creation activity
-      await database.run(`
+      await database.run(
+        `
         INSERT INTO user_analytics (user_id, action, metadata, ip_address, user_agent)
         VALUES ($1, $2, $3, $4, $5)
-      `, [
-        req.user.id,
-        'support_ticket_created',
-        JSON.stringify({ ticket_id: ticketId, subject, priority, category }),
-        req.ip,
-        req.get('User-Agent')
-      ]);
+      `,
+        [
+          req.user.id,
+          'support_ticket_created',
+          JSON.stringify({ ticket_id: ticketId, subject, priority, category }),
+          req.ip,
+          req.get('User-Agent'),
+        ],
+      );
 
       // Notify all admins and superadmins about new ticket
       try {
         const admins = await database.all(`
           SELECT id FROM users WHERE role IN ('admin', 'superadmin')
         `);
-        
+
         const NotificationController = require('./NotificationController');
         for (const admin of admins) {
           await NotificationController.createNotification(
@@ -67,8 +76,8 @@ class SupportController {
               user_id: req.user.id,
               subject,
               priority,
-              category
-            }
+              category,
+            },
           );
         }
       } catch (notifError) {
@@ -79,14 +88,13 @@ class SupportController {
       res.status(201).json({
         success: true,
         message: 'Support ticket created successfully',
-        data: { ticket }
+        data: { ticket },
       });
-
     } catch (error) {
       console.error('Create ticket error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -105,7 +113,7 @@ class SupportController {
         LEFT JOIN ticket_comments tc ON st.id = tc.ticket_id
         WHERE st.user_id = $1
       `;
-      
+
       const params = [req.user.id];
 
       if (status) {
@@ -123,7 +131,7 @@ class SupportController {
         ORDER BY st.created_at DESC
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
-      
+
       params.push(limit, offset);
 
       const tickets = await database.all(query, params);
@@ -152,16 +160,15 @@ class SupportController {
             page: parseInt(page),
             limit: parseInt(limit),
             total: totalCount.total,
-            totalPages: Math.ceil(totalCount.total / limit)
-          }
-        }
+            totalPages: Math.ceil(totalCount.total / limit),
+          },
+        },
       });
-
     } catch (error) {
       console.error('Get user tickets error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -172,7 +179,8 @@ class SupportController {
       const { ticket_id } = req.params;
 
       // Get ticket details
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT 
           st.*,
           u.first_name,
@@ -184,12 +192,14 @@ class SupportController {
         JOIN users u ON st.user_id = u.id
         LEFT JOIN users assigned_user ON st.assigned_to = assigned_user.id
         WHERE st.id = $1
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       if (!ticket) {
         return res.status(404).json({
           success: false,
-          message: 'Ticket not found'
+          message: 'Ticket not found',
         });
       }
 
@@ -198,12 +208,13 @@ class SupportController {
       if (ticket.user_id !== req.user.id && !isAdmin) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied'
+          message: 'Access denied',
         });
       }
 
       // Get ticket comments
-      const comments = await database.all(`
+      const comments = await database.all(
+        `
         SELECT 
           tc.*,
           u.first_name,
@@ -214,21 +225,22 @@ class SupportController {
         LEFT JOIN users u ON tc.user_id = u.id
         WHERE tc.ticket_id = $1
         ORDER BY tc.created_at ASC
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       res.json({
         success: true,
         data: {
           ticket,
-          comments
-        }
+          comments,
+        },
       });
-
     } catch (error) {
       console.error('Get ticket details error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -241,7 +253,7 @@ class SupportController {
         return res.status(400).json({
           success: false,
           message: 'Validation errors',
-          errors: errors.array()
+          errors: errors.array(),
         });
       }
 
@@ -249,14 +261,17 @@ class SupportController {
       const { comment, is_internal = false } = req.body;
 
       // Check if ticket exists and user has access
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT * FROM support_tickets WHERE id = $1
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       if (!ticket) {
         return res.status(404).json({
           success: false,
-          message: 'Ticket not found'
+          message: 'Ticket not found',
         });
       }
 
@@ -265,7 +280,7 @@ class SupportController {
       if (ticket.user_id !== req.user.id && !isAdmin) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied'
+          message: 'Access denied',
         });
       }
 
@@ -273,33 +288,40 @@ class SupportController {
       const isInternalComment = is_internal && isAdmin;
 
       // Add comment
-      const result = await database.run(`
+      const result = await database.run(
+        `
         INSERT INTO ticket_comments (ticket_id, user_id, comment, is_internal)
         VALUES ($1, $2, $3, $4) RETURNING id
-      `, [ticket_id, req.user.id, comment, isInternalComment]);
+      `,
+        [ticket_id, req.user.id, comment, isInternalComment],
+      );
 
       // Handle PostgreSQL result format
       const commentId = result.rows?.[0]?.id || result.id;
-      
+
       // Immediate validation - fail fast if no ID returned
       if (!commentId) {
         console.error('🎫 [SUPPORT] Failed to create comment - no ID returned');
         console.error('🎫 [SUPPORT] Result structure:', JSON.stringify(result));
         return res.status(500).json({
           success: false,
-          message: 'Failed to create comment - database error'
+          message: 'Failed to create comment - database error',
         });
       }
 
       // Update ticket's updated_at timestamp
-      await database.run(`
+      await database.run(
+        `
         UPDATE support_tickets 
         SET updated_at = CURRENT_TIMESTAMP 
         WHERE id = $1
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       // Get the created comment with user info
-      const createdComment = await database.get(`
+      const createdComment = await database.get(
+        `
         SELECT 
           tc.*,
           u.first_name,
@@ -309,35 +331,40 @@ class SupportController {
         FROM ticket_comments tc
         JOIN users u ON tc.user_id = u.id
         WHERE tc.id = $1
-      `, [commentId]);
+      `,
+        [commentId],
+      );
 
       // Create notifications
       const NotificationController = require('./NotificationController');
-      
+
       // If admin comments → notify ticket owner
       if (isAdmin && ticket.user_id !== req.user.id && !isInternalComment) {
         try {
           await NotificationController.createTicketResponseNotification(
-            ticket_id, 
-            req.user.id, 
-            comment
+            ticket_id,
+            req.user.id,
+            comment,
           );
         } catch (notifError) {
           console.error('Failed to notify ticket owner:', notifError);
         }
       }
-      
+
       // If user comments → notify all admins
       if (!isAdmin) {
         try {
           const admins = await database.all(`
             SELECT id FROM users WHERE role IN ('admin', 'superadmin')
           `);
-          
-          const ticketDetails = await database.get(`
+
+          const ticketDetails = await database.get(
+            `
             SELECT subject FROM support_tickets WHERE id = $1
-          `, [ticket_id]);
-          
+          `,
+            [ticket_id],
+          );
+
           for (const admin of admins) {
             await NotificationController.createNotification(
               admin.id,
@@ -347,8 +374,8 @@ class SupportController {
               {
                 ticket_id: parseInt(ticket_id),
                 comment_id: commentId,
-                user_id: req.user.id
-              }
+                user_id: req.user.id,
+              },
             );
           }
         } catch (notifError) {
@@ -357,32 +384,34 @@ class SupportController {
       }
 
       // Track comment activity
-      await database.run(`
+      await database.run(
+        `
         INSERT INTO user_analytics (user_id, action, metadata, ip_address, user_agent)
         VALUES ($1, $2, $3, $4, $5) RETURNING id
-      `, [
-        req.user.id,
-        'support_comment_added',
-        JSON.stringify({ 
-          ticket_id, 
-          comment_id: commentId, 
-          is_internal: isInternalComment 
-        }),
-        req.ip,
-        req.get('User-Agent')
-      ]);
+      `,
+        [
+          req.user.id,
+          'support_comment_added',
+          JSON.stringify({
+            ticket_id,
+            comment_id: commentId,
+            is_internal: isInternalComment,
+          }),
+          req.ip,
+          req.get('User-Agent'),
+        ],
+      );
 
       res.status(201).json({
         success: true,
         message: 'Comment added successfully',
-        data: { comment: createdComment }
+        data: { comment: createdComment },
       });
-
     } catch (error) {
       console.error('🎫 [SUPPORT] Add comment error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -395,7 +424,7 @@ class SupportController {
         return res.status(400).json({
           success: false,
           message: 'Validation errors',
-          errors: errors.array()
+          errors: errors.array(),
         });
       }
 
@@ -403,14 +432,17 @@ class SupportController {
       const { status, priority, assigned_to, resolution } = req.body;
 
       // Check if ticket exists
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT * FROM support_tickets WHERE id = $1
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       if (!ticket) {
         return res.status(404).json({
           success: false,
-          message: 'Ticket not found'
+          message: 'Ticket not found',
         });
       }
 
@@ -419,7 +451,7 @@ class SupportController {
       if (ticket.user_id !== req.user.id && !isAdmin) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied'
+          message: 'Access denied',
         });
       }
 
@@ -441,6 +473,13 @@ class SupportController {
       }
 
       if (assigned_to !== undefined) {
+        // Only admins can assign tickets
+        if (!isAdmin) {
+          return res.status(403).json({
+            success: false,
+            message: 'Only admins can assign tickets',
+          });
+        }
         updates.push(`assigned_to = $${paramIndex}`);
         params.push(assigned_to);
         paramIndex++;
@@ -450,17 +489,17 @@ class SupportController {
         updates.push(`resolution = $${paramIndex}`);
         params.push(resolution);
         paramIndex++;
+      }
 
-        // If resolution is provided, set resolved_at timestamp
-        if (resolution && status === 'resolved') {
-          updates.push('resolved_at = CURRENT_TIMESTAMP');
-        }
+      // If status transitions to resolved, set resolved_at regardless of resolution text
+      if (status !== undefined && status === 'resolved' && ticket.status !== 'resolved') {
+        updates.push('resolved_at = CURRENT_TIMESTAMP');
       }
 
       if (updates.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'No valid updates provided'
+          message: 'No valid updates provided',
         });
       }
 
@@ -476,7 +515,8 @@ class SupportController {
       await database.run(updateQuery, params);
 
       // Get updated ticket
-      const updatedTicket = await database.get(`
+      const updatedTicket = await database.get(
+        `
         SELECT 
           st.*,
           u.first_name,
@@ -488,44 +528,44 @@ class SupportController {
         JOIN users u ON st.user_id = u.id
         LEFT JOIN users assigned_user ON st.assigned_to = assigned_user.id
         WHERE st.id = $1
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       // Create notification for ticket owner if status changed
       if (status !== undefined && status !== ticket.status) {
         const NotificationController = require('./NotificationController');
-        await NotificationController.createTicketStatusNotification(
-          ticket_id,
-          status,
-          req.user.id
-        );
+        await NotificationController.createTicketStatusNotification(ticket_id, status, req.user.id);
       }
 
       // Track ticket update activity
-      await database.run(`
+      await database.run(
+        `
         INSERT INTO user_analytics (user_id, action, metadata, ip_address, user_agent)
         VALUES ($1, $2, $3, $4, $5) RETURNING id
-      `, [
-        req.user.id,
-        'support_ticket_updated',
-        JSON.stringify({ 
-          ticket_id, 
-          updates: { status, priority, assigned_to, resolution } 
-        }),
-        req.ip,
-        req.get('User-Agent')
-      ]);
+      `,
+        [
+          req.user.id,
+          'support_ticket_updated',
+          JSON.stringify({
+            ticket_id,
+            updates: { status, priority, assigned_to, resolution },
+          }),
+          req.ip,
+          req.get('User-Agent'),
+        ],
+      );
 
       res.json({
         success: true,
         message: 'Ticket updated successfully',
-        data: { ticket: updatedTicket }
+        data: { ticket: updatedTicket },
       });
-
     } catch (error) {
       console.error('Update ticket error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -554,7 +594,7 @@ class SupportController {
         LEFT JOIN ticket_comments tc ON st.id = tc.ticket_id
         WHERE 1=1
       `;
-      
+
       const params = [];
 
       if (status) {
@@ -577,7 +617,7 @@ class SupportController {
         ORDER BY st.created_at DESC
         LIMIT $${params.length + 1} OFFSET $${params.length + 2}
       `;
-      
+
       params.push(limit, offset);
 
       const tickets = await database.all(query, params);
@@ -611,16 +651,15 @@ class SupportController {
             page: parseInt(page),
             limit: parseInt(limit),
             total: totalCount.total,
-            totalPages: Math.ceil(totalCount.total / limit)
-          }
-        }
+            totalPages: Math.ceil(totalCount.total / limit),
+          },
+        },
       });
-
     } catch (error) {
       console.error('Get all tickets error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -637,13 +676,14 @@ class SupportController {
         '7d': 7,
         '30d': 30,
         '90d': 90,
-        '1y': 365
+        '1y': 365,
       };
 
       const days = timeFrameMap[timeframe] || 30;
 
       // Overall statistics
-      const overallStats = await database.get(`
+      const overallStats = await database.get(
+        `
         SELECT 
           COUNT(*) as total_tickets,
           COUNT(CASE WHEN status = 'open' THEN 1 END) as open_tickets,
@@ -654,10 +694,13 @@ class SupportController {
           AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600) as avg_resolution_time_hours
         FROM support_tickets 
         WHERE created_at > NOW() - INTERVAL '1 day' * $1
-      `, [days]);
+      `,
+        [days],
+      );
 
       // Tickets by priority
-      const priorityStats = await database.all(`
+      const priorityStats = await database.all(
+        `
         SELECT 
           priority,
           COUNT(*) as count
@@ -670,10 +713,13 @@ class SupportController {
             WHEN 'medium' THEN 2
             WHEN 'low' THEN 3
           END
-      `, [days]);
+      `,
+        [days],
+      );
 
       // Tickets by category
-      const categoryStats = await database.all(`
+      const categoryStats = await database.all(
+        `
         SELECT 
           category,
           COUNT(*) as count
@@ -681,10 +727,13 @@ class SupportController {
         WHERE created_at > NOW() - INTERVAL '1 day' * $1
         GROUP BY category
         ORDER BY count DESC
-      `, [days]);
+      `,
+        [days],
+      );
 
       // Daily ticket creation trends
-      const dailyTrends = await database.all(`
+      const dailyTrends = await database.all(
+        `
         SELECT 
           DATE(created_at) as date,
           COUNT(*) as tickets_created,
@@ -693,10 +742,13 @@ class SupportController {
         WHERE created_at > NOW() - INTERVAL '1 day' * $1
         GROUP BY DATE(created_at)
         ORDER BY date ASC
-      `, [days]);
+      `,
+        [days],
+      );
 
       // Most active users
-      const activeUsers = await database.all(`
+      const activeUsers = await database.all(
+        `
         SELECT 
           u.id,
           u.email,
@@ -709,7 +761,9 @@ class SupportController {
         GROUP BY u.id, u.email, u.first_name, u.last_name
         ORDER BY ticket_count DESC
         LIMIT 10
-      `, [days]);
+      `,
+        [days],
+      );
 
       res.json({
         success: true,
@@ -727,22 +781,21 @@ class SupportController {
               resolved_tickets: 0,
               closed_tickets: 0,
               unique_users: 0,
-              avg_resolution_time_hours: 0
+              avg_resolution_time_hours: 0,
             },
             priorityStats,
             categoryStats,
             dailyTrends,
             activeUsers,
-            timeframe
-          }
-        }
+            timeframe,
+          },
+        },
       });
-
     } catch (error) {
       console.error('Support stats error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
@@ -753,14 +806,17 @@ class SupportController {
       const { ticket_id } = req.params;
 
       // Check if ticket exists
-      const ticket = await database.get(`
+      const ticket = await database.get(
+        `
         SELECT * FROM support_tickets WHERE id = $1
-      `, [ticket_id]);
+      `,
+        [ticket_id],
+      );
 
       if (!ticket) {
         return res.status(404).json({
           success: false,
-          message: 'Ticket not found'
+          message: 'Ticket not found',
         });
       }
 
@@ -769,14 +825,13 @@ class SupportController {
 
       res.json({
         success: true,
-        message: 'Ticket deleted successfully'
+        message: 'Ticket deleted successfully',
       });
-
     } catch (error) {
       console.error('Delete ticket error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }

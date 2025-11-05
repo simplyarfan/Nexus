@@ -6,17 +6,17 @@ import ErrorBoundary from '../../components/shared/ErrorBoundary';
 import { analyticsAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { 
-  BarChart3, 
-  Users, 
-  Activity, 
-  TrendingUp, 
+import {
+  BarChart3,
+  Users,
+  Activity,
+  TrendingUp,
   Calendar,
   ArrowLeft,
   Eye,
   Download,
   RefreshCw,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
 export default function Analytics() {
@@ -28,7 +28,7 @@ export default function Analytics() {
     totalTickets: 0,
     resolvedTickets: 0,
     cvBatches: 0,
-    systemHealth: 'Good'
+    systemHealth: 'Good',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [userAnalytics, setUserAnalytics] = useState([]);
@@ -47,11 +47,11 @@ export default function Analytics() {
     try {
       setIsLoading(true);
       console.log('📊 Fetching real analytics data...');
-      
+
       // Fetch dashboard analytics
       const dashboardResponse = await analyticsAPI.getDashboardAnalytics();
       console.log('📊 Dashboard response:', dashboardResponse);
-      
+
       if (dashboardResponse && dashboardResponse.data) {
         const data = dashboardResponse.data;
         setAnalyticsData({
@@ -60,27 +60,26 @@ export default function Analytics() {
           totalTickets: data.totalTickets || 0,
           resolvedTickets: (data.totalTickets || 0) - (data.openTickets || 0),
           cvBatches: data.totalBatches || 0,
-          systemHealth: data.systemHealth || 'Good'
+          systemHealth: data.systemHealth || 'Good',
         });
       }
-      
+
       // Fetch user analytics
       const userResponse = await analyticsAPI.getUserAnalytics();
       console.log('👥 User analytics response:', userResponse);
-      
+
       if (userResponse && userResponse.data && userResponse.data.userStats) {
-        const userStats = userResponse.data.userStats.map(stat => ({
+        const userStats = userResponse.data.userStats.map((stat) => ({
           department: stat.role || 'Unknown',
           users: parseInt(stat.count) || 0,
-          active: parseInt(stat.active_count) || 0
+          active: parseInt(stat.active_count) || 0,
         }));
         setUserAnalytics(userStats);
       }
-      
     } catch (error) {
       console.error('❌ Error fetching analytics:', error);
       toast.error(`Failed to fetch analytics: ${error.response?.data?.message || error.message}`);
-      
+
       // Set default values on error
       setAnalyticsData({
         totalUsers: 0,
@@ -88,7 +87,7 @@ export default function Analytics() {
         totalTickets: 0,
         resolvedTickets: 0,
         cvBatches: 0,
-        systemHealth: 'Unknown'
+        systemHealth: 'Unknown',
       });
       setUserAnalytics([]);
     } finally {
@@ -113,7 +112,7 @@ export default function Analytics() {
         <div className="text-center">
           <BarChart3 className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
-          <p className="text-gray-400 mb-6">You don't have permission to access this page.</p>
+          <p className="text-gray-400 mb-6">You don&apos;t have permission to access this page.</p>
           <button
             onClick={() => router.push('/')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -126,7 +125,7 @@ export default function Analytics() {
   }
 
   const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-xl border border-orange-200/50 rounded-2xl p-6 hover:bg-white/95 shadow-lg hover:shadow-xl transition-all duration-300"
       whileHover={{ scale: 1.02, y: -2 }}
       initial={{ opacity: 0, y: 20 }}
@@ -153,14 +152,12 @@ export default function Analytics() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50 relative overflow-hidden">
-
         <Head>
           <title>Analytics - SimpleAI</title>
           <meta name="description" content="Platform analytics and insights" />
         </Head>
-        
+
         <div className="relative z-10">
-        
           <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Back to Dashboard Button */}
             <div className="mb-6">
@@ -174,9 +171,9 @@ export default function Analytics() {
                 Back to Dashboard
               </motion.button>
             </div>
-            
+
             {/* Header */}
-            <motion.div 
+            <motion.div
               className="mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -199,7 +196,9 @@ export default function Analytics() {
                     whileTap={{ scale: 0.95 }}
                     disabled={isLoading}
                   >
-                    <RefreshCw className={`w-4 h-4 mr-2 text-white ${isLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`w-4 h-4 mr-2 text-white ${isLoading ? 'animate-spin' : ''}`}
+                    />
                     Refresh
                   </motion.button>
                 </div>
@@ -246,7 +245,7 @@ export default function Analytics() {
                 </div>
 
                 {/* Department Analytics */}
-                <motion.div 
+                <motion.div
                   className="bg-white/90 backdrop-blur-xl border border-orange-200/50 rounded-2xl p-8 mb-8 shadow-lg"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -258,20 +257,28 @@ export default function Analytics() {
                       <Download className="w-5 h-5" />
                     </button>
                   </div>
-                  
+
                   <div className="overflow-x-auto">
                     <table className="min-w-full">
                       <thead>
                         <tr className="border-b border-white/10">
-                          <th className="text-left py-3 px-4 text-gray-700 font-medium">Department</th>
-                          <th className="text-left py-3 px-4 text-gray-700 font-medium">Total Users</th>
-                          <th className="text-left py-3 px-4 text-gray-700 font-medium">Active Users</th>
-                          <th className="text-left py-3 px-4 text-gray-700 font-medium">Activity Rate</th>
+                          <th className="text-left py-3 px-4 text-gray-700 font-medium">
+                            Department
+                          </th>
+                          <th className="text-left py-3 px-4 text-gray-700 font-medium">
+                            Total Users
+                          </th>
+                          <th className="text-left py-3 px-4 text-gray-700 font-medium">
+                            Active Users
+                          </th>
+                          <th className="text-left py-3 px-4 text-gray-700 font-medium">
+                            Activity Rate
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {userAnalytics.map((dept, index) => (
-                          <motion.tr 
+                          <motion.tr
                             key={dept.department}
                             className="border-b border-gray-200 hover:bg-orange-50 transition-colors"
                             initial={{ opacity: 0, x: -20 }}
@@ -282,7 +289,10 @@ export default function Analytics() {
                               <div className="flex items-center">
                                 <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center mr-3">
                                   <span className="text-xs font-bold text-white">
-                                    {dept.department.split(' ').map(word => word[0]).join('')}
+                                    {dept.department
+                                      .split(' ')
+                                      .map((word) => word[0])
+                                      .join('')}
                                   </span>
                                 </div>
                                 <span className="text-gray-900 font-medium">{dept.department}</span>
@@ -293,7 +303,7 @@ export default function Analytics() {
                             <td className="py-4 px-4">
                               <div className="flex items-center">
                                 <div className="w-full bg-gray-200 rounded-full h-2 mr-3">
-                                  <div 
+                                  <div
                                     className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-500"
                                     style={{ width: `${(dept.active / dept.users) * 100}%` }}
                                   ></div>
@@ -311,14 +321,14 @@ export default function Analytics() {
                 </motion.div>
 
                 {/* System Health */}
-                <motion.div 
+                <motion.div
                   className="bg-white/90 backdrop-blur-xl border border-orange-200/50 rounded-2xl p-8 shadow-lg"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
                   <h2 className="text-xl font-bold text-gray-900 mb-6">System Health</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -327,7 +337,7 @@ export default function Analytics() {
                       <h3 className="text-gray-900 font-medium mb-1">Server Status</h3>
                       <p className="text-green-600 text-sm">Online</p>
                     </div>
-                    
+
                     <div className="text-center">
                       <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
                         <BarChart3 className="w-8 h-8 text-orange-600" />
@@ -335,7 +345,7 @@ export default function Analytics() {
                       <h3 className="text-gray-900 font-medium mb-1">Performance</h3>
                       <p className="text-orange-600 text-sm">Excellent</p>
                     </div>
-                    
+
                     <div className="text-center">
                       <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
                         <Sparkles className="w-8 h-8 text-red-600" />

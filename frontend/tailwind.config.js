@@ -46,7 +46,7 @@ module.exports = {
           700: '#b45309',
           800: '#92400e',
           900: '#78350f',
-        }
+        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -54,15 +54,16 @@ module.exports = {
         'gradient-primary': 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
         'gradient-secondary': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
         'gradient-warm': 'linear-gradient(135deg, #f97316 0%, #ef4444 50%, #fbbf24 100%)',
-        'mesh-gradient': 'radial-gradient(at 40% 20%, hsla(28,100%,74%,1) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(12,100%,60%,1) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(45,100%,70%,1) 0px, transparent 50%)',
+        'mesh-gradient':
+          'radial-gradient(at 40% 20%, hsla(28,100%,74%,1) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(12,100%,60%,1) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(45,100%,70%,1) 0px, transparent 50%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'fade-in-up': 'fadeInUp 0.5s ease-out',
         'slide-in-right': 'slideInRight 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
-        'float': 'float 6s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
+        float: 'float 6s ease-in-out infinite',
+        glow: 'glow 2s ease-in-out infinite alternate',
         'pulse-orange': 'pulseOrange 2s ease-in-out infinite',
       },
       keyframes: {
@@ -104,7 +105,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-  ],
-}
+  plugins: [require('@tailwindcss/forms')],
+};

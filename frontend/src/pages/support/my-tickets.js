@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
 import Head from 'next/head';
-import { 
+import {
   ArrowLeft,
   Plus,
   MessageSquare,
@@ -14,7 +14,7 @@ import {
   LogOut,
   Search,
   Filter,
-  Eye
+  Eye,
 } from 'lucide-react';
 import { supportAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -101,19 +101,20 @@ export default function MyTickets() {
     }
   };
 
-  const filteredTickets = tickets.filter(ticket => {
+  const filteredTickets = tickets.filter((ticket) => {
     const matchesFilter = filter === 'all' || ticket.status === filter;
-    const matchesSearch = ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ticket.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
   const statusCounts = {
     all: tickets.length,
-    open: tickets.filter(t => t.status === 'open').length,
-    in_progress: tickets.filter(t => t.status === 'in_progress').length,
-    resolved: tickets.filter(t => t.status === 'resolved').length,
-    closed: tickets.filter(t => t.status === 'closed').length
+    open: tickets.filter((t) => t.status === 'open').length,
+    in_progress: tickets.filter((t) => t.status === 'in_progress').length,
+    resolved: tickets.filter((t) => t.status === 'resolved').length,
+    closed: tickets.filter((t) => t.status === 'closed').length,
   };
 
   return (
@@ -182,7 +183,7 @@ export default function MyTickets() {
                   { key: 'open', label: 'Open' },
                   { key: 'in_progress', label: 'In Progress' },
                   { key: 'resolved', label: 'Resolved' },
-                  { key: 'closed', label: 'Closed' }
+                  { key: 'closed', label: 'Closed' },
                 ].map((status) => (
                   <button
                     key={status.key}
@@ -222,10 +223,9 @@ export default function MyTickets() {
                 <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No tickets found</h3>
                 <p className="text-gray-500 mb-4">
-                  {searchQuery || filter !== 'all' 
-                    ? 'No tickets match your current filters.' 
-                    : "You haven't created any support tickets yet."
-                  }
+                  {searchQuery || filter !== 'all'
+                    ? 'No tickets match your current filters.'
+                    : "You haven't created any support tickets yet."}
                 </p>
                 <button
                   onClick={() => router.push('/support/create-ticket')}
@@ -245,10 +245,14 @@ export default function MyTickets() {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">{ticket.subject}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}
+                        >
                           {ticket.status.replace('_', ' ').toUpperCase()}
                         </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}
+                        >
                           {ticket.priority.toUpperCase()}
                         </span>
                       </div>

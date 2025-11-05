@@ -3,8 +3,11 @@ import { cn } from '../../lib/utils';
 
 export const Card = ({ children, className, ...props }) => {
   return (
-    <div 
-      className={cn('bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow', className)}
+    <div
+      className={cn(
+        'bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow',
+        className,
+      )}
       {...props}
     >
       {children}
@@ -38,10 +41,10 @@ export const CardFooter = ({ children, className, ...props }) => {
 
 export const GlassCard = ({ children, className, ...props }) => {
   return (
-    <div 
+    <div
       className={cn(
         'bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/40',
-        className
+        className,
       )}
       {...props}
     >

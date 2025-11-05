@@ -19,7 +19,7 @@ const InterviewCoordinator = () => {
     scheduled_time: '',
     location: 'Video Call',
     meeting_link: '',
-    panel_members: []
+    panel_members: [],
   });
   const [generatedQuestions, setGeneratedQuestions] = useState(null);
 
@@ -33,9 +33,9 @@ const InterviewCoordinator = () => {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/interview-coordinator/interviews', {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
@@ -52,21 +52,21 @@ const InterviewCoordinator = () => {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/cv-intelligence/batches', {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         const data = await response.json();
         // Extract candidates from all batches
         const allCandidates = [];
-        data.data?.forEach(batch => {
+        data.data?.forEach((batch) => {
           if (batch.candidates) {
-            batch.candidates.forEach(candidate => {
+            batch.candidates.forEach((candidate) => {
               allCandidates.push({
                 ...candidate,
-                batch_name: batch.name
+                batch_name: batch.name,
               });
             });
           }
@@ -86,14 +86,14 @@ const InterviewCoordinator = () => {
       const response = await fetch('/api/interview-coordinator/questions/generate', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           candidate_id: candidateId,
           job_description: 'Software Engineer position requiring technical expertise',
-          interview_type: interviewForm.type
-        })
+          interview_type: interviewForm.type,
+        }),
       });
 
       if (response.ok) {
@@ -111,15 +111,15 @@ const InterviewCoordinator = () => {
       const response = await fetch('/api/interview-coordinator/schedule', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           candidate_id: selectedCandidate.id,
           job_description: 'Software Engineer position',
           interview_details: interviewForm,
-          panel_members: interviewForm.panel_members
-        })
+          panel_members: interviewForm.panel_members,
+        }),
       });
 
       if (response.ok) {
@@ -141,8 +141,8 @@ const InterviewCoordinator = () => {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/interview-coordinator/calendar/${interviewId}/ics`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -163,11 +163,16 @@ const InterviewCoordinator = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'rescheduled': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'scheduled':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'rescheduled':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -209,7 +214,7 @@ const InterviewCoordinator = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -218,7 +223,7 @@ const InterviewCoordinator = () => {
             <div>
               <p className="text-sm text-gray-600">Completed</p>
               <p className="text-2xl font-bold text-gray-900">
-                {interviews.filter(i => i.status === 'completed').length}
+                {interviews.filter((i) => i.status === 'completed').length}
               </p>
             </div>
           </div>
@@ -232,7 +237,7 @@ const InterviewCoordinator = () => {
             <div>
               <p className="text-sm text-gray-600">Scheduled</p>
               <p className="text-2xl font-bold text-gray-900">
-                {interviews.filter(i => i.status === 'scheduled').length}
+                {interviews.filter((i) => i.status === 'scheduled').length}
               </p>
             </div>
           </div>
@@ -256,7 +261,7 @@ const InterviewCoordinator = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Scheduled Interviews</h2>
         </div>
-        
+
         {interviews.length === 0 ? (
           <div className="text-center py-12">
             <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -269,9 +274,7 @@ const InterviewCoordinator = () => {
               <div key={interview.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {interview.title}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{interview.title}</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4" />
@@ -286,7 +289,9 @@ const InterviewCoordinator = () => {
                         <span>{interview.type}</span>
                       </div>
                       <div>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(interview.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(interview.status)}`}
+                        >
                           {interview.status}
                         </span>
                       </div>
@@ -331,7 +336,7 @@ const InterviewCoordinator = () => {
                 <select
                   value={selectedCandidate?.id || ''}
                   onChange={(e) => {
-                    const candidate = candidates.find(c => c.id === e.target.value);
+                    const candidate = candidates.find((c) => c.id === e.target.value);
                     setSelectedCandidate(candidate);
                     if (candidate) {
                       generateQuestions(candidate.id);
@@ -358,7 +363,9 @@ const InterviewCoordinator = () => {
                       </label>
                       <select
                         value={interviewForm.type}
-                        onChange={(e) => setInterviewForm({...interviewForm, type: e.target.value})}
+                        onChange={(e) =>
+                          setInterviewForm({ ...interviewForm, type: e.target.value })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       >
                         <option value="technical">Technical</option>
@@ -374,7 +381,9 @@ const InterviewCoordinator = () => {
                       <input
                         type="number"
                         value={interviewForm.duration}
-                        onChange={(e) => setInterviewForm({...interviewForm, duration: parseInt(e.target.value)})}
+                        onChange={(e) =>
+                          setInterviewForm({ ...interviewForm, duration: parseInt(e.target.value) })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       />
                     </div>
@@ -384,7 +393,9 @@ const InterviewCoordinator = () => {
                     <DateTimePicker
                       label="Scheduled Date & Time"
                       value={interviewForm.scheduled_time}
-                      onChange={(e) => setInterviewForm({...interviewForm, scheduled_time: e.target.value})}
+                      onChange={(e) =>
+                        setInterviewForm({ ...interviewForm, scheduled_time: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -396,7 +407,9 @@ const InterviewCoordinator = () => {
                     <input
                       type="url"
                       value={interviewForm.meeting_link}
-                      onChange={(e) => setInterviewForm({...interviewForm, meeting_link: e.target.value})}
+                      onChange={(e) =>
+                        setInterviewForm({ ...interviewForm, meeting_link: e.target.value })
+                      }
                       placeholder="https://zoom.us/j/..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
@@ -410,11 +423,13 @@ const InterviewCoordinator = () => {
                         Generated Interview Questions
                       </h3>
                       <div className="space-y-3">
-                        {generatedQuestions.technical_questions?.slice(0, 3).map((question, index) => (
-                          <div key={index} className="text-sm text-gray-700">
-                            <span className="font-medium">Q{index + 1}:</span> {question}
-                          </div>
-                        ))}
+                        {generatedQuestions.technical_questions
+                          ?.slice(0, 3)
+                          .map((question, index) => (
+                            <div key={index} className="text-sm text-gray-700">
+                              <span className="font-medium">Q{index + 1}:</span> {question}
+                            </div>
+                          ))}
                         <p className="text-xs text-gray-500 mt-2">
                           Full question set will be available after scheduling
                         </p>

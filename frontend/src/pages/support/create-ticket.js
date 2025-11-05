@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
 import Head from 'next/head';
-import { 
+import {
   ArrowLeft,
   Send,
   AlertCircle,
@@ -11,7 +11,7 @@ import {
   Tag,
   User,
   Settings,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 import { supportAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -24,7 +24,7 @@ export default function CreateTicket() {
     subject: '',
     priority: 'medium',
     category: 'general',
-    description: ''
+    description: '',
   });
 
   const handleLogout = async () => {
@@ -63,20 +63,20 @@ export default function CreateTicket() {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const priorities = [
     { value: 'low', label: 'Low', color: 'text-green-600 bg-green-50' },
     { value: 'medium', label: 'Medium', color: 'text-yellow-600 bg-yellow-50' },
-    { value: 'high', label: 'High', color: 'text-red-600 bg-red-50' }
+    { value: 'high', label: 'High', color: 'text-red-600 bg-red-50' },
   ];
 
   const categories = [
     { value: 'general', label: 'General Support' },
     { value: 'technical', label: 'Technical Issue' },
     { value: 'billing', label: 'Billing Question' },
-    { value: 'feature', label: 'Feature Request' }
+    { value: 'feature', label: 'Feature Request' },
   ];
 
   return (
@@ -145,7 +145,9 @@ export default function CreateTicket() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">New Support Ticket</h2>
-                  <p className="text-orange-100">Describe your issue and we'll help you resolve it</p>
+                  <p className="text-orange-100">
+                    Describe your issue and we&apos;ll help you resolve it
+                  </p>
                 </div>
               </div>
             </div>
@@ -170,9 +172,7 @@ export default function CreateTicket() {
               {/* Priority and Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Priority
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
                   <select
                     value={formData.priority}
                     onChange={(e) => handleInputChange('priority', e.target.value)}
@@ -186,9 +186,7 @@ export default function CreateTicket() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                   <select
                     value={formData.category}
                     onChange={(e) => handleInputChange('category', e.target.value)}
@@ -222,10 +220,12 @@ export default function CreateTicket() {
               <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
                 <Tag className="w-5 h-5 text-gray-400" />
                 <span className="text-sm text-gray-600">Priority:</span>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  priorities.find(p => p.value === formData.priority)?.color
-                }`}>
-                  {priorities.find(p => p.value === formData.priority)?.label}
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    priorities.find((p) => p.value === formData.priority)?.color
+                  }`}
+                >
+                  {priorities.find((p) => p.value === formData.priority)?.label}
                 </span>
               </div>
 

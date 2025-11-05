@@ -31,36 +31,38 @@ const AddToCalendarDropdown = ({ interview }) => {
   const getCalendarLinks = () => {
     const startTime = formatDateForCalendar(interview.scheduled_time);
     const endTime = getEndTime(interview.scheduled_time, interview.duration);
-    const title = encodeURIComponent(`Interview - ${interview.candidate_name} - ${interview.job_title}`);
+    const title = encodeURIComponent(
+      `Interview - ${interview.candidate_name} - ${interview.job_title}`,
+    );
     const description = encodeURIComponent(
       `Interview Details:\n\n` +
-      `Position: ${interview.job_title}\n` +
-      `Type: ${interview.interview_type || 'General'}\n` +
-      `Duration: ${interview.duration || 60} minutes\n` +
-      `Platform: ${interview.platform || 'Video Call'}\n\n` +
-      (interview.meeting_link ? `Meeting Link: ${interview.meeting_link}\n\n` : '') +
-      (interview.notes ? `Notes: ${interview.notes}\n\n` : '') +
-      `If you need to reschedule, please contact the interviewer.`
+        `Position: ${interview.job_title}\n` +
+        `Type: ${interview.interview_type || 'General'}\n` +
+        `Duration: ${interview.duration || 60} minutes\n` +
+        `Platform: ${interview.platform || 'Video Call'}\n\n` +
+        (interview.meeting_link ? `Meeting Link: ${interview.meeting_link}\n\n` : '') +
+        (interview.notes ? `Notes: ${interview.notes}\n\n` : '') +
+        `If you need to reschedule, please contact the interviewer.`,
     );
     const location = encodeURIComponent(interview.meeting_link || interview.platform || 'Online');
 
     return {
       google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${description}&location=${location}`,
-      
+
       outlook: `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&startdt=${startTime}&enddt=${endTime}&body=${description}&location=${location}&path=/calendar/action/compose&rru=addevent`,
-      
+
       office365: `https://outlook.office.com/calendar/0/deeplink/compose?subject=${title}&startdt=${startTime}&enddt=${endTime}&body=${description}&location=${location}&path=/calendar/action/compose&rru=addevent`,
-      
+
       yahoo: `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${title}&st=${startTime}&et=${endTime}&desc=${description}&in_loc=${location}`,
-      
+
       // ICS download link (handled separately via API)
-      ics: `/api/interview-coordinator/interview/${interview.id}/calendar`
+      ics: `/api/interview-coordinator/interview/${interview.id}/calendar`,
     };
   };
 
   const handleCalendarClick = (type) => {
     const links = getCalendarLinks();
-    
+
     if (type === 'ics') {
       // Download ICS file
       downloadICS();
@@ -68,7 +70,7 @@ const AddToCalendarDropdown = ({ interview }) => {
       // Open calendar service in new tab
       window.open(links[type], '_blank', 'noopener,noreferrer');
     }
-    
+
     setIsOpen(false);
   };
 
@@ -79,13 +81,13 @@ const AddToCalendarDropdown = ({ interview }) => {
         `${API_URL}/interview-coordinator/interview/${interview.id}/calendar`,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        },
       );
-      
+
       if (!response.ok) throw new Error('Failed to download calendar file');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -99,42 +101,42 @@ const AddToCalendarDropdown = ({ interview }) => {
   };
 
   const calendarOptions = [
-    { 
-      id: 'apple', 
-      name: 'Apple', 
+    {
+      id: 'apple',
+      name: 'Apple',
       icon: '🍎',
-      action: () => downloadICS() // Apple Calendar uses ICS files
+      action: () => downloadICS(), // Apple Calendar uses ICS files
     },
-    { 
-      id: 'google', 
-      name: 'Google', 
+    {
+      id: 'google',
+      name: 'Google',
       icon: '📅',
-      action: () => handleCalendarClick('google')
+      action: () => handleCalendarClick('google'),
     },
-    { 
-      id: 'ics', 
-      name: 'iCal File', 
+    {
+      id: 'ics',
+      name: 'iCal File',
       icon: '📆',
-      action: () => handleCalendarClick('ics')
+      action: () => handleCalendarClick('ics'),
     },
-    { 
-      id: 'office365', 
-      name: 'Microsoft 365', 
+    {
+      id: 'office365',
+      name: 'Microsoft 365',
       icon: '📧',
-      action: () => handleCalendarClick('office365')
+      action: () => handleCalendarClick('office365'),
     },
-    { 
-      id: 'outlook', 
-      name: 'Outlook.com', 
+    {
+      id: 'outlook',
+      name: 'Outlook.com',
       icon: '📨',
-      action: () => handleCalendarClick('outlook')
+      action: () => handleCalendarClick('outlook'),
     },
-    { 
-      id: 'yahoo', 
-      name: 'Yahoo', 
+    {
+      id: 'yahoo',
+      name: 'Yahoo',
       icon: '🟣',
-      action: () => handleCalendarClick('yahoo')
-    }
+      action: () => handleCalendarClick('yahoo'),
+    },
   ];
 
   return (

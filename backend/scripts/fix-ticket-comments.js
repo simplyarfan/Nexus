@@ -19,8 +19,10 @@ async function fixTicketComments() {
 
     if (invalidComments.length > 0) {
       console.log('❌ Invalid Comments:');
-      invalidComments.forEach(comment => {
-        console.log(`  ID: ${comment.id} | ticket_id: ${comment.ticket_id} | User: ${comment.email} | Comment: "${comment.comment.substring(0, 50)}..."`);
+      invalidComments.forEach((comment) => {
+        console.log(
+          `  ID: ${comment.id} | ticket_id: ${comment.ticket_id} | User: ${comment.email} | Comment: "${comment.comment.substring(0, 50)}..."`,
+        );
       });
       console.log('');
     }
@@ -42,22 +44,29 @@ async function fixTicketComments() {
 
     for (const comment of invalidComments) {
       // Find tickets created by the same user
-      const userTickets = tickets.filter(t => t.user_id === comment.user_id);
-      
+      const userTickets = tickets.filter((t) => t.user_id === comment.user_id);
+
       if (userTickets.length === 1) {
         // Only one ticket from this user, safe to assign
         const ticketId = userTickets[0].id;
-        await database.run(`
+        await database.run(
+          `
           UPDATE ticket_comments 
           SET ticket_id = $1 
           WHERE id = $2
-        `, [ticketId, comment.id]);
-        
-        console.log(`✅ Fixed comment ${comment.id} → assigned to ticket ${ticketId} (${userTickets[0].subject})`);
+        `,
+          [ticketId, comment.id],
+        );
+
+        console.log(
+          `✅ Fixed comment ${comment.id} → assigned to ticket ${ticketId} (${userTickets[0].subject})`,
+        );
         fixedCount++;
       } else if (userTickets.length > 1) {
-        console.log(`⚠️  Comment ${comment.id} - User has ${userTickets.length} tickets, manual review needed:`);
-        userTickets.forEach(t => {
+        console.log(
+          `⚠️  Comment ${comment.id} - User has ${userTickets.length} tickets, manual review needed:`,
+        );
+        userTickets.forEach((t) => {
           console.log(`     - Ticket ${t.id}: ${t.subject}`);
         });
       } else {
@@ -92,12 +101,11 @@ async function fixTicketComments() {
     `);
 
     console.log('\nTop 10 tickets with comment counts:');
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       console.log(`  Ticket ${stat.ticket_id}: ${stat.comment_count} comments - "${stat.subject}"`);
     });
 
     console.log('\n✅ Cleanup complete!');
-
   } catch (error) {
     console.error('❌ Error during cleanup:', error);
     throw error;

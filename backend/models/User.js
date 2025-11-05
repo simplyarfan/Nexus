@@ -34,7 +34,7 @@ class User {
         role: userData.role || 'user',
         department: userData.department,
         job_title: userData.job_title,
-        is_verified: userData.is_verified || true
+        is_verified: userData.is_verified || true,
       });
 
       const sql = `
@@ -52,16 +52,19 @@ class User {
         userData.role || 'user',
         userData.department || null,
         userData.job_title || null,
-        userData.is_verified || true // Default to verified
+        userData.is_verified || true, // Default to verified
       ];
 
       console.log('📝 [USER] Executing SQL:', sql);
-      console.log('📝 [USER] With params:', params.map((p, i) => i === 1 ? '[HASHED_PASSWORD]' : p));
+      console.log(
+        '📝 [USER] With params:',
+        params.map((p, i) => (i === 1 ? '[HASHED_PASSWORD]' : p)),
+      );
 
       const result = await database.run(sql, params);
-      
+
       console.log('✅ [USER] SQL result:', result);
-      
+
       // Return the user ID from PostgreSQL RETURNING clause
       const userId = result.rows?.[0]?.id || result.id;
       console.log('✅ [USER] User created successfully with ID:', userId);
@@ -96,19 +99,18 @@ class User {
     }
   }
 
-
   // Verify password
   async verifyPassword(password) {
     try {
       console.log('Verifying password for user:', this.email);
       console.log('Provided password length:', password ? password.length : 'undefined');
       console.log('Stored hash exists:', !!this.password_hash);
-      
+
       if (!this.password_hash) {
         console.error('No password hash found for user:', this.email);
         return false;
       }
-      
+
       const isMatch = await bcrypt.compare(password, this.password_hash);
       console.log('Password match result:', isMatch);
       return isMatch;
@@ -122,15 +124,20 @@ class User {
   async update(updateData) {
     try {
       const allowedFields = [
-        'first_name', 'last_name', 'department', 'job_title', 
-        'profile_image', 'last_login', 'is_verified'
+        'first_name',
+        'last_name',
+        'department',
+        'job_title',
+        'profile_image',
+        'last_login',
+        'is_verified',
       ];
-      
+
       const updates = [];
       const params = [];
       let paramIndex = 1;
-      
-      Object.keys(updateData).forEach(key => {
+
+      Object.keys(updateData).forEach((key) => {
         if (allowedFields.includes(key)) {
           updates.push(`${key} = $${paramIndex}`);
           params.push(updateData[key]);
@@ -151,7 +158,7 @@ class User {
       // Refresh user data
       const updatedUser = await User.findById(this.id);
       Object.assign(this, updatedUser);
-      
+
       return this;
     } catch (error) {
       console.error('Error updating user:', error);
@@ -164,16 +171,16 @@ class User {
     try {
       const saltRounds = 12;
       const password_hash = await bcrypt.hash(newPassword, saltRounds);
-      
+
       const sql = `
         UPDATE users 
         SET password_hash = $1, reset_token = NULL, reset_token_expiry = NULL, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
       `;
-      
+
       await database.run(sql, [password_hash, this.id]);
       this.password_hash = password_hash;
-      
+
       return this;
     } catch (error) {
       console.error('Error updating password:', error);
@@ -181,60 +188,60 @@ class User {
     }
   }
 
-
   // Get all users (admin only)
   static async getAll(options = {}) {
     try {
       const { page = 1, limit = 20, role = null, search = null } = options;
       const offset = (page - 1) * limit;
-      
-      let sql = 'SELECT id, email, first_name, last_name, role, is_verified, last_login, department, job_title, created_at FROM users WHERE is_active = true';
+
+      let sql =
+        'SELECT id, email, first_name, last_name, role, is_verified, last_login, department, job_title, created_at FROM users WHERE is_active = true';
       const params = [];
       let paramIndex = 1;
-      
+
       if (role) {
         sql += ` AND role = $${paramIndex}`;
         params.push(role);
         paramIndex++;
       }
-      
+
       if (search) {
         sql += ` AND (first_name ILIKE $${paramIndex} OR last_name ILIKE $${paramIndex + 1} OR email ILIKE $${paramIndex + 2})`;
         const searchTerm = `%${search}%`;
         params.push(searchTerm, searchTerm, searchTerm);
         paramIndex += 3;
       }
-      
+
       sql += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
       params.push(limit, offset);
-      
+
       const rows = await database.all(sql, params);
-      
+
       // Get total count
       let countSql = 'SELECT COUNT(*) as total FROM users WHERE is_active = true';
       const countParams = [];
       let countParamIndex = 1;
-      
+
       if (role) {
         countSql += ` AND role = $${countParamIndex}`;
         countParams.push(role);
         countParamIndex++;
       }
-      
+
       if (search) {
         countSql += ` AND (first_name ILIKE $${countParamIndex} OR last_name ILIKE $${countParamIndex + 1} OR email ILIKE $${countParamIndex + 2})`;
         const searchTerm = `%${search}%`;
         countParams.push(searchTerm, searchTerm, searchTerm);
       }
-      
+
       const countResult = await database.get(countSql, countParams);
-      
+
       return {
-        users: rows.map(row => new User(row)),
+        users: rows.map((row) => new User(row)),
         total: countResult.total,
         page,
         limit,
-        totalPages: Math.ceil(countResult.total / limit)
+        totalPages: Math.ceil(countResult.total / limit),
       };
     } catch (error) {
       console.error('Error getting all users:', error);
@@ -246,22 +253,28 @@ class User {
   static async getStatistics() {
     try {
       const stats = {};
-      
+
       // Total users
-      const totalResult = await database.get('SELECT COUNT(*) as total FROM users WHERE is_active = true');
+      const totalResult = await database.get(
+        'SELECT COUNT(*) as total FROM users WHERE is_active = true',
+      );
       stats.total = totalResult.total;
-      
+
       // Verified users
-      const verifiedResult = await database.get('SELECT COUNT(*) as verified FROM users WHERE is_active = true AND is_verified = true');
+      const verifiedResult = await database.get(
+        'SELECT COUNT(*) as verified FROM users WHERE is_active = true AND is_verified = true',
+      );
       stats.verified = verifiedResult.verified;
-      
+
       // Users by role
-      const roleStats = await database.all('SELECT role, COUNT(*) as count FROM users WHERE is_active = true GROUP BY role');
+      const roleStats = await database.all(
+        'SELECT role, COUNT(*) as count FROM users WHERE is_active = true GROUP BY role',
+      );
       stats.byRole = {};
-      roleStats.forEach(row => {
+      roleStats.forEach((row) => {
         stats.byRole[row.role] = row.count;
       });
-      
+
       // Recent registrations (last 30 days)
       const recentResult = await database.get(`
         SELECT COUNT(*) as recent 
@@ -269,7 +282,7 @@ class User {
         WHERE is_active = true AND created_at > NOW() - INTERVAL '30 days'
       `);
       stats.recentRegistrations = recentResult.recent;
-      
+
       return stats;
     } catch (error) {
       console.error('Error getting user statistics:', error);
@@ -280,7 +293,8 @@ class User {
   // Delete user (soft delete)
   async delete() {
     try {
-      const sql = 'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1';
+      const sql =
+        'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1';
       await database.run(sql, [this.id]);
       this.is_active = false;
       return this;

@@ -18,10 +18,10 @@ const cacheMiddleware = (ttl = 3600) => {
       '/auth/profile',
       '/auth/check',
       '/notifications',
-      '/support/my-tickets'
+      '/support/my-tickets',
     ];
 
-    const shouldSkipCache = skipCacheRoutes.some(route => req.path.includes(route));
+    const shouldSkipCache = skipCacheRoutes.some((route) => req.path.includes(route));
     if (shouldSkipCache) {
       return next();
     }
@@ -30,7 +30,7 @@ const cacheMiddleware = (ttl = 3600) => {
       // Generate cache key from endpoint and query parameters
       const endpoint = req.path;
       const params = { ...req.query, ...req.params };
-      
+
       // Check cache first
       const cachedResponse = await cacheService.getCachedAPIResponse(endpoint, params);
       if (cachedResponse) {
@@ -39,13 +39,14 @@ const cacheMiddleware = (ttl = 3600) => {
 
       // If no cache, intercept the response to cache it
       const originalSend = res.json;
-      res.json = function(data) {
+      res.json = function (data) {
         // Only cache successful responses
         if (res.statusCode === 200 && data) {
-          cacheService.cacheAPIResponse(endpoint, params, data, ttl)
-            .catch(error => console.error('Cache write failed:', error.message));
+          cacheService
+            .cacheAPIResponse(endpoint, params, data, ttl)
+            .catch((error) => console.error('Cache write failed:', error.message));
         }
-        
+
         // Call original send method
         originalSend.call(this, data);
       };
@@ -74,24 +75,22 @@ const cacheInvalidationMiddleware = (patterns = []) => {
 
     // Intercept response to invalidate cache after successful operations
     const originalSend = res.json;
-    res.json = function(data) {
+    res.json = function (data) {
       // Only invalidate on successful operations
       if (res.statusCode >= 200 && res.statusCode < 300) {
         // Default patterns based on route
-        const defaultPatterns = [
-          `api:${req.baseUrl}*`,
-          `api:${req.path}*`
-        ];
-        
+        const defaultPatterns = [`api:${req.baseUrl}*`, `api:${req.path}*`];
+
         const allPatterns = [...defaultPatterns, ...patterns];
-        
+
         // Invalidate cache patterns
-        allPatterns.forEach(pattern => {
-          cacheService.clearCache(pattern)
-            .catch(error => console.error('Cache invalidation failed:', error.message));
+        allPatterns.forEach((pattern) => {
+          cacheService
+            .clearCache(pattern)
+            .catch((error) => console.error('Cache invalidation failed:', error.message));
         });
       }
-      
+
       // Call original send method
       originalSend.call(this, data);
     };
@@ -115,13 +114,14 @@ const sessionCacheMiddleware = async (req, res, next) => {
 
     // Intercept response to cache updated session data
     const originalSend = res.json;
-    res.json = function(data) {
+    res.json = function (data) {
       // Cache user session data if response contains user info
       if (data && data.user && res.statusCode === 200) {
-        cacheService.cacheUserSession(req.user.id, data.user, 604800) // 7 days
-          .catch(error => console.error('Session cache failed:', error.message));
+        cacheService
+          .cacheUserSession(req.user.id, data.user, 604800) // 7 days
+          .catch((error) => console.error('Session cache failed:', error.message));
       }
-      
+
       originalSend.call(this, data);
     };
 
@@ -137,5 +137,5 @@ module.exports = {
   longCacheMiddleware,
   shortCacheMiddleware,
   cacheInvalidationMiddleware,
-  sessionCacheMiddleware
+  sessionCacheMiddleware,
 };

@@ -9,9 +9,13 @@ try {
   nodemailer = require('nodemailer');
   console.log('[EMAIL] nodemailer loaded, type:', typeof nodemailer);
   console.log('[EMAIL] nodemailer has createTransport:', typeof nodemailer?.createTransport);
-  
+
   // Handle ESM vs CommonJS (nodemailer v7 should be CommonJS)
-  if (nodemailer && nodemailer.default && typeof nodemailer.default.createTransport === 'function') {
+  if (
+    nodemailer &&
+    nodemailer.default &&
+    typeof nodemailer.default.createTransport === 'function'
+  ) {
     console.log('[EMAIL] Using nodemailer.default (ESM)');
     nodemailer = nodemailer.default;
   }
@@ -37,19 +41,19 @@ class EmailService {
     if (this.initializationAttempted) {
       return this.transporter !== null;
     }
-    
+
     this.initializationAttempted = true;
-    
+
     console.log('🔍 [EMAIL] Initializing email service (lazy)...');
     console.log('🔍 [EMAIL] EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'MISSING');
     console.log('🔍 [EMAIL] EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'MISSING');
     console.log('🔍 [EMAIL] EMAIL_HOST:', process.env.EMAIL_HOST || 'smtp.gmail.com (default)');
-    
+
     if (!nodemailer) {
       console.error('❌ [EMAIL] nodemailer package not available');
       return false;
     }
-    
+
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.error('❌ [EMAIL] CRITICAL: Email credentials not configured');
       console.error('❌ [EMAIL] Set EMAIL_USER and EMAIL_PASS in Vercel environment variables');
@@ -65,20 +69,20 @@ class EmailService {
         console.error('❌ [EMAIL] nodemailer keys:', Object.keys(nodemailer || {}));
         return false;
       }
-      
+
       this.transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.EMAIL_PORT) || 587,
         secure: false,
         auth: {
           user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
+          pass: process.env.EMAIL_PASS,
         },
         // Fail fast - no retries
         pool: false,
-        maxConnections: 1
+        maxConnections: 1,
       });
-      
+
       console.log('✅ [EMAIL] SMTP transporter created successfully');
       console.log('✅ [EMAIL] Using:', process.env.EMAIL_USER);
       return true;
@@ -138,12 +142,12 @@ class EmailService {
     try {
       console.log(`📧 [EMAIL] Sending to: ${to}`);
       console.log(`📧 [EMAIL] Subject: ${subject}`);
-      
+
       const info = await this.transporter.sendMail({
         from: `"Enterprise AI Hub" <${this.from}>`,
         to,
         subject,
-        html
+        html,
       });
 
       console.log('✅ [EMAIL] Successfully sent:', info.messageId);

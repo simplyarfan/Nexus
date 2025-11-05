@@ -14,9 +14,15 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex space-x-8 text-sm font-medium">
-          <Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</Link>
-          <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">About</Link>
-          <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">Contact</Link>
+          <Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">
+            Features
+          </Link>
+          <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
+            About
+          </Link>
+          <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+            Contact
+          </Link>
         </div>
 
         <Link href="/auth/login">

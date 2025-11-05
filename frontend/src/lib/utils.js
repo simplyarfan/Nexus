@@ -35,7 +35,7 @@ export function formatDate(date, options = {}) {
     month: 'long',
     day: 'numeric',
   };
-  
+
   return new Intl.DateTimeFormat('en-US', { ...defaultOptions, ...options }).format(new Date(date));
 }
 
@@ -45,7 +45,7 @@ export function formatDate(date, options = {}) {
 export function formatRelativeTime(date) {
   const now = new Date();
   const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
-  
+
   const intervals = [
     { label: 'year', seconds: 31536000 },
     { label: 'month', seconds: 2592000 },
@@ -55,14 +55,14 @@ export function formatRelativeTime(date) {
     { label: 'minute', seconds: 60 },
     { label: 'second', seconds: 1 },
   ];
-  
+
   for (const interval of intervals) {
     const count = Math.floor(diffInSeconds / interval.seconds);
     if (count >= 1) {
       return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
     }
   }
-  
+
   return 'just now';
 }
 
@@ -92,7 +92,7 @@ export function generateId() {
  * Sleep function for delays
  */
 export function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -101,7 +101,7 @@ export function sleep(ms) {
 export function getInitials(name) {
   return name
     .split(' ')
-    .map(word => word.charAt(0))
+    .map((word) => word.charAt(0))
     .join('')
     .toUpperCase()
     .slice(0, 2);
@@ -122,7 +122,7 @@ export function getContrastColor(hexColor) {
   const r = parseInt(hexColor.slice(1, 3), 16);
   const g = parseInt(hexColor.slice(3, 5), 16);
   const b = parseInt(hexColor.slice(5, 7), 16);
-  
+
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
   return brightness > 128 ? '#000000' : '#ffffff';
 }
@@ -160,7 +160,7 @@ export function isValidEmail(email) {
 export function generateGradient(text) {
   const gradients = [
     'from-orange-500 to-red-600',
-    'from-red-500 to-orange-600', 
+    'from-red-500 to-orange-600',
     'from-orange-600 to-amber-500',
     'from-amber-500 to-orange-600',
     'from-red-600 to-orange-500',
@@ -168,7 +168,7 @@ export function generateGradient(text) {
     'from-amber-600 to-red-600',
     'from-orange-600 to-red-600',
   ];
-  
+
   const hash = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return gradients[hash % gradients.length];
 }

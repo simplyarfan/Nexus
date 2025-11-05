@@ -4,10 +4,10 @@ import Head from 'next/head';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supportAPI } from '../../../utils/api';
 import toast from 'react-hot-toast';
-import { 
-  ArrowLeft, 
-  MessageSquare, 
-  Send, 
+import {
+  ArrowLeft,
+  MessageSquare,
+  Send,
   User,
   Calendar,
   Tag,
@@ -15,7 +15,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  Loader
+  Loader,
 } from 'lucide-react';
 
 export default function TicketDetail() {
@@ -29,35 +29,56 @@ export default function TicketDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const statusOptions = [
-    { value: 'open', label: 'Open', color: 'text-blue-400', bgColor: 'bg-blue-500/20', icon: Clock },
-    { value: 'in_progress', label: 'In Progress', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20', icon: AlertCircle },
-    { value: 'resolved', label: 'Resolved', color: 'text-green-400', bgColor: 'bg-green-500/20', icon: CheckCircle }
+    {
+      value: 'open',
+      label: 'Open',
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-500/20',
+      icon: Clock,
+    },
+    {
+      value: 'in_progress',
+      label: 'In Progress',
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-500/20',
+      icon: AlertCircle,
+    },
+    {
+      value: 'resolved',
+      label: 'Resolved',
+      color: 'text-green-400',
+      bgColor: 'bg-green-500/20',
+      icon: CheckCircle,
+    },
   ];
 
   const priorityOptions = [
     { value: 'low', label: 'Low', color: 'text-green-400' },
     { value: 'medium', label: 'Medium', color: 'text-yellow-400' },
     { value: 'high', label: 'High', color: 'text-orange-400' },
-    { value: 'urgent', label: 'Urgent', color: 'text-red-400' }
+    { value: 'urgent', label: 'Urgent', color: 'text-red-400' },
   ];
 
   // Load ticket and comments on mount
   const loadTicket = React.useCallback(async () => {
     if (!id) return;
-    
+
     setIsLoading(true);
     try {
       console.log('🎫 Loading ticket:', id);
       const response = await supportAPI.getTicket(id);
-      
+
       if (response.data?.success) {
         const ticketData = response.data.data.ticket;
         const commentsData = response.data.data.comments || [];
-        
+
         console.log('📦 Loaded ticket:', ticketData.id);
         console.log('💬 Loaded comments:', commentsData.length);
-        console.log('📋 Comment IDs:', commentsData.map(c => c.id));
-        
+        console.log(
+          '📋 Comment IDs:',
+          commentsData.map((c) => c.id),
+        );
+
         setTicket(ticketData);
         setComments(commentsData);
       } else {
@@ -76,7 +97,7 @@ export default function TicketDetail() {
   // Add comment handler
   const handleAddComment = async (e) => {
     e.preventDefault();
-    
+
     if (!newComment.trim()) {
       toast.error('Please enter a comment');
       return;
@@ -84,26 +105,26 @@ export default function TicketDetail() {
 
     const commentText = newComment.trim();
     setIsSubmitting(true);
-    
+
     try {
       console.log('💬 Adding comment:', commentText);
-      
+
       // Add comment to database
       const response = await supportAPI.addComment(id, commentText, false);
       console.log('✅ Comment added, response:', response.data);
-      
+
       // Get the new comment from response
       const newCommentData = response.data?.data?.comment || response.data?.comment;
-      
+
       // Clear input immediately
       setNewComment('');
       toast.success('Comment added');
-      
+
       // Update comments state with new comment
       if (newCommentData) {
-        setComments(prev => {
+        setComments((prev) => {
           // Check if comment already exists (prevent duplicates)
-          const exists = prev.some(c => c.id === newCommentData.id);
+          const exists = prev.some((c) => c.id === newCommentData.id);
           if (exists) {
             console.log('⚠️ Comment already exists in state, skipping');
             return prev;
@@ -112,7 +133,6 @@ export default function TicketDetail() {
           return [...prev, newCommentData];
         });
       }
-      
     } catch (error) {
       console.error('❌ Add comment error:', error);
       toast.error('Failed to add comment');
@@ -124,18 +144,20 @@ export default function TicketDetail() {
   };
 
   const getStatusStyle = (status) => {
-    const statusOption = statusOptions.find(opt => opt.value === status);
-    return statusOption ? `${statusOption.color} ${statusOption.bgColor}` : 'text-gray-400 bg-gray-500/20';
+    const statusOption = statusOptions.find((opt) => opt.value === status);
+    return statusOption
+      ? `${statusOption.color} ${statusOption.bgColor}`
+      : 'text-gray-400 bg-gray-500/20';
   };
 
   const getStatusIcon = (status) => {
-    const statusOption = statusOptions.find(opt => opt.value === status);
+    const statusOption = statusOptions.find((opt) => opt.value === status);
     const IconComponent = statusOption?.icon || Clock;
     return <IconComponent className="w-4 h-4" />;
   };
 
   const getPriorityStyle = (priority) => {
-    const priorityOption = priorityOptions.find(opt => opt.value === priority);
+    const priorityOption = priorityOptions.find((opt) => opt.value === priority);
     return priorityOption?.color || 'text-gray-400';
   };
 
@@ -174,7 +196,10 @@ export default function TicketDetail() {
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">Ticket Not Found</h3>
-            <p className="text-gray-300 mb-6">The ticket you're looking for doesn't exist or you don't have access to it.</p>
+            <p className="text-gray-300 mb-6">
+              The ticket you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to
+              it.
+            </p>
             <button
               onClick={() => {
                 const isAdmin = ['admin', 'superadmin'].includes(user?.role);
@@ -182,7 +207,9 @@ export default function TicketDetail() {
               }}
               className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all"
             >
-              {['admin', 'superadmin'].includes(user?.role) ? 'Back to Support Management' : 'Back to My Tickets'}
+              {['admin', 'superadmin'].includes(user?.role)
+                ? 'Back to Support Management'
+                : 'Back to My Tickets'}
             </button>
           </div>
         </div>
@@ -192,13 +219,13 @@ export default function TicketDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-
       <Head>
-        <title>Ticket #{ticket.id} - {ticket.subject} - simpleAI</title>
+        <title>
+          Ticket #{ticket.id} - {ticket.subject} - simpleAI
+        </title>
         <meta name="description" content={`Support ticket: ${ticket.subject}`} />
       </Head>
-      
-      
+
       <main className="relative z-10 max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-6">
@@ -210,7 +237,9 @@ export default function TicketDetail() {
             className="flex items-center text-gray-600 hover:text-gray-800 bg-white border border-gray-200 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-50 shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {['admin', 'superadmin'].includes(user?.role) ? 'Back to Support Management' : 'Back to My Tickets'}
+            {['admin', 'superadmin'].includes(user?.role)
+              ? 'Back to Support Management'
+              : 'Back to My Tickets'}
           </button>
         </div>
 
@@ -220,7 +249,9 @@ export default function TicketDetail() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-sm text-gray-500">#{ticket.id}</span>
-                <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${getStatusStyle(ticket.status)}`}>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${getStatusStyle(ticket.status)}`}
+                >
                   {getStatusIcon(ticket.status)}
                   <span className="ml-2 capitalize">{ticket.status.replace('_', ' ')}</span>
                 </span>
@@ -277,8 +308,16 @@ export default function TicketDetail() {
                       <div>
                         <div className="text-sm font-medium text-gray-900">
                           {comment.first_name} {comment.last_name}
-                          {comment.role === 'admin' && <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">Admin</span>}
-                          {comment.role === 'superadmin' && <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Superadmin</span>}
+                          {comment.role === 'admin' && (
+                            <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
+                              Admin
+                            </span>
+                          )}
+                          {comment.role === 'superadmin' && (
+                            <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                              Superadmin
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-gray-500">
                           {new Date(comment.created_at).toLocaleString()}
@@ -334,7 +373,10 @@ export default function TicketDetail() {
             <div className="border-t border-gray-200 pt-6">
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
                 <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-gray-700">This ticket has been resolved. If you need further assistance, please create a new ticket.</p>
+                <p className="text-gray-700">
+                  This ticket has been resolved. If you need further assistance, please create a new
+                  ticket.
+                </p>
               </div>
             </div>
           )}

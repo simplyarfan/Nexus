@@ -89,7 +89,7 @@ export default function VerifyEmail() {
     try {
       const response = await axios.post(`${API_URL}/auth/verify-email`, {
         userId,
-        code: verificationCode
+        code: verificationCode,
       });
 
       if (response.data.success) {
@@ -99,7 +99,7 @@ export default function VerifyEmail() {
         localStorage.setItem('user', JSON.stringify(response.data.user));
 
         setSuccessMessage('Email verified! Redirecting to login...');
-        
+
         setTimeout(() => {
           router.push('/auth/login');
         }, 1500);
@@ -107,7 +107,7 @@ export default function VerifyEmail() {
     } catch (err) {
       console.error('Verification error:', err);
       setError({
-        message: err.response?.data?.message || 'Verification failed. Please try again.'
+        message: err.response?.data?.message || 'Verification failed. Please try again.',
       });
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -125,7 +125,7 @@ export default function VerifyEmail() {
 
     try {
       const response = await axios.post(`${API_URL}/auth/resend-verification`, {
-        userId
+        userId,
       });
 
       if (response.data.success) {
@@ -135,7 +135,7 @@ export default function VerifyEmail() {
     } catch (err) {
       console.error('Resend error:', err);
       setError({
-        message: err.response?.data?.message || 'Failed to resend code. Please try again.'
+        message: err.response?.data?.message || 'Failed to resend code. Please try again.',
       });
     } finally {
       setLoading(false);
@@ -154,17 +154,17 @@ export default function VerifyEmail() {
             {/* Header */}
             <div className="text-center mb-8">
               <div className="mx-auto w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mb-4">
-                <svg 
+                <svg
                   className="w-8 h-8 text-orange-600 dark:text-orange-400"
-                  fill="none" 
-                  stroke="currentColor" 
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
               </div>
@@ -172,7 +172,8 @@ export default function VerifyEmail() {
                 Verify Your Email
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                We've sent a 6-digit code to your email address. Enter it below to verify your account.
+                We&apos;ve sent a 6-digit code to your email address. Enter it below to verify your
+                account.
               </p>
             </div>
 
@@ -180,8 +181,18 @@ export default function VerifyEmail() {
             {showLoginBanner && (
               <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <div className="flex items-start">
-                  <svg className="w-5 h-5 text-orange-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-5 h-5 text-orange-600 mt-0.5 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-orange-900">
@@ -196,7 +207,11 @@ export default function VerifyEmail() {
                     className="text-orange-400 hover:text-orange-600 ml-3"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -206,11 +221,7 @@ export default function VerifyEmail() {
             {/* Error/Success Messages */}
             {error && (
               <div className="mb-6">
-                <ErrorAlert
-                  type="error"
-                  message={error.message}
-                  onClose={() => setError(null)}
-                />
+                <ErrorAlert type="error" message={error.message} onClose={() => setError(null)} />
               </div>
             )}
 
@@ -251,22 +262,22 @@ export default function VerifyEmail() {
               >
                 {loading ? (
                   <>
-                    <svg 
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" 
-                      fill="none" 
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      fill="none"
                       viewBox="0 0 24 24"
                     >
-                      <circle 
-                        className="opacity-25" 
-                        cx="12" 
-                        cy="12" 
-                        r="10" 
-                        stroke="currentColor" 
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
                         strokeWidth="4"
                       />
-                      <path 
-                        className="opacity-75" 
-                        fill="currentColor" 
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
@@ -281,15 +292,15 @@ export default function VerifyEmail() {
             {/* Resend Section */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Didn't receive the code?
+                Didn&apos;t receive the code?
               </p>
               <button
                 onClick={handleResend}
                 disabled={loading || resendCooldown > 0}
                 className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {resendCooldown > 0 
-                  ? `Resend code in ${resendCooldown}s` 
+                {resendCooldown > 0
+                  ? `Resend code in ${resendCooldown}s`
                   : 'Resend verification code'}
               </button>
             </div>

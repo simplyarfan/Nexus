@@ -11,7 +11,7 @@ class MeetLinkGenerator {
    */
   generateMeetLink() {
     const chars = 'abcdefghijklmnopqrstuvwxyz';
-    
+
     const generateSegment = (length) => {
       let result = '';
       for (let i = 0; i < length; i++) {

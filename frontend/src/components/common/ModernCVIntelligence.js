@@ -16,7 +16,12 @@ const ModernCVIntelligence = () => {
   const [batchName, setBatchName] = useState('');
   const [selectedFiles, setSelectedFiles] = useState({ cvFiles: [], jdFile: null });
   const [searchQuery, setSearchQuery] = useState('');
-  const [processingProgress, setProcessingProgress] = useState({ show: false, current: 0, total: 0, message: '' });
+  const [processingProgress, setProcessingProgress] = useState({
+    show: false,
+    current: 0,
+    total: 0,
+    message: '',
+  });
   const [openMenuId, setOpenMenuId] = useState(null);
   const handleLogout = async () => {
     try {
@@ -46,23 +51,23 @@ const ModernCVIntelligence = () => {
 
   const handleCVFilesChange = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedFiles(prev => ({ ...prev, cvFiles: files }));
+    setSelectedFiles((prev) => ({ ...prev, cvFiles: files }));
   };
 
   const handleJDFileChange = (e) => {
     const file = e.target.files[0];
-    setSelectedFiles(prev => ({ ...prev, jdFile: file }));
+    setSelectedFiles((prev) => ({ ...prev, jdFile: file }));
   };
 
   const removeCVFile = (indexToRemove) => {
-    setSelectedFiles(prev => ({
+    setSelectedFiles((prev) => ({
       ...prev,
-      cvFiles: prev.cvFiles.filter((_, index) => index !== indexToRemove)
+      cvFiles: prev.cvFiles.filter((_, index) => index !== indexToRemove),
     }));
   };
 
   const removeJDFile = () => {
-    setSelectedFiles(prev => ({ ...prev, jdFile: null }));
+    setSelectedFiles((prev) => ({ ...prev, jdFile: null }));
   };
 
   useEffect(() => {
@@ -76,11 +81,11 @@ const ModernCVIntelligence = () => {
       console.log('🎯 Fetching CV batches...');
       const response = await cvAPI.getBatches();
       console.log('🎯 Fetch batches response:', response);
-      
+
       // Handle different response structures
       const isSuccess = response.success || (response.data && response.data.success);
       const batchesData = response.data?.data || response.data || [];
-      
+
       if (isSuccess) {
         console.log('🎯 Setting batches:', batchesData);
         setBatches(Array.isArray(batchesData) ? batchesData : []);
@@ -96,7 +101,7 @@ const ModernCVIntelligence = () => {
       console.error('🎯 Error fetching batches:', error);
       console.error('🎯 Error details:', error.response?.data);
       setBatches([]);
-      
+
       let errorMsg = 'Failed to load CV batches';
       if (error.response?.status === 500) {
         errorMsg = 'Server error occurred. Please try again later.';
@@ -105,7 +110,7 @@ const ModernCVIntelligence = () => {
       } else {
         errorMsg = `Failed to load CV batches: ${error.response?.data?.message || error.message}`;
       }
-      
+
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -115,7 +120,7 @@ const ModernCVIntelligence = () => {
 
   const handleFileUpload = async (e) => {
     e.preventDefault();
-    
+
     if (!batchName.trim()) {
       toast.error('Please enter a batch name');
       return;
@@ -140,12 +145,15 @@ const ModernCVIntelligence = () => {
       console.log('🎯 Step 1: Creating batch...');
       const batchResponse = await cvAPI.createBatch(batchName);
       console.log('🎯 Create batch response:', batchResponse);
-      
+
       const isSuccess = batchResponse.success || (batchResponse.data && batchResponse.data.success);
-      const batchId = batchResponse.data?.data?.batchId || batchResponse.data?.batchId || batchResponse.batchId;
-      
+      const batchId =
+        batchResponse.data?.data?.batchId || batchResponse.data?.batchId || batchResponse.batchId;
+
       if (!isSuccess || !batchId) {
-        throw new Error(batchResponse.message || batchResponse.data?.message || 'Failed to create batch');
+        throw new Error(
+          batchResponse.message || batchResponse.data?.message || 'Failed to create batch',
+        );
       }
 
       console.log('✅ Batch created successfully with ID:', batchId);
@@ -153,45 +161,45 @@ const ModernCVIntelligence = () => {
       // Step 2: Process the files if any are provided
       if (selectedFiles.cvFiles.length > 0 && selectedFiles.jdFile) {
         console.log('🎯 Step 2: Processing files...');
-        
+
         // Show progress modal
         setProcessingProgress({
           show: true,
           current: 0,
           total: selectedFiles.cvFiles.length,
-          message: 'Uploading files...'
+          message: 'Uploading files...',
         });
-        
+
         const processResponse = await cvAPI.processFiles(
           batchId,
           selectedFiles.jdFile,
           selectedFiles.cvFiles,
           (progress) => {
             console.log('📈 Upload progress:', progress + '%');
-            setProcessingProgress(prev => ({
+            setProcessingProgress((prev) => ({
               ...prev,
-              message: `Uploading files... ${progress}%`
+              message: `Uploading files... ${progress}%`,
             }));
-          }
+          },
         );
-        
+
         console.log('✅ Files processed successfully:', processResponse);
-        
+
         // Simulate AI analysis progress
         for (let i = 1; i <= selectedFiles.cvFiles.length; i++) {
-          setProcessingProgress(prev => ({
+          setProcessingProgress((prev) => ({
             ...prev,
             current: i,
-            message: `Analyzing candidate ${i} of ${selectedFiles.cvFiles.length}...`
+            message: `Analyzing candidate ${i} of ${selectedFiles.cvFiles.length}...`,
           }));
-          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay per candidate
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay per candidate
         }
-        
-        setProcessingProgress(prev => ({
+
+        setProcessingProgress((prev) => ({
           ...prev,
-          message: 'AI ranking and analysis complete!'
+          message: 'AI ranking and analysis complete!',
         }));
-        
+
         setTimeout(() => {
           setProcessingProgress({ show: false, current: 0, total: 0, message: '' });
           toast.success('AI analysis complete! Candidates ranked by AI.');
@@ -206,7 +214,7 @@ const ModernCVIntelligence = () => {
       setBatchName('');
       setSelectedFiles({ cvFiles: [], jdFile: null });
       await fetchBatches();
-      
+
       // Force refresh the batches list with a small delay to ensure backend processing
       console.log('🎯 Refreshing batches list...');
       setTimeout(async () => {
@@ -216,34 +224,42 @@ const ModernCVIntelligence = () => {
     } catch (error) {
       console.error('🎯 Error creating batch:', error);
       console.error('🎯 Error details:', error.response?.data);
-      
+
       // Hide progress modal on error
       setProcessingProgress({ show: false, current: 0, total: 0, message: '' });
-      
+
       toast.error(`Failed to create batch: ${error.response?.data?.message || error.message}`);
     }
   };
 
-  const filteredBatches = batches.filter(batch => {
+  const filteredBatches = batches.filter((batch) => {
     const matchesSearch = batch.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed': return '✓';
-      case 'processing': return '⟳';
-      case 'pending': return '⏳';
-      default: return '•';
+      case 'completed':
+        return '✓';
+      case 'processing':
+        return '⟳';
+      case 'pending':
+        return '⏳';
+      default:
+        return '•';
     }
   };
 
@@ -325,10 +341,9 @@ const ModernCVIntelligence = () => {
               {searchQuery ? 'No batches found' : 'No CV batches yet'}
             </h3>
             <p className="text-gray-600 mb-8">
-              {searchQuery 
-                ? 'Try adjusting your search' 
-                : 'Upload your first batch of CVs to get started with AI analysis'
-              }
+              {searchQuery
+                ? 'Try adjusting your search'
+                : 'Upload your first batch of CVs to get started with AI analysis'}
             </p>
             {!searchQuery && (
               <button
@@ -362,7 +377,7 @@ const ModernCVIntelligence = () => {
                     </div>
                   </div>
                   <div className="relative">
-                    <button 
+                    <button
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -391,7 +406,9 @@ const ModernCVIntelligence = () => {
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Status</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(batch.status)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(batch.status)}`}
+                    >
                       {getStatusIcon(batch.status)} {batch.status}
                     </span>
                   </div>
@@ -426,131 +443,140 @@ const ModernCVIntelligence = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-8 overflow-y-auto flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">Create New Batch</h3>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Icons.X className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-
-            <form onSubmit={handleFileUpload} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Batch Name *
-                </label>
-                <input
-                  type="text"
-                  value={batchName}
-                  onChange={(e) => setBatchName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Enter batch name..."
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  CV Files (PDF only) - Required *
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors">
-                  <Icons.Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">Upload candidate CVs for AI analysis</p>
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf"
-                    onChange={handleCVFilesChange}
-                    className="hidden"
-                    id="cv-files"
-                    required
-                  />
-                  <label
-                    htmlFor="cv-files"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
-                  >
-                    Choose CV Files
-                  </label>
-                  {selectedFiles.cvFiles.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm text-green-600 mb-2">
-                        {selectedFiles.cvFiles.length} CV file(s) selected
-                      </p>
-                      <div className="space-y-2">
-                        {selectedFiles.cvFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                            <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeCVFile(index)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                            >
-                              <Icons.X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Job Description (PDF/TXT) - Required *
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors">
-                  <Icons.FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">Upload job description to rank CVs against requirements</p>
-                  <input
-                    type="file"
-                    accept=".pdf,.txt"
-                    onChange={handleJDFileChange}
-                    className="hidden"
-                    id="jd-file"
-                    required
-                  />
-                  <label
-                    htmlFor="jd-file"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
-                  >
-                    Choose Job Description
-                  </label>
-                  {selectedFiles.jdFile && (
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                        <span className="text-sm text-gray-700 truncate">{selectedFiles.jdFile.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeJDFile()}
-                          className="text-red-500 hover:text-red-700 p-1"
-                        >
-                          <Icons.X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Create New Batch</h3>
                 <button
-                  type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  Create Batch
+                  <Icons.X className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleFileUpload} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Batch Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={batchName}
+                    onChange={(e) => setBatchName(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Enter batch name..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    CV Files (PDF only) - Required *
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors">
+                    <Icons.Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Upload candidate CVs for AI analysis
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf"
+                      onChange={handleCVFilesChange}
+                      className="hidden"
+                      id="cv-files"
+                      required
+                    />
+                    <label
+                      htmlFor="cv-files"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                    >
+                      Choose CV Files
+                    </label>
+                    {selectedFiles.cvFiles.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm text-green-600 mb-2">
+                          {selectedFiles.cvFiles.length} CV file(s) selected
+                        </p>
+                        <div className="space-y-2">
+                          {selectedFiles.cvFiles.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-gray-50 p-2 rounded-lg"
+                            >
+                              <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeCVFile(index)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                              >
+                                <Icons.X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Job Description (PDF/TXT) - Required *
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors">
+                    <Icons.FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Upload job description to rank CVs against requirements
+                    </p>
+                    <input
+                      type="file"
+                      accept=".pdf,.txt"
+                      onChange={handleJDFileChange}
+                      className="hidden"
+                      id="jd-file"
+                      required
+                    />
+                    <label
+                      htmlFor="jd-file"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                    >
+                      Choose Job Description
+                    </label>
+                    {selectedFiles.jdFile && (
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                          <span className="text-sm text-gray-700 truncate">
+                            {selectedFiles.jdFile.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeJDFile()}
+                            className="text-red-500 hover:text-red-700 p-1"
+                          >
+                            <Icons.X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadModal(false)}
+                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Create Batch
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -564,25 +590,29 @@ const ModernCVIntelligence = () => {
               <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icons.Brain className="w-8 h-8 text-white animate-pulse" />
               </div>
-              
+
               <h3 className="text-xl font-bold text-gray-900 mb-2">AI Analysis in Progress</h3>
               <p className="text-gray-600 mb-6">{processingProgress.message}</p>
-              
+
               {processingProgress.total > 0 && (
                 <div className="mb-4">
                   <div className="flex justify-between text-sm text-gray-600 mb-2">
                     <span>Progress</span>
-                    <span>{processingProgress.current}/{processingProgress.total}</span>
+                    <span>
+                      {processingProgress.current}/{processingProgress.total}
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(processingProgress.current / processingProgress.total) * 100}%` }}
+                      style={{
+                        width: `${(processingProgress.current / processingProgress.total) * 100}%`,
+                      }}
                     ></div>
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
                 <span>Please wait while AI analyzes and ranks candidates...</span>

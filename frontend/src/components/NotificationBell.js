@@ -16,7 +16,7 @@ export default function NotificationBell() {
   const fetchUnreadCount = async () => {
     try {
       const response = await notificationsAPI.getUnreadCount({
-        types: 'new_ticket,ticket_comment,ticket_response,ticket_status_change'
+        types: 'new_ticket,ticket_comment,ticket_response,ticket_status_change',
       });
       if (response.data?.success) {
         setUnreadCount(response.data.data.unread_count);
@@ -31,9 +31,9 @@ export default function NotificationBell() {
     try {
       setIsLoading(true);
       // Only fetch ticket-related notifications
-      const response = await notificationsAPI.getNotifications({ 
+      const response = await notificationsAPI.getNotifications({
         limit: 10,
-        types: 'new_ticket,ticket_comment,ticket_response,ticket_status_change'
+        types: 'new_ticket,ticket_comment,ticket_response,ticket_status_change',
       });
       if (response.data?.success) {
         setNotifications(response.data.data.notifications);
@@ -49,12 +49,12 @@ export default function NotificationBell() {
   const markAsRead = async (notificationId) => {
     try {
       await notificationsAPI.markAsRead(notificationId);
-      
+
       // Update local state
-      setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n)),
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark as read:', error);
     }
@@ -64,9 +64,9 @@ export default function NotificationBell() {
   const markAllAsRead = async () => {
     try {
       await notificationsAPI.markAllAsRead();
-      
+
       // Update local state
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
       toast.success('All notifications marked as read');
     } catch (error) {
@@ -83,11 +83,14 @@ export default function NotificationBell() {
     }
 
     // Navigate based on notification type
-    if (notification.type === 'ticket_response' || 
-        notification.type === 'ticket_status_change' ||
-        notification.type === 'new_ticket' ||
-        notification.type === 'ticket_comment') {
-      const ticketId = notification.metadata?.ticket_id || notification.enriched_metadata?.ticket_id;
+    if (
+      notification.type === 'ticket_response' ||
+      notification.type === 'ticket_status_change' ||
+      notification.type === 'new_ticket' ||
+      notification.type === 'ticket_comment'
+    ) {
+      const ticketId =
+        notification.metadata?.ticket_id || notification.enriched_metadata?.ticket_id;
       if (ticketId) {
         setIsOpen(false);
         router.push(`/support/ticket/${ticketId}`);
@@ -115,10 +118,10 @@ export default function NotificationBell() {
   // Fetch unread count on mount and set up polling
   useEffect(() => {
     fetchUnreadCount();
-    
+
     // Poll every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -132,7 +135,7 @@ export default function NotificationBell() {
   // Format time ago
   const timeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    
+
     if (seconds < 60) return 'just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -148,7 +151,7 @@ export default function NotificationBell() {
         className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
       >
         <Bell className="w-5 h-5" />
-        
+
         {/* Unread Badge */}
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
@@ -185,7 +188,7 @@ export default function NotificationBell() {
               <div className="p-8 text-center">
                 <Bell className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                 <p className="text-gray-600">No notifications</p>
-                <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>
+                <p className="text-sm text-gray-500 mt-1">You&apos;re all caught up!</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -206,14 +209,12 @@ export default function NotificationBell() {
                           <span className="ml-2 w-2 h-2 bg-orange-500 rounded-full"></span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {notification.message}
-                      </p>
+                      <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                       <p className="text-xs text-gray-500 mt-2">
                         {timeAgo(notification.created_at)}
                       </p>
                     </div>
-                    
+
                     {!notification.is_read && (
                       <button
                         onClick={(e) => {

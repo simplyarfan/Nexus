@@ -18,7 +18,6 @@ class InterviewCoordinatorService {
    * Generate interview questions based on JD and candidate resume
    */
   async generateInterviewQuestions(jobDescription, candidateData, interviewType = 'technical') {
-
     const prompt = `You are an expert HR interviewer. Generate tailored interview questions based on the job requirements and candidate background.
 
 JOB DESCRIPTION:
@@ -65,17 +64,21 @@ Generate a JSON response with:
 Make questions specific to the candidate's background and job requirements.`;
 
     try {
-      const response = await axios.post(this.apiUrl, {
-        model: this.model,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1200,
-        temperature: 0.3
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.post(
+        this.apiUrl,
+        {
+          model: this.model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1200,
+          temperature: 0.3,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       const questions = JSON.parse(response.data.choices[0].message.content);
       return questions;
@@ -91,14 +94,13 @@ Make questions specific to the candidate's background and job requirements.`;
    * @param {Object} interviewDetails - Interview details including userId for calendar integration
    */
   async createInterviewSchedule(candidateData, interviewDetails) {
-
     const interviewId = uuidv4();
     const schedule = {
       id: interviewId,
       candidate: {
         name: candidateData.name,
         email: candidateData.email,
-        phone: candidateData.phone
+        phone: candidateData.phone,
       },
       interview: {
         title: `Interview - ${candidateData.name} - ${interviewDetails.position}`,
@@ -107,18 +109,18 @@ Make questions specific to the candidate's background and job requirements.`;
         timezone: interviewDetails.timezone || 'UTC',
         scheduled_time: interviewDetails.scheduled_time,
         location: interviewDetails.location || 'Video Call',
-        meeting_link: interviewDetails.meeting_link || ''
+        meeting_link: interviewDetails.meeting_link || '',
       },
       panel: interviewDetails.panel || [],
       status: 'scheduled',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     // Try to create Google Calendar event if user has connected their calendar
     if (interviewDetails.userId && interviewDetails.useGoogleCalendar) {
       try {
         const isConnected = await googleCalendarService.isUserConnected(interviewDetails.userId);
-        
+
         if (isConnected) {
           const calendarResult = await googleCalendarService.createCalendarEventWithMeet(
             interviewDetails.userId,
@@ -129,17 +131,17 @@ Make questions specific to the candidate's background and job requirements.`;
               interviewType: interviewDetails.type,
               scheduledTime: interviewDetails.scheduled_time,
               duration: interviewDetails.duration,
-              notes: interviewDetails.notes
-            }
+              notes: interviewDetails.notes,
+            },
           );
 
           // Update schedule with Google Calendar event details
           schedule.google_calendar = {
             eventId: calendarResult.eventId,
             htmlLink: calendarResult.htmlLink,
-            meetLink: calendarResult.meetingLink
+            meetLink: calendarResult.meetingLink,
           };
-          
+
           // Update meeting link if Google Meet was created
           if (calendarResult.meetingLink) {
             schedule.interview.meeting_link = calendarResult.meetingLink;
@@ -160,7 +162,7 @@ Make questions specific to the candidate's background and job requirements.`;
   generateICSInvite(interviewData, organizerEmail = 'hr@company.com', organizerName = 'HR Team') {
     const startDate = new Date(interviewData.scheduledTime);
     const duration = interviewData.duration || 60;
-    const endDate = new Date(startDate.getTime() + (duration * 60000));
+    const endDate = new Date(startDate.getTime() + duration * 60000);
 
     const formatDate = (date) => {
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -168,18 +170,22 @@ Make questions specific to the candidate's background and job requirements.`;
 
     // RFC 5545 compliant text escaping
     const escapeText = (text) => {
-      if (!text) return '';
+      if (!text) {
+        return '';
+      }
       return text
-        .replace(/\\/g, '\\\\')    // Backslashes FIRST
-        .replace(/;/g, '\\;')      // Semicolons
-        .replace(/,/g, '\\,')      // Commas
-        .replace(/\n/g, '\\n')     // Newlines
-        .replace(/\r/g, '');       // Remove carriage returns
+        .replace(/\\/g, '\\\\') // Backslashes FIRST
+        .replace(/;/g, '\\;') // Semicolons
+        .replace(/,/g, '\\,') // Commas
+        .replace(/\n/g, '\\n') // Newlines
+        .replace(/\r/g, ''); // Remove carriage returns
     };
 
     // Line folding for long lines (max 75 chars per RFC 5545)
     const foldLine = (line) => {
-      if (line.length <= 75) return line;
+      if (line.length <= 75) {
+        return line;
+      }
       const folded = [];
       for (let i = 0; i < line.length; i += 75) {
         folded.push(i === 0 ? line.substr(i, 75) : ' ' + line.substr(i, 74));
@@ -188,21 +194,22 @@ Make questions specific to the candidate's background and job requirements.`;
     };
 
     const title = `Interview - ${interviewData.candidateName} - ${interviewData.position}`;
-    const description = `Interview Details:\\n\\n` +
+    const description =
+      'Interview Details:\\n\\n' +
       `Position: ${interviewData.position}\\n` +
       `Type: ${interviewData.interviewType || 'General'}\\n` +
       `Duration: ${duration} minutes\\n` +
       `Platform: ${interviewData.platform || 'Video Call'}\\n\\n` +
       (interviewData.meetingLink ? `Meeting Link: ${interviewData.meetingLink}\\n\\n` : '') +
       (interviewData.notes ? `Notes: ${interviewData.notes}\\n\\n` : '') +
-      `If you need to reschedule, please contact the interviewer.`;
+      'If you need to reschedule, please contact the interviewer.';
 
     const icsLines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'PRODID:-//Nexus AI Platform//Interview Coordinator v2.0//EN',
       'CALSCALE:GREGORIAN',
-      'METHOD:REQUEST',                            // Changed to REQUEST for proper invites
+      'METHOD:REQUEST', // Changed to REQUEST for proper invites
       'BEGIN:VEVENT',
       `UID:${interviewData.id}@nexusai.com`,
       `DTSTART:${formatDate(startDate)}`,
@@ -210,28 +217,30 @@ Make questions specific to the candidate's background and job requirements.`;
       `DTSTAMP:${formatDate(new Date())}`,
       foldLine(`SUMMARY:${escapeText(title)}`),
       foldLine(`DESCRIPTION:${escapeText(description)}`),
-      foldLine(`LOCATION:${escapeText(interviewData.meetingLink || interviewData.platform || 'Video Call')}`),
+      foldLine(
+        `LOCATION:${escapeText(interviewData.meetingLink || interviewData.platform || 'Video Call')}`,
+      ),
       `ORGANIZER;CN="${escapeText(organizerName)}":mailto:${organizerEmail}`,
       `ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${escapeText(interviewData.candidateName)}":mailto:${interviewData.candidateEmail}`,
       'STATUS:CONFIRMED',
       'SEQUENCE:0',
-      'TRANSP:OPAQUE',                            // Blocks time on calendar
-      'PRIORITY:5',                               // Medium priority
+      'TRANSP:OPAQUE', // Blocks time on calendar
+      'PRIORITY:5', // Medium priority
       'CLASS:PUBLIC',
       'BEGIN:VALARM',
-      'TRIGGER:-PT15M',                           // 15 min reminder
+      'TRIGGER:-PT15M', // 15 min reminder
       'ACTION:DISPLAY',
       'DESCRIPTION:Interview starts in 15 minutes',
       'END:VALARM',
       'BEGIN:VALARM',
-      'TRIGGER:-PT1H',                            // 1 hour reminder
+      'TRIGGER:-PT1H', // 1 hour reminder
       'ACTION:EMAIL',
       'SUMMARY:Interview Reminder',
       `DESCRIPTION:Your interview with ${escapeText(interviewData.candidateName)} starts in 1 hour`,
       `ATTENDEE:mailto:${organizerEmail}`,
       'END:VALARM',
       'END:VEVENT',
-      'END:VCALENDAR'
+      'END:VCALENDAR',
     ];
 
     return icsLines.join('\r\n');
@@ -241,7 +250,6 @@ Make questions specific to the candidate's background and job requirements.`;
    * Send interview invitation email
    */
   async sendInterviewInvitation(schedule, questions) {
-
     const emailContent = {
       to: schedule.candidate.email,
       subject: `Interview Invitation - ${schedule.interview.title}`,
@@ -250,9 +258,9 @@ Make questions specific to the candidate's background and job requirements.`;
         {
           filename: 'interview.ics',
           content: this.generateICSInvite(schedule),
-          contentType: 'text/calendar'
-        }
-      ]
+          contentType: 'text/calendar',
+        },
+      ],
     };
 
     // This would integrate with your email service (Brevo/SendGrid)
@@ -296,7 +304,7 @@ Make questions specific to the candidate's background and job requirements.`;
                 
                 <h3>Interview Panel</h3>
                 <ul>
-                    ${schedule.panel.map(panelist => `<li>${panelist.name} - ${panelist.role}</li>`).join('')}
+                    ${schedule.panel.map((panelist) => `<li>${panelist.name} - ${panelist.role}</li>`).join('')}
                 </ul>
             </div>
             
@@ -327,23 +335,26 @@ Make questions specific to the candidate's background and job requirements.`;
    * Schedule interview reminders
    */
   async scheduleReminders(schedule) {
-
     const reminders = [
       {
         type: '24h_before',
-        send_at: new Date(new Date(schedule.interview.scheduled_time).getTime() - (24 * 60 * 60 * 1000)),
-        message: 'Interview reminder: You have an interview scheduled for tomorrow'
+        send_at: new Date(
+          new Date(schedule.interview.scheduled_time).getTime() - 24 * 60 * 60 * 1000,
+        ),
+        message: 'Interview reminder: You have an interview scheduled for tomorrow',
       },
       {
         type: '2h_before',
-        send_at: new Date(new Date(schedule.interview.scheduled_time).getTime() - (2 * 60 * 60 * 1000)),
-        message: 'Interview reminder: Your interview is in 2 hours'
+        send_at: new Date(
+          new Date(schedule.interview.scheduled_time).getTime() - 2 * 60 * 60 * 1000,
+        ),
+        message: 'Interview reminder: Your interview is in 2 hours',
       },
       {
         type: '15m_before',
-        send_at: new Date(new Date(schedule.interview.scheduled_time).getTime() - (15 * 60 * 1000)),
-        message: 'Interview starting soon: Please join the meeting in 15 minutes'
-      }
+        send_at: new Date(new Date(schedule.interview.scheduled_time).getTime() - 15 * 60 * 1000),
+        message: 'Interview starting soon: Please join the meeting in 15 minutes',
+      },
     ];
 
     return reminders;
@@ -357,9 +368,8 @@ Make questions specific to the candidate's background and job requirements.`;
    * @param {string} userId - User ID for Google Calendar access
    */
   async checkConflicts(proposedTime, panelEmails, duration = 60, userId = null) {
-
     const conflicts = [];
-    
+
     // If user has Google Calendar connected, check for real conflicts
     if (userId) {
       try {
@@ -373,11 +383,11 @@ Make questions specific to the candidate's background and job requirements.`;
         console.error('⚠️  Could not check Google Calendar conflicts:', error.message);
       }
     }
-    
+
     const conflictCheck = {
       has_conflicts: false,
       conflicts: conflicts,
-      alternative_slots: this.generateAlternativeSlots(proposedTime, duration)
+      alternative_slots: this.generateAlternativeSlots(proposedTime, duration),
     };
 
     return conflictCheck;
@@ -391,10 +401,10 @@ Make questions specific to the candidate's background and job requirements.`;
     const baseTime = new Date(originalTime);
 
     for (let i = 1; i <= 3; i++) {
-      const alternativeTime = new Date(baseTime.getTime() + (i * 60 * 60 * 1000)); // +1 hour each
+      const alternativeTime = new Date(baseTime.getTime() + i * 60 * 60 * 1000); // +1 hour each
       slots.push({
         start_time: alternativeTime.toISOString(),
-        end_time: new Date(alternativeTime.getTime() + (duration * 60 * 1000)).toISOString()
+        end_time: new Date(alternativeTime.getTime() + duration * 60 * 1000).toISOString(),
       });
     }
 
@@ -407,31 +417,31 @@ Make questions specific to the candidate's background and job requirements.`;
   getFallbackQuestions() {
     return {
       opening_questions: [
-        "Tell me about yourself and your background",
-        "What interests you about this role and our company?"
+        'Tell me about yourself and your background',
+        'What interests you about this role and our company?',
       ],
       technical_questions: [
         "Describe a challenging technical problem you've solved",
-        "How do you approach learning new technologies?"
+        'How do you approach learning new technologies?',
       ],
       behavioral_questions: [
-        "Tell me about a time you worked in a team to solve a problem",
-        "Describe a situation where you had to meet a tight deadline"
+        'Tell me about a time you worked in a team to solve a problem',
+        'Describe a situation where you had to meet a tight deadline',
       ],
       role_specific_questions: [
-        "What experience do you have with the technologies mentioned in the job description?",
-        "How would you handle competing priorities in this role?"
+        'What experience do you have with the technologies mentioned in the job description?',
+        'How would you handle competing priorities in this role?',
       ],
       closing_questions: [
-        "Do you have any questions about the role or company?",
-        "What are your salary expectations?"
+        'Do you have any questions about the role or company?',
+        'What are your salary expectations?',
       ],
       evaluation_criteria: [
-        "Technical competency",
-        "Communication skills",
-        "Problem-solving ability",
-        "Cultural fit"
-      ]
+        'Technical competency',
+        'Communication skills',
+        'Problem-solving ability',
+        'Cultural fit',
+      ],
     };
   }
 
@@ -439,10 +449,13 @@ Make questions specific to the candidate's background and job requirements.`;
    * Main orchestration method
    */
   async coordinateInterview(candidateData, jobDescription, interviewDetails) {
-
     try {
       // 1. Generate interview questions
-      const questions = await this.generateInterviewQuestions(jobDescription, candidateData, interviewDetails.type);
+      const questions = await this.generateInterviewQuestions(
+        jobDescription,
+        candidateData,
+        interviewDetails.type,
+      );
 
       // 2. Create interview schedule
       const schedule = await this.createInterviewSchedule(candidateData, interviewDetails);
@@ -450,8 +463,8 @@ Make questions specific to the candidate's background and job requirements.`;
       // 3. Check for conflicts
       const conflictCheck = await this.checkConflicts(
         interviewDetails.scheduled_time,
-        interviewDetails.panel?.map(p => p.email) || [],
-        interviewDetails.duration
+        interviewDetails.panel?.map((p) => p.email) || [],
+        interviewDetails.duration,
       );
 
       // 4. Generate calendar invite
@@ -471,14 +484,14 @@ Make questions specific to the candidate's background and job requirements.`;
         ics_invite: icsInvite,
         email_invitation: emailInvitation,
         reminders,
-        message: 'Interview coordination completed successfully'
+        message: 'Interview coordination completed successfully',
       };
     } catch (error) {
       console.error('❌ Interview coordination failed:', error.message);
       return {
         success: false,
         error: error.message,
-        message: 'Interview coordination failed'
+        message: 'Interview coordination failed',
       };
     }
   }

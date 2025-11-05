@@ -4,10 +4,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import Head from 'next/head';
 import { adminAPI } from '../../utils/api';
 import toast from 'react-hot-toast';
-import { 
-  Users, 
-  LifeBuoy, 
-  BarChart3, 
+import {
+  Users,
+  LifeBuoy,
+  BarChart3,
   Server,
   Settings,
   LogOut,
@@ -19,7 +19,7 @@ import {
   MessageSquare,
   ChevronRight,
   Brain,
-  ChevronUp
+  ChevronUp,
 } from 'lucide-react';
 
 export default function ImprovedSuperAdminDashboard() {
@@ -31,7 +31,7 @@ export default function ImprovedSuperAdminDashboard() {
     totalUsers: 0,
     activeTickets: 0,
     systemHealth: 'Loading...',
-    uptime: '0%'
+    uptime: '0%',
   });
 
   const handleLogout = async () => {
@@ -50,7 +50,7 @@ export default function ImprovedSuperAdminDashboard() {
       description: 'Manage users, roles, and permissions',
       icon: Users,
       color: 'from-orange-500 to-red-600', // UPDATED TO ORANGE THEME
-      route: '/admin/users'
+      route: '/admin/users',
     },
     {
       id: 'tickets',
@@ -58,7 +58,7 @@ export default function ImprovedSuperAdminDashboard() {
       description: 'Handle support tickets and requests',
       icon: LifeBuoy,
       color: 'from-red-500 to-orange-600', // UPDATED TO ORANGE THEME
-      route: '/admin/tickets'
+      route: '/admin/tickets',
     },
     {
       id: 'analytics',
@@ -66,7 +66,7 @@ export default function ImprovedSuperAdminDashboard() {
       description: 'View system analytics and insights',
       icon: BarChart3,
       color: 'from-amber-500 to-orange-600', // UPDATED TO ORANGE THEME
-      route: '/admin/analytics'
+      route: '/admin/analytics',
     },
     {
       id: 'system',
@@ -74,14 +74,14 @@ export default function ImprovedSuperAdminDashboard() {
       description: 'Monitor system performance and status',
       icon: Server,
       color: 'from-orange-600 to-red-600', // UPDATED TO ORANGE THEME
-      route: '/admin/system'
-    }
+      route: '/admin/system',
+    },
   ];
 
   const quickActions = [
     { name: 'Create Ticket', icon: Plus, route: '/support/create-ticket' },
     { name: 'My Tickets', icon: MessageSquare, route: '/support/my-tickets' },
-    { name: 'Profile Settings', icon: User, route: '/profile' }
+    { name: 'Profile Settings', icon: User, route: '/profile' },
   ];
 
   // Fetch stats on component mount
@@ -110,16 +110,18 @@ export default function ImprovedSuperAdminDashboard() {
       <div className="min-h-screen bg-gray-50">
         {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
+        <div
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
@@ -131,14 +133,18 @@ export default function ImprovedSuperAdminDashboard() {
 
           <nav className="mt-6 px-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Admin Tools</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Admin Tools
+              </p>
               {adminTools.map((tool) => (
                 <button
                   key={tool.id}
                   onClick={() => router.push(tool.route)}
                   className="w-full flex items-center px-3 py-3 text-left text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
                 >
-                  <div className={`w-10 h-10 bg-gradient-to-br ${tool.color} rounded-lg flex items-center justify-center mr-3`}>
+                  <div
+                    className={`w-10 h-10 bg-gradient-to-br ${tool.color} rounded-lg flex items-center justify-center mr-3`}
+                  >
                     <tool.icon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
@@ -148,7 +154,6 @@ export default function ImprovedSuperAdminDashboard() {
                 </button>
               ))}
             </div>
-
           </nav>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
@@ -182,7 +187,7 @@ export default function ImprovedSuperAdminDashboard() {
                   </button>
                 </div>
               )}
-              
+
               {/* User Profile Button */}
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -195,7 +200,9 @@ export default function ImprovedSuperAdminDashboard() {
                   <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
                   <p className="text-xs text-gray-500 truncate">SuperAdmin</p>
                 </div>
-                <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronUp
+                  className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
+                />
               </button>
             </div>
           </div>
@@ -256,25 +263,27 @@ export default function ImprovedSuperAdminDashboard() {
             {/* Admin Tools Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {adminTools.map((tool) => (
-              <div
-              key={tool.id}
-              onClick={() => router.push(tool.route)}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group"
-              >
-              <div className="flex items-start space-x-4">
-              <div className={`w-12 h-12 bg-gradient-to-br ${tool.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-              <tool.icon className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{tool.name}</h3>
-              <p className="text-gray-600 text-sm mb-4">{tool.description}</p>
-              <div className="flex items-center text-orange-600 text-sm font-medium group-hover:text-orange-700">
-              <span>Access Tool</span>
-              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-              </div>
-              </div>
-              </div>
-              </div>
+                <div
+                  key={tool.id}
+                  onClick={() => router.push(tool.route)}
+                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div
+                      className={`w-12 h-12 bg-gradient-to-br ${tool.color} rounded-xl flex items-center justify-center flex-shrink-0`}
+                    >
+                      <tool.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{tool.name}</h3>
+                      <p className="text-gray-600 text-sm mb-4">{tool.description}</p>
+                      <div className="flex items-center text-orange-600 text-sm font-medium group-hover:text-orange-700">
+                        <span>Access Tool</span>
+                        <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

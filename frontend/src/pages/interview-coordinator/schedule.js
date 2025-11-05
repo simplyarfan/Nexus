@@ -21,7 +21,7 @@ const ScheduleInterview = () => {
     duration: 60,
     location: 'Video Call',
     meetingLink: '',
-    notes: ''
+    notes: '',
   });
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [emailContent, setEmailContent] = useState('');
@@ -37,9 +37,9 @@ const ScheduleInterview = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -75,7 +75,7 @@ ${user?.email || ''}`;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.candidateName || !formData.candidateEmail || !formData.title) {
       toast.error('Please fill in all required fields');
@@ -105,7 +105,7 @@ ${user?.email || ''}`;
         position: formData.title,
         googleFormLink: formData.meetingLink, // Repurpose this field
         emailSubject: `Interview Opportunity - ${formData.title}`,
-        emailContent: `Dear ${formData.candidateName},\n\nWe would like to invite you for an interview for the ${formData.title} position.\n\nPlease let us know your availability.\n\nBest regards`
+        emailContent: `Dear ${formData.candidateName},\n\nWe would like to invite you for an interview for the ${formData.title} position.\n\nPlease let us know your availability.\n\nBest regards`,
       };
 
       // Send availability request
@@ -114,7 +114,7 @@ ${user?.email || ''}`;
       const response = await axios.post(
         `${API_URL}/interview-coordinator/request-availability`,
         requestData,
-        { headers }
+        { headers },
       );
 
       if (response.data?.success) {
@@ -280,9 +280,7 @@ ${user?.email || ''}`;
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                   <input
                     type="text"
                     name="location"
@@ -350,18 +348,20 @@ ${user?.email || ''}`;
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Review & Edit Email</h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {isEditingEmail ? '✏️ Editing mode - Make your changes' : '👀 Preview mode - Click "Edit Content" to make changes'}
+                      {isEditingEmail
+                        ? '✏️ Editing mode - Make your changes'
+                        : '👀 Preview mode - Click "Edit Content" to make changes'}
                     </p>
                   </div>
-                  <button 
-                    onClick={() => setShowEmailPreview(false)} 
+                  <button
+                    onClick={() => setShowEmailPreview(false)}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <Icons.X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-6 max-h-96 overflow-y-auto">
                 {isEditingEmail ? (
                   <textarea
@@ -377,7 +377,7 @@ ${user?.email || ''}`;
                   </div>
                 )}
               </div>
-              
+
               <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between">
                 <div className="flex space-x-3">
                   <button

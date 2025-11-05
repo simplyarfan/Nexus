@@ -1,0 +1,67 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run security scan weekly on Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Audit backend dependencies
+        working-directory: ./backend
+        run: |
+          npm audit --audit-level=moderate || true
+          echo "⚠️ Check npm audit results above"
+
+      - name: Audit frontend dependencies
+        working-directory: ./frontend
+        run: |
+          npm audit --audit-level=moderate || true
+          echo "⚠️ Check npm audit results above"
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+
+      - name: Check for secrets
+        run: |
+          echo "🔍 Scanning for exposed secrets..."
+
+          # Check for common secret patterns
+          if grep -r -i -E "(api_key|apikey|api-key|secret|password|token|jwt_secret).*=.*['\"][^'\"]{8,}" backend/ frontend/ --exclude-dir=node_modules --exclude="*.md" --exclude=".env.example" || true; then
+            echo "⚠️ Potential secrets found! Review the output above."
+            echo "✅ If these are false positives (like .env.example), you can ignore them."
+          else
+            echo "✅ No obvious secrets detected"
+          fi
+
+      - name: Check .env files not committed
+        run: |
+          if git ls-files | grep -E "^\.env$|\.env\.local$|\.env\.production$"; then
+            echo "❌ ERROR: .env files should not be committed!"
+            exit 1
+          else
+            echo "✅ No .env files committed"
+          fi

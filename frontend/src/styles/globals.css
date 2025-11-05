@@ -11,15 +11,15 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  
+
   /* Updated to Orange Primary Theme */
   --primary: 24.6 95% 53.1%; /* Orange-500 */
   --primary-foreground: 210 40% 98%;
-  
+
   /* Updated to Red Secondary Theme */
   --secondary: 0 84.2% 60.2%; /* Red-500 */
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 210 40% 96%;
   --muted-foreground: 215.4 16.3% 46.9%;
   --accent: 45 93.4% 47.5%; /* Amber-500 */
@@ -39,15 +39,15 @@
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
-  
+
   /* Orange Primary Theme - Dark */
   --primary: 20.5 90.2% 48.2%; /* Orange-600 */
   --primary-foreground: 222.2 84% 4.9%;
-  
+
   /* Red Secondary Theme - Dark */
   --secondary: 0 72.2% 50.6%; /* Red-600 */
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
   --accent: 43 96.4% 56.3%; /* Amber-600 */
@@ -63,10 +63,12 @@
   * {
     @apply border-gray-200;
   }
-  
+
   body {
     @apply bg-white text-gray-900 font-sans antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 
   /* Smooth scrolling */
@@ -199,7 +201,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -208,7 +211,8 @@
 }
 
 @keyframes pulseOrange {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

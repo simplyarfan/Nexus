@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { 
-  Calendar, 
-  User, 
-  ArrowLeft, 
+import {
+  Calendar,
+  User,
+  ArrowLeft,
   Mail,
   Clock,
   MapPin,
@@ -17,7 +17,7 @@ import {
   Edit2,
   Video,
   AlertCircle,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -40,53 +40,53 @@ const StatusDropdown = ({ currentStatus, currentOutcome, onStatusChange }) => {
   }, []);
 
   const statusOptions = [
-    { 
-      status: 'awaiting_response', 
-      outcome: null, 
+    {
+      status: 'awaiting_response',
+      outcome: null,
       label: 'Awaiting Response',
       color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      icon: Clock
+      icon: Clock,
     },
-    { 
-      status: 'scheduled', 
-      outcome: null, 
+    {
+      status: 'scheduled',
+      outcome: null,
       label: 'Scheduled',
       color: 'bg-blue-100 text-blue-800 border-blue-200',
-      icon: Calendar
+      icon: Calendar,
     },
-    { 
-      status: 'completed', 
-      outcome: null, 
+    {
+      status: 'completed',
+      outcome: null,
       label: 'Completed',
       color: 'bg-gray-100 text-gray-800 border-gray-200',
-      icon: CheckCircle2
+      icon: CheckCircle2,
     },
-    { 
-      status: 'completed', 
-      outcome: 'selected', 
+    {
+      status: 'completed',
+      outcome: 'selected',
       label: 'Selected',
       color: 'bg-green-100 text-green-800 border-green-200',
-      icon: CheckCircle2
+      icon: CheckCircle2,
     },
-    { 
-      status: 'completed', 
-      outcome: 'rejected', 
+    {
+      status: 'completed',
+      outcome: 'rejected',
       label: 'Rejected',
       color: 'bg-red-100 text-red-800 border-red-200',
-      icon: XCircle
+      icon: XCircle,
     },
-    { 
-      status: 'cancelled', 
-      outcome: null, 
+    {
+      status: 'cancelled',
+      outcome: null,
       label: 'Cancelled',
       color: 'bg-red-100 text-red-800 border-red-200',
-      icon: XCircle
-    }
+      icon: XCircle,
+    },
   ];
 
-  const currentOption = statusOptions.find(
-    opt => opt.status === currentStatus && opt.outcome === currentOutcome
-  ) || statusOptions[0];
+  const currentOption =
+    statusOptions.find((opt) => opt.status === currentStatus && opt.outcome === currentOutcome) ||
+    statusOptions[0];
 
   const CurrentIcon = currentOption.icon;
 
@@ -113,7 +113,7 @@ const StatusDropdown = ({ currentStatus, currentOutcome, onStatusChange }) => {
           {statusOptions.map((option, idx) => {
             const OptionIcon = option.icon;
             const isActive = option.status === currentStatus && option.outcome === currentOutcome;
-            
+
             return (
               <button
                 key={idx}
@@ -128,9 +128,7 @@ const StatusDropdown = ({ currentStatus, currentOutcome, onStatusChange }) => {
                     {option.label}
                   </span>
                 </span>
-                {isActive && (
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                )}
+                {isActive && <CheckCircle2 className="w-4 h-4 text-green-600" />}
               </button>
             );
           })}
@@ -153,7 +151,7 @@ const InterviewDetailPage = () => {
       router.push('/auth/login');
       return;
     }
-    
+
     if (id) {
       fetchInterviewDetails();
     }
@@ -164,12 +162,11 @@ const InterviewDetailPage = () => {
       setLoading(true);
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      
-      const response = await axios.get(
-        `${API_URL}/interview-coordinator/interview/${id}`,
-        { headers }
-      );
-      
+
+      const response = await axios.get(`${API_URL}/interview-coordinator/interview/${id}`, {
+        headers,
+      });
+
       if (response.data?.success) {
         setInterview(response.data.data);
       } else {
@@ -189,13 +186,13 @@ const InterviewDetailPage = () => {
     try {
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      
+
       await axios.put(
         `${API_URL}/interview-coordinator/interview/${id}/status`,
         { status, outcome },
-        { headers }
+        { headers },
       );
-      
+
       toast.success('Status updated successfully!');
       fetchInterviewDetails();
     } catch (error) {
@@ -207,12 +204,12 @@ const InterviewDetailPage = () => {
     try {
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      
+
       const response = await axios.get(
         `${API_URL}/interview-coordinator/interview/${id}/calendar?type=${type}`,
-        { headers, responseType: 'blob' }
+        { headers, responseType: 'blob' },
       );
-      
+
       const blob = new Blob([response.data], { type: 'text/calendar' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -220,12 +217,12 @@ const InterviewDetailPage = () => {
       link.download = `interview-${interview.candidate_name.replace(/\s+/g, '-')}.ics`;
       link.click();
       window.URL.revokeObjectURL(url);
-      
+
       const typeLabels = {
         google: 'Google Calendar',
         outlook: 'Outlook',
         apple: 'Apple Calendar',
-        ics: 'Calendar'
+        ics: 'Calendar',
       };
       toast.success(`${typeLabels[type] || 'Calendar'} file downloaded!`);
     } catch (error) {
@@ -238,16 +235,13 @@ const InterviewDetailPage = () => {
     if (!confirm('Are you sure you want to delete this interview? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      
-      await axios.delete(
-        `${API_URL}/interview-coordinator/interview/${id}`,
-        { headers }
-      );
-      
+
+      await axios.delete(`${API_URL}/interview-coordinator/interview/${id}`, { headers });
+
       toast.success('Interview deleted successfully!');
       router.push('/interview-coordinator');
     } catch (error) {
@@ -258,35 +252,42 @@ const InterviewDetailPage = () => {
 
   const getStatusDisplay = (status, outcome) => {
     const statusConfig = {
-      awaiting_response: { 
+      awaiting_response: {
         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         icon: Clock,
-        text: 'Awaiting Response' 
+        text: 'Awaiting Response',
       },
-      scheduled: { 
+      scheduled: {
         color: 'bg-blue-100 text-blue-800 border-blue-200',
         icon: Calendar,
-        text: 'Scheduled' 
+        text: 'Scheduled',
       },
-      completed: { 
-        color: outcome === 'selected' ? 'bg-green-100 text-green-800 border-green-200' : 
-               outcome === 'rejected' ? 'bg-red-100 text-red-800 border-red-200' :
-               'bg-gray-100 text-gray-800 border-gray-200',
-        icon: outcome === 'selected' ? CheckCircle2 : outcome === 'rejected' ? XCircle : CheckCircle2,
-        text: outcome === 'selected' ? 'Selected' : outcome === 'rejected' ? 'Rejected' : 'Completed' 
+      completed: {
+        color:
+          outcome === 'selected'
+            ? 'bg-green-100 text-green-800 border-green-200'
+            : outcome === 'rejected'
+              ? 'bg-red-100 text-red-800 border-red-200'
+              : 'bg-gray-100 text-gray-800 border-gray-200',
+        icon:
+          outcome === 'selected' ? CheckCircle2 : outcome === 'rejected' ? XCircle : CheckCircle2,
+        text:
+          outcome === 'selected' ? 'Selected' : outcome === 'rejected' ? 'Rejected' : 'Completed',
       },
-      cancelled: { 
+      cancelled: {
         color: 'bg-red-100 text-red-800 border-red-200',
         icon: XCircle,
-        text: 'Cancelled' 
+        text: 'Cancelled',
+      },
+    };
+
+    return (
+      statusConfig[status] || {
+        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        icon: AlertCircle,
+        text: status,
       }
-    };
-    
-    return statusConfig[status] || { 
-      color: 'bg-gray-100 text-gray-800 border-gray-200', 
-      icon: AlertCircle,
-      text: status 
-    };
+    );
   };
 
   if (!user || loading) {
@@ -309,7 +310,7 @@ const InterviewDetailPage = () => {
       <Head>
         <title>{interview.candidate_name} - Interview Details</title>
       </Head>
-      
+
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
@@ -344,46 +345,56 @@ const InterviewDetailPage = () => {
                       <User className="w-8 h-8 text-orange-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-2xl font-bold text-white mb-1">{interview.candidate_name}</h2>
+                      <h2 className="text-2xl font-bold text-white mb-1">
+                        {interview.candidate_name}
+                      </h2>
                       <p className="text-orange-100 flex items-center">
                         <Mail className="w-4 h-4 mr-2" />
                         {interview.candidate_email}
                       </p>
                     </div>
-                    <div className={`px-4 py-2 rounded-lg border ${statusDisplay.color} flex items-center space-x-2`}>
+                    <div
+                      className={`px-4 py-2 rounded-lg border ${statusDisplay.color} flex items-center space-x-2`}
+                    >
                       <StatusIcon className="w-5 h-5" />
                       <span className="font-semibold">{statusDisplay.text}</span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="px-6 py-6 space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500 block mb-1">Position</label>
                     <p className="text-lg font-semibold text-gray-900">{interview.job_title}</p>
                   </div>
-                  
+
                   {interview.interview_type && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">Interview Type</label>
+                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                        Interview Type
+                      </label>
                       <p className="text-gray-900 capitalize">{interview.interview_type}</p>
                     </div>
                   )}
-                  
+
                   {interview.scheduled_time && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Scheduled Date & Time</label>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">
+                          Scheduled Date & Time
+                        </label>
                         <p className="text-gray-900 flex items-center">
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                           {new Date(interview.scheduled_time).toLocaleString('en-US', {
                             dateStyle: 'medium',
-                            timeStyle: 'short'
+                            timeStyle: 'short',
                           })}
                         </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Duration</label>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">
+                          Duration
+                        </label>
                         <p className="text-gray-900 flex items-center">
                           <Clock className="w-4 h-4 mr-2 text-gray-400" />
                           {interview.duration || 60} minutes
@@ -391,21 +402,25 @@ const InterviewDetailPage = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {interview.platform && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">Platform</label>
+                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                        Platform
+                      </label>
                       <p className="text-gray-900 flex items-center">
                         <Video className="w-4 h-4 mr-2 text-gray-400" />
                         {interview.platform}
                       </p>
                     </div>
                   )}
-                  
+
                   {interview.meeting_link && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">Meeting Link</label>
-                      <a 
+                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                        Meeting Link
+                      </label>
+                      <a
                         href={interview.meeting_link}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -416,11 +431,13 @@ const InterviewDetailPage = () => {
                       </a>
                     </div>
                   )}
-                  
+
                   {interview.google_form_link && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">Google Form</label>
-                      <a 
+                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                        Google Form
+                      </label>
+                      <a
                         href={interview.google_form_link}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -431,7 +448,7 @@ const InterviewDetailPage = () => {
                       </a>
                     </div>
                   )}
-                  
+
                   {interview.notes && (
                     <div>
                       <label className="text-sm font-medium text-gray-500 block mb-1">Notes</label>
@@ -463,12 +480,12 @@ const InterviewDetailPage = () => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
                 <div className="space-y-3">
-                  <StatusDropdown 
+                  <StatusDropdown
                     currentStatus={interview.status}
                     currentOutcome={interview.outcome}
                     onStatusChange={(status, outcome) => updateInterviewStatus(status, outcome)}
                   />
-                  
+
                   {/* Schedule Interview Button - Show when awaiting response */}
                   {interview.status === 'awaiting_response' && !interview.scheduled_time && (
                     <button
@@ -496,7 +513,9 @@ const InterviewDetailPage = () => {
 
               {/* Metadata */}
               <div className="bg-gray-50 rounded-xl border border-gray-200 p-6">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Metadata</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                  Metadata
+                </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Created</span>
@@ -514,7 +533,9 @@ const InterviewDetailPage = () => {
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Interview ID</span>
-                    <span className="text-gray-900 font-mono text-xs">{interview.id.slice(0, 12)}...</span>
+                    <span className="text-gray-900 font-mono text-xs">
+                      {interview.id.slice(0, 12)}...
+                    </span>
                   </div>
                 </div>
               </div>

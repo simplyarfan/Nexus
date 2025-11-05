@@ -5,7 +5,7 @@ class AnalyticsController {
   static async getDashboard(req, res) {
     try {
       console.log('📊 [ANALYTICS] Dashboard request received');
-      
+
       // Ensure database connection
       await database.connect();
       console.log('✅ [ANALYTICS] Database connected');
@@ -39,22 +39,21 @@ class AnalyticsController {
         totalTickets: parseInt(stats.total_tickets) || 0,
         openTickets: parseInt(stats.open_tickets) || 0,
         systemHealth: 'Good',
-        recentActivity: recentActivity || []
+        recentActivity: recentActivity || [],
       };
 
       console.log('✅ [ANALYTICS] Dashboard data prepared:', dashboardData);
 
       res.json({
         success: true,
-        data: dashboardData
+        data: dashboardData,
       });
-
     } catch (error) {
       console.error('❌ [ANALYTICS] Dashboard error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch dashboard data',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
       });
     }
   }
@@ -63,7 +62,7 @@ class AnalyticsController {
   static async getUserAnalytics(req, res) {
     try {
       await database.connect();
-      
+
       const userStats = await database.all(`
         SELECT 
           role,
@@ -76,13 +75,13 @@ class AnalyticsController {
 
       res.json({
         success: true,
-        data: { userStats }
+        data: { userStats },
       });
     } catch (error) {
       console.error('❌ [ANALYTICS] User analytics error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch user analytics'
+        message: 'Failed to fetch user analytics',
       });
     }
   }
@@ -93,8 +92,8 @@ class AnalyticsController {
       success: true,
       data: {
         message: 'Agent analytics not implemented yet',
-        agentUsage: []
-      }
+        agentUsage: [],
+      },
     });
   }
 
@@ -102,7 +101,7 @@ class AnalyticsController {
   static async getCVAnalytics(req, res) {
     try {
       await database.connect();
-      
+
       const cvStats = await database.get(`
         SELECT 
           COUNT(*) as total_batches,
@@ -114,13 +113,13 @@ class AnalyticsController {
 
       res.json({
         success: true,
-        data: cvStats || {}
+        data: cvStats || {},
       });
     } catch (error) {
       console.error('❌ [ANALYTICS] CV analytics error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch CV analytics'
+        message: 'Failed to fetch CV analytics',
       });
     }
   }
@@ -134,14 +133,14 @@ class AnalyticsController {
           uptime: process.uptime(),
           memoryUsage: process.memoryUsage(),
           nodeVersion: process.version,
-          platform: process.platform
-        }
+          platform: process.platform,
+        },
       });
     } catch (error) {
       console.error('❌ [ANALYTICS] System analytics error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch system analytics'
+        message: 'Failed to fetch system analytics',
       });
     }
   }
@@ -150,17 +149,17 @@ class AnalyticsController {
   static async getUserActivity(req, res) {
     try {
       const { user_id } = req.params;
-      
+
       await database.connect();
       const user = await database.get(
         'SELECT id, email, first_name, last_name, role FROM users WHERE id = $1',
-        [user_id]
+        [user_id],
       );
 
       if (!user) {
         return res.status(404).json({
           success: false,
-          message: 'User not found'
+          message: 'User not found',
         });
       }
 
@@ -169,14 +168,14 @@ class AnalyticsController {
         data: {
           user,
           activities: [],
-          message: 'User activity tracking not fully implemented yet'
-        }
+          message: 'User activity tracking not fully implemented yet',
+        },
       });
     } catch (error) {
       console.error('❌ [ANALYTICS] User activity error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch user activity'
+        message: 'Failed to fetch user activity',
       });
     }
   }
@@ -185,7 +184,7 @@ class AnalyticsController {
   static async exportAnalytics(req, res) {
     res.json({
       success: true,
-      message: 'Analytics export not implemented yet'
+      message: 'Analytics export not implemented yet',
     });
   }
 }

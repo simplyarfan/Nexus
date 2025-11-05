@@ -14,26 +14,29 @@ const api = axios.create({
 });
 
 // Add auth token to requests with better error handling
-api.interceptors.request.use((config) => {
-  const token = Cookies.get('accessToken');
-  console.log('🔍 [CV-API] Token from cookies:', token ? 'present' : 'missing');
-  
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    console.log('🔍 [CV-API] Authorization header set successfully');
-  } else {
-    console.log('⚠️ [CV-API] No authentication token found');
-  }
-  
-  // Add request tracking
-  config.headers['X-Request-ID'] = Math.random().toString(36).substring(7);
-  console.log('🔍 [CV-API] Request:', config.method?.toUpperCase(), config.url);
-  
-  return config;
-}, (error) => {
-  console.error('❌ [CV-API] Request interceptor error:', error);
-  return Promise.reject(error);
-});
+api.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get('accessToken');
+    console.log('🔍 [CV-API] Token from cookies:', token ? 'present' : 'missing');
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔍 [CV-API] Authorization header set successfully');
+    } else {
+      console.log('⚠️ [CV-API] No authentication token found');
+    }
+
+    // Add request tracking
+    config.headers['X-Request-ID'] = Math.random().toString(36).substring(7);
+    console.log('🔍 [CV-API] Request:', config.method?.toUpperCase(), config.url);
+
+    return config;
+  },
+  (error) => {
+    console.error('❌ [CV-API] Request interceptor error:', error);
+    return Promise.reject(error);
+  },
+);
 
 // Handle response errors with improved messaging
 api.interceptors.response.use(
@@ -45,9 +48,9 @@ api.interceptors.response.use(
     console.error('❌ [CV-API] Response error:', {
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
-      url: error.config?.url
+      url: error.config?.url,
     });
-    
+
     // Provide user-friendly error messages
     if (error.response?.status === 401) {
       console.error('❌ [CV-API] Authentication failed - redirecting to login');
@@ -56,9 +59,9 @@ api.interceptors.response.use(
     } else if (error.response?.status >= 500) {
       console.error('❌ [CV-API] Server error - please try again later');
     }
-    
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export const cvIntelligenceAPI = {
@@ -66,12 +69,12 @@ export const cvIntelligenceAPI = {
   createBatch: async (batchName) => {
     try {
       console.log('🎯 [CV-API] Creating CV batch:', batchName);
-      
+
       // Validate input
       if (!batchName || typeof batchName !== 'string' || !batchName.trim()) {
         throw new Error('Batch name is required and must be a non-empty string');
       }
-      
+
       const response = await api.post('/', { name: batchName.trim() });
       console.log('✅ [CV-API] Batch created successfully:', response.data.data?.batchId);
       return response;
@@ -86,37 +89,45 @@ export const cvIntelligenceAPI = {
     try {
       console.log('📄 [CV-API] Processing files for batch:', batchId);
       console.log('📋 [CV-API] JD File:', jdFile?.name);
-      console.log('📄 [CV-API] CV Files:', cvFiles?.map(f => f.name));
+      console.log(
+        '📄 [CV-API] CV Files:',
+        cvFiles?.map((f) => f.name),
+      );
 
       // Enhanced validation
       if (!batchId || typeof batchId !== 'string') {
         throw new Error('Valid batch ID is required');
       }
-      
+
       if (!jdFile || !(jdFile instanceof File)) {
         throw new Error('Job Description file is required and must be a valid file');
       }
-      
+
       if (!cvFiles || !Array.isArray(cvFiles) || cvFiles.length === 0) {
         throw new Error('At least one CV file is required');
       }
-      
+
       if (cvFiles.length > 10) {
         throw new Error('Maximum 10 CV files allowed');
       }
-      
+
       // Validate file types and sizes
-      const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const allowedTypes = [
+        'application/pdf',
+        'text/plain',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ];
       const maxSize = 10 * 1024 * 1024; // 10MB
-      
+
       if (!allowedTypes.includes(jdFile.type)) {
         throw new Error('Job Description must be PDF, TXT, DOC, or DOCX format');
       }
-      
+
       if (jdFile.size > maxSize) {
         throw new Error('Job Description file is too large (max 10MB)');
       }
-      
+
       for (let i = 0; i < cvFiles.length; i++) {
         const file = cvFiles[i];
         if (!(file instanceof File)) {
@@ -131,10 +142,10 @@ export const cvIntelligenceAPI = {
       }
 
       const formData = new FormData();
-      
+
       // Add JD file
       formData.append('jdFile', jdFile);
-      
+
       // Add CV files
       cvFiles.forEach((file) => {
         formData.append('cvFiles', file);
@@ -147,15 +158,13 @@ export const cvIntelligenceAPI = {
         timeout: 600000, // 10 minutes (increased for multiple CVs with AI processing)
         onUploadProgress: (progressEvent) => {
           if (onProgress && progressEvent.total) {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             console.log('📈 [CV-API] Upload progress:', percentCompleted + '%');
             onProgress(percentCompleted);
           }
         },
       });
-      
+
       console.log('✅ [CV-API] Files processed successfully');
       return response;
     } catch (error) {
@@ -203,7 +212,7 @@ export const cvIntelligenceAPI = {
   // Delete a batch
   deleteBatch: async (batchId) => {
     console.log('🗑️ [CV-API] Deleting batch:', batchId);
-    
+
     try {
       const response = await api.delete(`/batch/${batchId}`);
       console.log('✅ [CV-API] Batch deleted successfully:', response.data);
@@ -217,9 +226,12 @@ export const cvIntelligenceAPI = {
   // Schedule interview for a candidate
   scheduleInterview: async (candidateId, interviewData) => {
     console.log('📅 [CV-API] Scheduling interview for candidate:', candidateId);
-    
+
     try {
-      const response = await api.post(`/candidate/${candidateId}/schedule-interview`, interviewData);
+      const response = await api.post(
+        `/candidate/${candidateId}/schedule-interview`,
+        interviewData,
+      );
       console.log('✅ [CV-API] Interview scheduled successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -236,7 +248,7 @@ export const cvIntelligenceAPI = {
       'application/pdf',
       'text/plain',
       'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
     // Validate JD file
@@ -269,7 +281,7 @@ export const cvIntelligenceAPI = {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   },
 
@@ -288,7 +300,7 @@ export const cvIntelligenceAPI = {
     if (fileType.includes('word') || fileType.includes('doc')) return '📝';
     if (fileType.includes('text')) return '📃';
     return '📄';
-  }
+  },
 };
 
 export default cvIntelligenceAPI;

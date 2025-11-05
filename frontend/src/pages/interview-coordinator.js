@@ -2,16 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { 
-  Calendar, 
-  Plus, 
-  User, 
-  ArrowLeft, 
-  Search, 
-  X,
-  Mail,
-  AlertCircle 
-} from 'lucide-react';
+import { Calendar, Plus, User, ArrowLeft, Search, X, Mail, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DateTimePicker from '../components/ui/DateTimePicker';
@@ -40,7 +31,7 @@ const InterviewCoordinator = () => {
     emailSubject: '',
     emailContent: '',
     ccEmails: '',
-    bccEmails: ''
+    bccEmails: '',
   });
 
   // Load default email template when modal opens
@@ -59,10 +50,10 @@ We look forward to hearing from you soon.
 Best regards,
 [Your Company Name]`;
 
-    setAvailabilityForm(prev => ({
+    setAvailabilityForm((prev) => ({
       ...prev,
       emailSubject: defaultSubject,
-      emailContent: defaultContent
+      emailContent: defaultContent,
     }));
   };
 
@@ -74,7 +65,7 @@ Best regards,
     notes: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null
+    cvFile: null,
   });
 
   useEffect(() => {
@@ -82,24 +73,24 @@ Best regards,
       router.push('/auth/login');
       return;
     }
-    
+
     // Check if Outlook is connected
     checkOutlookConnection();
-    
+
     // Check if Google Calendar is connected
     checkGoogleCalendarConnection();
-    
+
     fetchInterviews();
-    
+
     // Handle pre-filled data from CV Intelligence
     if (router.query.action === 'request-availability') {
       const { candidateName, candidateEmail, position } = router.query;
       if (candidateName && candidateEmail && position) {
-        setAvailabilityForm(prev => ({
+        setAvailabilityForm((prev) => ({
           ...prev,
           candidateName: candidateName,
           candidateEmail: candidateEmail,
-          position: position
+          position: position,
         }));
         // Load template with the pre-filled data
         loadDefaultEmailTemplate(candidateName, position);
@@ -116,10 +107,10 @@ Best regards,
       console.log('Checking Outlook connection from user context:', user);
       console.log('outlook_connected field:', user?.outlook_connected);
       console.log('outlook_email field:', user?.outlook_email);
-      
+
       // Check for outlook_connected flag (boolean) or outlook_email (string)
       const isConnected = user?.outlook_connected || user?.outlook_email;
-      
+
       if (isConnected) {
         console.log('✅ Outlook is connected');
         setOutlookConnected(true);
@@ -147,13 +138,10 @@ Best regards,
     try {
       const headers = getAuthHeaders();
       if (!headers) return;
-      
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      const response = await axios.get(
-        `${API_URL}/auth/google/status`,
-        { headers }
-      );
-      
+      const response = await axios.get(`${API_URL}/auth/google/status`, { headers });
+
       if (response.data?.success && response.data?.isConnected) {
         console.log('✅ Google Calendar is connected');
         setGoogleCalendarConnected(true);
@@ -179,19 +167,16 @@ Best regards,
     try {
       setLoading(true);
       const headers = getAuthHeaders();
-      
+
       if (!headers) {
         console.log('No auth headers available, skipping fetch');
         setLoading(false);
         return;
       }
-      
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      const response = await axios.get(
-        `${API_URL}/interview-coordinator/interviews`,
-        { headers }
-      );
-      
+      const response = await axios.get(`${API_URL}/interview-coordinator/interviews`, { headers });
+
       if (response.data?.success) {
         setInterviews(response.data.data || []);
       } else {
@@ -223,22 +208,28 @@ Best regards,
       setShowGooglePrompt(true);
       return;
     }
-    
+
     try {
       setLoading(true);
       const headers = getAuthHeaders();
-      
+
       const payload = {
         ...availabilityForm,
-        ccEmails: availabilityForm.ccEmails.split(',').map(e => e.trim()).filter(Boolean),
-        bccEmails: availabilityForm.bccEmails.split(',').map(e => e.trim()).filter(Boolean)
+        ccEmails: availabilityForm.ccEmails
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean),
+        bccEmails: availabilityForm.bccEmails
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean),
       };
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
       const response = await axios.post(
         `${API_URL}/interview-coordinator/request-availability`,
         payload,
-        { headers }
+        { headers },
       );
 
       if (response.data?.success) {
@@ -252,7 +243,7 @@ Best regards,
           emailSubject: '',
           emailContent: '',
           ccEmails: '',
-          bccEmails: ''
+          bccEmails: '',
         });
         fetchInterviews();
       } else {
@@ -260,13 +251,14 @@ Best regards,
       }
     } catch (error) {
       console.error('Availability request error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to send availability request';
-      
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to send availability request';
+
       // Check if error is specifically about Google Calendar
       if (error.response?.data?.requiresGoogleCalendar) {
         setShowGooglePrompt(true);
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -277,7 +269,7 @@ Best regards,
     try {
       setLoading(true);
       const headers = getAuthHeaders();
-      
+
       // Create FormData for multipart upload
       const formData = new FormData();
       formData.append('interviewId', selectedInterview.id);
@@ -286,9 +278,29 @@ Best regards,
       formData.append('duration', scheduleForm.duration);
       formData.append('platform', scheduleForm.platform);
       formData.append('notes', scheduleForm.notes);
-      formData.append('ccEmails', JSON.stringify(scheduleForm.ccEmails ? scheduleForm.ccEmails.split(',').map(e => e.trim()).filter(Boolean) : []));
-      formData.append('bccEmails', JSON.stringify(scheduleForm.bccEmails ? scheduleForm.bccEmails.split(',').map(e => e.trim()).filter(Boolean) : []));
-      
+      formData.append(
+        'ccEmails',
+        JSON.stringify(
+          scheduleForm.ccEmails
+            ? scheduleForm.ccEmails
+              .split(',')
+              .map((e) => e.trim())
+              .filter(Boolean)
+            : [],
+        ),
+      );
+      formData.append(
+        'bccEmails',
+        JSON.stringify(
+          scheduleForm.bccEmails
+            ? scheduleForm.bccEmails
+              .split(',')
+              .map((e) => e.trim())
+              .filter(Boolean)
+            : [],
+        ),
+      );
+
       // Add CV file if selected
       if (scheduleForm.cvFile) {
         formData.append('cvFile', scheduleForm.cvFile);
@@ -298,12 +310,12 @@ Best regards,
       const response = await axios.post(
         `${API_URL}/interview-coordinator/schedule-interview`,
         formData,
-        { 
+        {
           headers: {
             ...headers,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
+            'Content-Type': 'multipart/form-data',
+          },
+        },
       );
 
       if (response.data?.success) {
@@ -318,7 +330,7 @@ Best regards,
           notes: '',
           ccEmails: '',
           bccEmails: '',
-          cvFile: null
+          cvFile: null,
         });
         fetchInterviews();
       } else {
@@ -327,7 +339,8 @@ Best regards,
     } catch (error) {
       console.error('Schedule interview error:', error);
       console.error('Error response:', error.response?.data);
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to schedule interview';
+      const errorMsg =
+        error.response?.data?.message || error.message || 'Failed to schedule interview';
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -341,9 +354,9 @@ Best regards,
       await axios.put(
         `${API_URL}/interview-coordinator/interview/${interviewId}/status`,
         { status, outcome },
-        { headers }
+        { headers },
       );
-      
+
       toast.success('Status updated successfully!');
       fetchInterviews();
     } catch (error) {
@@ -355,12 +368,12 @@ Best regards,
     try {
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      
+
       const response = await axios.get(
         `${API_URL}/interview-coordinator/interview/${interviewId}/calendar`,
-        { headers, responseType: 'blob' }
+        { headers, responseType: 'blob' },
       );
-      
+
       const blob = new Blob([response.data], { type: 'text/calendar' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -379,16 +392,13 @@ Best regards,
     if (!confirm('Are you sure you want to delete this interview?')) {
       return;
     }
-    
+
     try {
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
-      
-      await axios.delete(
-        `${API_URL}/interview-coordinator/interview/${interviewId}`,
-        { headers }
-      );
-      
+
+      await axios.delete(`${API_URL}/interview-coordinator/interview/${interviewId}`, { headers });
+
       toast.success('Interview deleted successfully!');
       fetchInterviews();
     } catch (error) {
@@ -397,9 +407,10 @@ Best regards,
     }
   };
 
-  const filteredInterviews = interviews.filter(interview => {
-    const matchesSearch = interview.candidate_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         interview.job_title?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredInterviews = interviews.filter((interview) => {
+    const matchesSearch =
+      interview.candidate_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      interview.job_title?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || interview.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -408,10 +419,14 @@ Best regards,
     const statusConfig = {
       awaiting_response: { color: 'bg-yellow-100 text-yellow-800', text: 'Awaiting Response' },
       scheduled: { color: 'bg-blue-100 text-blue-800', text: 'Scheduled' },
-      completed: { color: 'bg-green-100 text-green-800', text: outcome === 'selected' ? 'Selected' : outcome === 'rejected' ? 'Rejected' : 'Completed' },
-      cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' }
+      completed: {
+        color: 'bg-green-100 text-green-800',
+        text:
+          outcome === 'selected' ? 'Selected' : outcome === 'rejected' ? 'Rejected' : 'Completed',
+      },
+      cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
     };
-    
+
     const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', text: status };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
@@ -440,14 +455,18 @@ Best regards,
                   Connect Your Google Calendar
                 </h1>
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  To use the Interview Coordinator, you need to connect your Google Calendar account first. This allows us to create Google Meet links and manage interview schedules.
+                  To use the Interview Coordinator, you need to connect your Google Calendar account
+                  first. This allows us to create Google Meet links and manage interview schedules.
                 </p>
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-3">
                     <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-orange-800 text-left">
                       <p className="font-medium mb-1">Why is this required?</p>
-                      <p className="text-orange-700">We need access to your Google Calendar to create meetings with Google Meet links, send calendar invites, and manage interview schedules seamlessly.</p>
+                      <p className="text-orange-700">
+                        We need access to your Google Calendar to create meetings with Google Meet
+                        links, send calendar invites, and manage interview schedules seamlessly.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -493,14 +512,18 @@ Best regards,
                   Connect Your Outlook Account
                 </h1>
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  To use the Interview Coordinator and send interview invitations and availability requests, you need to connect your Outlook email account first.
+                  To use the Interview Coordinator and send interview invitations and availability
+                  requests, you need to connect your Outlook email account first.
                 </p>
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-3">
                     <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-orange-800 text-left">
                       <p className="font-medium mb-1">Why is this required?</p>
-                      <p className="text-orange-700">We need your Outlook account to send emails, create calendar invites, and manage interview schedules on your behalf.</p>
+                      <p className="text-orange-700">
+                        We need your Outlook account to send emails, create calendar invites, and
+                        manage interview schedules on your behalf.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -621,16 +644,24 @@ Best regards,
                 <table className="min-w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Candidate
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Position
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Scheduled Time
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
                     {filteredInterviews.map((interview) => (
-                      <tr 
-                        key={interview.id} 
+                      <tr
+                        key={interview.id}
                         className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => router.push(`/interview-coordinator/${interview.id}`)}
                       >
@@ -640,13 +671,19 @@ Best regards,
                               <User className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-gray-900">{interview.candidate_name}</div>
-                              <div className="text-sm text-gray-600">{interview.candidate_email}</div>
+                              <div className="text-sm font-semibold text-gray-900">
+                                {interview.candidate_name}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {interview.candidate_email}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">{interview.job_title}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {interview.job_title}
+                          </div>
                           <div className="text-xs text-gray-500 mt-1">
                             {interview.interview_type && `${interview.interview_type} interview`}
                           </div>
@@ -656,7 +693,13 @@ Best regards,
                             {getStatusBadge(interview.status, interview.outcome)}
                             {interview.meeting_link && (
                               <div className="text-xs text-blue-600 truncate max-w-[200px]">
-                                <a href={interview.meeting_link} target="_blank" rel="noopener noreferrer" className="hover:underline" onClick={(e) => e.stopPropagation()}>
+                                <a
+                                  href={interview.meeting_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   {interview.platform || 'Meeting'} Link
                                 </a>
                               </div>
@@ -666,9 +709,11 @@ Best regards,
                         <td className="px-6 py-4">
                           <div className="space-y-3">
                             <div className="text-sm text-gray-900">
-                              {interview.scheduled_time ? new Date(interview.scheduled_time).toLocaleString() : '-'}
+                              {interview.scheduled_time
+                                ? new Date(interview.scheduled_time).toLocaleString()
+                                : '-'}
                             </div>
-                            
+
                             {/* Inline Action Buttons */}
                             <div className="flex flex-wrap gap-2">
                               {interview.status === 'awaiting_response' && (
@@ -761,17 +806,19 @@ Best regards,
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Candidate Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Candidate Name *
+                    </label>
                     <input
                       type="text"
                       value={availabilityForm.candidateName}
                       onChange={(e) => {
                         const newName = e.target.value;
-                        setAvailabilityForm({...availabilityForm, candidateName: newName});
+                        setAvailabilityForm({ ...availabilityForm, candidateName: newName });
                         // Auto-update email template when name changes
                         if (newName && availabilityForm.position) {
                           loadDefaultEmailTemplate(newName, availabilityForm.position);
@@ -786,13 +833,15 @@ Best regards,
                     <input
                       type="email"
                       value={availabilityForm.candidateEmail}
-                      onChange={(e) => setAvailabilityForm({...availabilityForm, candidateEmail: e.target.value})}
+                      onChange={(e) =>
+                        setAvailabilityForm({ ...availabilityForm, candidateEmail: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                       required
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Position *</label>
                   <input
@@ -800,7 +849,7 @@ Best regards,
                     value={availabilityForm.position}
                     onChange={(e) => {
                       const newPosition = e.target.value;
-                      setAvailabilityForm({...availabilityForm, position: newPosition});
+                      setAvailabilityForm({ ...availabilityForm, position: newPosition });
                       // Auto-update email template when position changes
                       if (availabilityForm.candidateName && newPosition) {
                         loadDefaultEmailTemplate(availabilityForm.candidateName, newPosition);
@@ -812,32 +861,44 @@ Best regards,
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Google Form Link (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Google Form Link (Optional)
+                  </label>
                   <input
                     type="url"
                     value={availabilityForm.googleFormLink}
-                    onChange={(e) => setAvailabilityForm({...availabilityForm, googleFormLink: e.target.value})}
+                    onChange={(e) =>
+                      setAvailabilityForm({ ...availabilityForm, googleFormLink: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                     placeholder="Will be inserted into email template"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Subject</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Subject
+                  </label>
                   <input
                     type="text"
                     value={availabilityForm.emailSubject}
-                    onChange={(e) => setAvailabilityForm({...availabilityForm, emailSubject: e.target.value})}
+                    onChange={(e) =>
+                      setAvailabilityForm({ ...availabilityForm, emailSubject: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                     placeholder="Interview Opportunity - [Position]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Content</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Content
+                  </label>
                   <textarea
                     value={availabilityForm.emailContent}
-                    onChange={(e) => setAvailabilityForm({...availabilityForm, emailContent: e.target.value})}
+                    onChange={(e) =>
+                      setAvailabilityForm({ ...availabilityForm, emailContent: e.target.value })
+                    }
                     rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                     placeholder="Custom email content (optional - will use default template if empty)"
@@ -846,22 +907,30 @@ Best regards,
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">CC (Optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      CC (Optional)
+                    </label>
                     <input
                       type="text"
                       value={availabilityForm.ccEmails}
-                      onChange={(e) => setAvailabilityForm({...availabilityForm, ccEmails: e.target.value})}
+                      onChange={(e) =>
+                        setAvailabilityForm({ ...availabilityForm, ccEmails: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                       placeholder="email1@example.com, email2@example.com"
                     />
                     <p className="text-xs text-gray-500 mt-1">Comma-separated email addresses</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">BCC (Optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      BCC (Optional)
+                    </label>
                     <input
                       type="text"
                       value={availabilityForm.bccEmails}
-                      onChange={(e) => setAvailabilityForm({...availabilityForm, bccEmails: e.target.value})}
+                      onChange={(e) =>
+                        setAvailabilityForm({ ...availabilityForm, bccEmails: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                       placeholder="email1@example.com, email2@example.com"
                     />
@@ -869,7 +938,7 @@ Best regards,
                   </div>
                 </div>
               </div>
-              
+
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
                 <button
                   onClick={() => setShowAvailabilityModal(false)}
@@ -879,7 +948,12 @@ Best regards,
                 </button>
                 <button
                   onClick={handleRequestAvailability}
-                  disabled={loading || !availabilityForm.candidateName || !availabilityForm.candidateEmail || !availabilityForm.position}
+                  disabled={
+                    loading ||
+                    !availabilityForm.candidateName ||
+                    !availabilityForm.candidateEmail ||
+                    !availabilityForm.position
+                  }
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
                 >
                   {loading ? 'Sending...' : 'Send Request'}
@@ -897,14 +971,12 @@ Best regards,
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-1">
-                      Schedule Interview
-                    </h3>
+                    <h3 className="text-xl font-bold text-white mb-1">Schedule Interview</h3>
                     <p className="text-blue-100 text-sm">
                       {selectedInterview.candidate_name} • {selectedInterview.candidate_email}
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowScheduleModal(false)}
                     className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
                   >
@@ -912,7 +984,7 @@ Best regards,
                   </button>
                 </div>
               </div>
-              
+
               {/* Form Body */}
               <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-180px)]">
                 {/* Candidate Info Card */}
@@ -923,7 +995,9 @@ Best regards,
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-blue-900 mb-0.5">Position</p>
-                      <p className="text-lg font-semibold text-gray-900">{selectedInterview.job_title}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {selectedInterview.job_title}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -937,7 +1011,9 @@ Best regards,
                       </label>
                       <select
                         value={scheduleForm.interviewType}
-                        onChange={(e) => setScheduleForm({...scheduleForm, interviewType: e.target.value})}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, interviewType: e.target.value })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium transition-shadow"
                       >
                         <option value="technical">Technical</option>
@@ -952,7 +1028,9 @@ Best regards,
                       </label>
                       <select
                         value={scheduleForm.duration}
-                        onChange={(e) => setScheduleForm({...scheduleForm, duration: parseInt(e.target.value)})}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, duration: parseInt(e.target.value) })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium transition-shadow"
                       >
                         <option value={30}>30 minutes</option>
@@ -968,7 +1046,9 @@ Best regards,
                     <DateTimePicker
                       label="Scheduled Date & Time"
                       value={scheduleForm.scheduledTime}
-                      onChange={(e) => setScheduleForm({...scheduleForm, scheduledTime: e.target.value})}
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, scheduledTime: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -979,7 +1059,9 @@ Best regards,
                     </label>
                     <select
                       value={scheduleForm.platform}
-                      onChange={(e) => setScheduleForm({...scheduleForm, platform: e.target.value})}
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, platform: e.target.value })
+                      }
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium transition-shadow"
                     >
                       <option value="Google Meet">Google Meet</option>
@@ -988,7 +1070,9 @@ Best regards,
                     </select>
                     <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 flex items-center space-x-2">
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                      <p className="text-xs text-blue-700 font-medium">Meeting link will be auto-generated</p>
+                      <p className="text-xs text-blue-700 font-medium">
+                        Meeting link will be auto-generated
+                      </p>
                     </div>
                   </div>
 
@@ -998,7 +1082,7 @@ Best regards,
                     </label>
                     <textarea
                       value={scheduleForm.notes}
-                      onChange={(e) => setScheduleForm({...scheduleForm, notes: e.target.value})}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
                       rows={3}
                       placeholder="Add any additional notes or instructions for the interview..."
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400 transition-shadow"
@@ -1013,19 +1097,28 @@ Best regards,
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx"
-                        onChange={(e) => setScheduleForm({...scheduleForm, cvFile: e.target.files[0]})}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, cvFile: e.target.files[0] })
+                        }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-shadow"
                       />
                       {scheduleForm.cvFile && (
                         <p className="text-xs text-green-600 mt-1 flex items-center">
                           <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           {scheduleForm.cvFile.name} selected
                         </p>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">CV will be sent to the candidate and CC/BCC recipients along with the calendar invite</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      CV will be sent to the candidate and CC/BCC recipients along with the calendar
+                      invite
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1036,7 +1129,9 @@ Best regards,
                       <input
                         type="text"
                         value={scheduleForm.ccEmails}
-                        onChange={(e) => setScheduleForm({...scheduleForm, ccEmails: e.target.value})}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, ccEmails: e.target.value })
+                        }
                         placeholder="email1@example.com, email2@example.com"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition-shadow"
                       />
@@ -1049,7 +1144,9 @@ Best regards,
                       <input
                         type="text"
                         value={scheduleForm.bccEmails}
-                        onChange={(e) => setScheduleForm({...scheduleForm, bccEmails: e.target.value})}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, bccEmails: e.target.value })
+                        }
                         placeholder="email1@example.com, email2@example.com"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition-shadow"
                       />
@@ -1058,7 +1155,7 @@ Best regards,
                   </div>
                 </div>
               </div>
-              
+
               {/* Footer */}
               <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
                 <button
@@ -1074,13 +1171,31 @@ Best regards,
                 >
                   {loading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Scheduling...
                     </span>
-                  ) : 'Schedule Interview'}
+                  ) : (
+                    'Schedule Interview'
+                  )}
                 </button>
               </div>
             </div>

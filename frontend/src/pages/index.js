@@ -16,8 +16,8 @@ const Dashboard = () => {
   // Dashboard mapping for cleaner code
   const DASHBOARD_MAP = {
     'Human Resources': LivelyHRDashboard,
-    'Finance': LivelyFinanceDashboard,
-    'Sales & Marketing': LivelySalesDashboard
+    Finance: LivelyFinanceDashboard,
+    'Sales & Marketing': LivelySalesDashboard,
   };
 
   // Redirect superadmin users to /superadmin route

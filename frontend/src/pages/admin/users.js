@@ -326,7 +326,7 @@ export default function UsersManagement() {
             {/* Back to Dashboard Button */}
             <div className="mb-6">
               <button
-                onClick={() => router.push('/superadmin')}
+                onClick={() => router.push('/')}
                 className="flex items-center text-gray-600 hover:text-gray-800 bg-white border border-gray-200 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-50 shadow-sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

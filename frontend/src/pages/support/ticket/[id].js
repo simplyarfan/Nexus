@@ -167,10 +167,10 @@ export default function TicketDetail() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-white">Loading...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-700">Loading...</p>
         </div>
       </div>
     );
@@ -178,12 +178,10 @@ export default function TicketDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-            <p className="mt-4 text-white">Loading ticket details...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-700">Loading ticket details...</p>
         </div>
       </div>
     );
@@ -191,27 +189,25 @@ export default function TicketDetail() {
 
   if (!ticket) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Ticket Not Found</h3>
-            <p className="text-gray-300 mb-6">
-              The ticket you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to
-              it.
-            </p>
-            <button
-              onClick={() => {
-                const isAdmin = ['admin', 'superadmin'].includes(user?.role);
-                router.push(isAdmin ? '/admin/tickets' : '/support/my-tickets');
-              }}
-              className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all"
-            >
-              {['admin', 'superadmin'].includes(user?.role)
-                ? 'Back to Support Management'
-                : 'Back to My Tickets'}
-            </button>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center max-w-md mx-auto">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Ticket Not Found</h3>
+          <p className="text-gray-600 mb-6">
+            The ticket you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to
+            it.
+          </p>
+          <button
+            onClick={() => {
+              const isAdmin = ['admin', 'superadmin'].includes(user?.role);
+              router.push(isAdmin ? '/admin/tickets' : '/support/my-tickets');
+            }}
+            className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all"
+          >
+            {['admin', 'superadmin'].includes(user?.role)
+              ? 'Back to Support Management'
+              : 'Back to My Tickets'}
+          </button>
         </div>
       </div>
     );

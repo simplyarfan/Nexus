@@ -210,7 +210,7 @@ export default function TicketsManagement() {
               transition={{ duration: 0.3 }}
             >
               <motion.button
-                onClick={() => router.push('/admin')}
+                onClick={() => router.push('/')}
                 className="flex items-center text-gray-600 hover:text-gray-800 bg-white border border-gray-200 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-50 shadow-sm"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

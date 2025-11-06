@@ -230,7 +230,7 @@ export default function SystemHealth() {
             {/* Back to Dashboard Button */}
             <div className="mb-6">
               <motion.button
-                onClick={() => router.push('/superadmin')}
+                onClick={() => router.push('/')}
                 className="flex items-center text-gray-700 hover:text-gray-900 bg-white/80 backdrop-blur-sm border border-orange-200 px-4 py-2 rounded-xl transition-all duration-200 hover:bg-white/90 shadow-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

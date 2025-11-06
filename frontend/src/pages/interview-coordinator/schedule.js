@@ -158,7 +158,7 @@ ${user?.email || ''}`;
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => router.push('/interview-coordinator')}
+                  onClick={() => router.push('/')}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <Icons.ArrowLeft className="w-5 h-5 text-gray-600" />

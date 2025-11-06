@@ -157,9 +157,9 @@ export default function TicketDetail() {
         return [...prev, newCommentData];
       });
 
-      // Retry reload with exponential backoff until comment appears in database
-      // This handles Neon serverless Postgres replication lag (different connections)
-      const verifyCommentInDatabase = async (commentId, attempt = 1, maxAttempts = 5) => {
+      // Retry reload with backoff until comment appears in database
+      // After backend fix to use DATABASE_URL_UNPOOLED, should work in 1-2 attempts
+      const verifyCommentInDatabase = async (commentId, attempt = 1, maxAttempts = 3) => {
         console.log(
           `🔄 Attempt ${attempt}/${maxAttempts}: Verifying comment ${commentId} in database...`,
         );
@@ -183,12 +183,17 @@ export default function TicketDetail() {
 
           // Not found yet, retry with exponential backoff
           if (attempt < maxAttempts) {
-            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // 1s, 2s, 4s, 5s, 5s
+            const delay = Math.min(500 * Math.pow(2, attempt - 1), 2000); // 500ms, 1s, 2s
             console.log(`⏳ Comment not found yet, retrying in ${delay}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
             return verifyCommentInDatabase(commentId, attempt + 1, maxAttempts);
           } else {
-            console.warn('⚠️ Max retry attempts reached, comment may not be synced yet');
+            console.error(
+              '❌ Max retry attempts reached. Backend may be using pooled connection instead of unpooled.',
+            );
+            console.error(
+              '💡 Check that DATABASE_URL_UNPOOLED is set in backend environment variables.',
+            );
             return false;
           }
         }

@@ -27,14 +27,25 @@ class Database {
 
     try {
       // Use Vercel's database environment variables
+      // IMPORTANT: Prioritize DATABASE_URL_UNPOOLED for read-after-write consistency
+      // Neon's pooled connection (DATABASE_URL) uses pgBouncer in transaction mode,
+      // which can cause read-after-write issues where INSERTs in one transaction
+      // are not visible to SELECTs in another transaction pool
       const connectionString =
-        process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED;
+        process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
       if (!connectionString) {
         throw new Error(
-          'No database connection string found. Please set DATABASE_URL or POSTGRES_URL environment variable.',
+          'No database connection string found. Please set DATABASE_URL_UNPOOLED, DATABASE_URL, or POSTGRES_URL environment variable.',
         );
       }
+
+      console.log(
+        '🔌 Connecting to Neon with:',
+        connectionString.includes('UNPOOLED') || connectionString.includes('pooler=false')
+          ? 'UNPOOLED (direct)'
+          : 'POOLED (pgBouncer)',
+      );
 
       // Connecting to PostgreSQL database
 

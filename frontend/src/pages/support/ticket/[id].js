@@ -157,13 +157,47 @@ export default function TicketDetail() {
         return [...prev, newCommentData];
       });
 
-      // Wait 500ms for database replication, then reload to ensure sync
-      // This handles serverless Postgres connection pooling delays
-      console.log('⏳ Waiting for database sync...');
-      setTimeout(async () => {
-        console.log('🔄 Reloading ticket to verify database sync...');
-        await loadTicket(true);
-      }, 500);
+      // Retry reload with exponential backoff until comment appears in database
+      // This handles Neon serverless Postgres replication lag (different connections)
+      const verifyCommentInDatabase = async (commentId, attempt = 1, maxAttempts = 5) => {
+        console.log(
+          `🔄 Attempt ${attempt}/${maxAttempts}: Verifying comment ${commentId} in database...`,
+        );
+
+        const response = await supportAPI.getTicket(id);
+        if (response.data?.success) {
+          const fetchedComments = response.data.data.comments || [];
+          const commentExists = fetchedComments.some((c) => c.id === commentId);
+
+          console.log(
+            `📊 Fetched ${fetchedComments.length} comments, looking for ID ${commentId}: ${commentExists ? '✅ FOUND' : '❌ NOT FOUND'}`,
+          );
+
+          if (commentExists) {
+            // Comment found! Update state with fresh data
+            setTicket(response.data.data.ticket);
+            setComments(fetchedComments);
+            console.log('✅ Comment verified in database and UI synced');
+            return true;
+          }
+
+          // Not found yet, retry with exponential backoff
+          if (attempt < maxAttempts) {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // 1s, 2s, 4s, 5s, 5s
+            console.log(`⏳ Comment not found yet, retrying in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return verifyCommentInDatabase(commentId, attempt + 1, maxAttempts);
+          } else {
+            console.warn('⚠️ Max retry attempts reached, comment may not be synced yet');
+            return false;
+          }
+        }
+      };
+
+      // Start verification in background (don't await)
+      verifyCommentInDatabase(newCommentData.id).catch((err) => {
+        console.error('❌ Error verifying comment:', err);
+      });
     } catch (error) {
       console.error('❌ Add comment error:', {
         message: error.message,

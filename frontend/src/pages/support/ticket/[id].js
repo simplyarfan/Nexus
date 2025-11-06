@@ -60,39 +60,54 @@ export default function TicketDetail() {
   ];
 
   // Load ticket and comments on mount
-  const loadTicket = React.useCallback(async () => {
-    if (!id) return;
+  const loadTicket = React.useCallback(
+    async (forceRefresh = false) => {
+      if (!id) return;
 
-    setIsLoading(true);
-    try {
-      console.log('🎫 Loading ticket:', id);
-      const response = await supportAPI.getTicket(id);
+      setIsLoading(true);
+      try {
+        console.log(`🎫 Loading ticket: ${id} (force refresh: ${forceRefresh})`);
+        const timestamp = Date.now();
+        const response = await supportAPI.getTicket(id);
 
-      if (response.data?.success) {
-        const ticketData = response.data.data.ticket;
-        const commentsData = response.data.data.comments || [];
+        console.log(`⏱️  Load completed in ${Date.now() - timestamp}ms`);
 
-        console.log('📦 Loaded ticket:', ticketData.id);
-        console.log('💬 Loaded comments:', commentsData.length);
-        console.log(
-          '📋 Comment IDs:',
-          commentsData.map((c) => c.id),
-        );
+        if (response.data?.success) {
+          const ticketData = response.data.data.ticket;
+          const commentsData = response.data.data.comments || [];
 
-        setTicket(ticketData);
-        setComments(commentsData);
-      } else {
+          console.log('📦 Loaded ticket:', ticketData.id, ticketData.subject);
+          console.log('💬 Loaded comments count:', commentsData.length);
+          console.log(
+            '📋 Comment IDs:',
+            commentsData.map((c) => c.id),
+          );
+          console.log(
+            '👥 Comment authors:',
+            commentsData.map((c) => `${c.first_name} ${c.last_name}`),
+          );
+
+          setTicket(ticketData);
+          setComments(commentsData);
+        } else {
+          console.error('❌ Failed to load ticket - no success flag');
+          toast.error('Failed to load ticket');
+          router.push('/support/my-tickets');
+        }
+      } catch (error) {
+        console.error('❌ Load ticket error:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
         toast.error('Failed to load ticket');
         router.push('/support/my-tickets');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('❌ Load ticket error:', error);
-      toast.error('Failed to load ticket');
-      router.push('/support/my-tickets');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id, router]);
+    },
+    [id, router],
+  );
 
   // Add comment handler
   const handleAddComment = async (e) => {
@@ -111,30 +126,35 @@ export default function TicketDetail() {
 
       // Add comment to database
       const response = await supportAPI.addComment(id, commentText, false);
-      console.log('✅ Comment added, response:', response.data);
+      console.log('✅ Comment added, response:', {
+        status: response.status,
+        success: response.data?.success,
+        hasComment: !!response.data?.data?.comment,
+        commentId: response.data?.data?.comment?.id,
+      });
 
       // Get the new comment from response
       const newCommentData = response.data?.data?.comment || response.data?.comment;
 
+      if (!newCommentData) {
+        console.error('❌ No comment data in response');
+        throw new Error('Comment was not returned from server');
+      }
+
       // Clear input immediately
       setNewComment('');
-      toast.success('Comment added');
+      toast.success('Comment added successfully');
 
-      // Update comments state with new comment
-      if (newCommentData) {
-        setComments((prev) => {
-          // Check if comment already exists (prevent duplicates)
-          const exists = prev.some((c) => c.id === newCommentData.id);
-          if (exists) {
-            console.log('⚠️ Comment already exists in state, skipping');
-            return prev;
-          }
-          console.log('➕ Added comment to UI:', newCommentData.id);
-          return [...prev, newCommentData];
-        });
-      }
+      // Force reload ticket to get fresh comments from database
+      // This ensures comments persist after navigation
+      console.log('🔄 Reloading ticket to fetch fresh comments...');
+      await loadTicket(true);
     } catch (error) {
-      console.error('❌ Add comment error:', error);
+      console.error('❌ Add comment error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       toast.error('Failed to add comment');
       // Restore comment text on error
       setNewComment(commentText);
@@ -162,7 +182,8 @@ export default function TicketDetail() {
   };
 
   useEffect(() => {
-    loadTicket();
+    console.log('🔄 useEffect triggered - loading ticket:', id);
+    loadTicket(true); // Always force refresh on mount/id change
   }, [id, loadTicket]);
 
   if (!user) {

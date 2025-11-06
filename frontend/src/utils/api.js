@@ -267,9 +267,20 @@ export const adminAPI = {
 
 export const supportAPI = {
   createTicket: (ticketData) => api.post('/support', ticketData),
-  getMyTickets: (params) => api.get('/support/my-tickets', { params }),
-  getAllTickets: (params) => api.get('/support/admin/all', { params }),
-  getTicket: (ticketId) => api.get(`/support/${ticketId}`),
+  getMyTickets: (params) =>
+    api.get('/support/my-tickets', {
+      params,
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    }),
+  getAllTickets: (params) =>
+    api.get('/support/admin/all', {
+      params,
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    }),
+  getTicket: (ticketId) =>
+    api.get(`/support/${ticketId}`, {
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    }),
   addComment: (ticketId, comment, isInternal = false) =>
     api.post(`/support/${ticketId}/comments`, {
       comment,
@@ -278,7 +289,11 @@ export const supportAPI = {
   updateTicket: (ticketId, updateData) => api.put(`/support/${ticketId}`, updateData),
   updateTicketStatus: (ticketId, status) => api.put(`/support/${ticketId}`, { status }),
   deleteTicket: (ticketId) => api.delete(`/support/${ticketId}`),
-  getStats: (timeframe = '30d') => api.get('/support/admin/stats', { params: { timeframe } }),
+  getStats: (timeframe = '30d') =>
+    api.get('/support/admin/stats', {
+      params: { timeframe },
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    }),
 };
 
 export const healthAPI = {

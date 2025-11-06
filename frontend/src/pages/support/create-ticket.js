@@ -45,18 +45,46 @@ export default function CreateTicket() {
 
     setIsSubmitting(true);
     try {
+      console.log('🎫 Creating ticket with data:', {
+        subject: formData.subject,
+        priority: formData.priority,
+        category: formData.category,
+        description: formData.description.substring(0, 50) + '...',
+      });
+
       const response = await supportAPI.createTicket(formData);
+
+      console.log('✅ Ticket creation response:', {
+        status: response.status,
+        success: response.data?.success,
+        hasData: !!response.data?.data,
+        hasTicket: !!response.data?.data?.ticket,
+      });
 
       // Response is axios response, data is in response.data
       if (response.data && response.data.success) {
-        toast.success('Ticket created successfully!');
+        const ticketId = response.data.data?.ticket?.id;
+        toast.success(`Ticket #${ticketId} created successfully!`);
         router.push('/support/my-tickets');
       } else {
+        console.error('❌ Ticket creation failed:', response.data);
         toast.error(response.data?.message || 'Failed to create ticket');
       }
     } catch (error) {
-      console.error('Error creating ticket:', error);
-      toast.error('Failed to create ticket. Please try again.');
+      console.error('❌ Error creating ticket:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        stack: error.stack,
+      });
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'Failed to create ticket. Please try again.';
+
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

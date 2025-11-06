@@ -294,6 +294,8 @@ export const supportAPI = {
       params: { timeframe },
       headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
     }),
+  // Debug - Check database connection type
+  checkDatabaseConnection: () => api.get('/support/debug/connection'),
 };
 
 export const healthAPI = {

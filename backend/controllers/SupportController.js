@@ -173,6 +173,44 @@ class SupportController {
     }
   }
 
+  // Debug endpoint - Check database connection type
+  static async checkDatabaseConnection(req, res) {
+    try {
+      const connectionString =
+        process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+      const connectionType =
+        connectionString &&
+        (connectionString.includes('UNPOOLED') || !connectionString.includes('pooler'))
+          ? 'UNPOOLED (direct)'
+          : 'POOLED (pgBouncer)';
+
+      const hasUnpooled = !!process.env.DATABASE_URL_UNPOOLED;
+      const hasPooled = !!process.env.DATABASE_URL;
+
+      res.json({
+        success: true,
+        data: {
+          connectionType,
+          environmentVariables: {
+            DATABASE_URL_UNPOOLED: hasUnpooled ? 'SET ✅' : 'NOT SET ❌',
+            DATABASE_URL: hasPooled ? 'SET ✅' : 'NOT SET ❌',
+          },
+          usingUnpooled: hasUnpooled,
+          message: hasUnpooled
+            ? '✅ Backend is configured to use unpooled connection'
+            : '❌ Backend is using pooled connection - read-after-write issues expected',
+        },
+      });
+    } catch (error) {
+      console.error('Check database connection error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  }
+
   // Get ticket details with comments
   static async getTicketDetails(req, res) {
     try {

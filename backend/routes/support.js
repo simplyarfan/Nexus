@@ -20,6 +20,9 @@ const {
 // All routes require authentication
 router.use(authenticateToken);
 
+// Debug route - Check database connection type
+router.get('/debug/connection', generalLimiter, SupportController.checkDatabaseConnection);
+
 // User routes (create and view own tickets)
 
 // Create new support ticket

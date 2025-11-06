@@ -238,6 +238,21 @@ export default function TicketDetail() {
   useEffect(() => {
     console.log('🔄 useEffect triggered - loading ticket:', id);
     loadTicket(true); // Always force refresh on mount/id change
+
+    // Check database connection type on mount (debug)
+    supportAPI
+      .checkDatabaseConnection()
+      .then((response) => {
+        if (response.data?.success) {
+          console.log('🔌 Backend Database Connection Check:', response.data.data);
+          console.log('📊 Connection Type:', response.data.data.connectionType);
+          console.log('📋 Environment Variables:', response.data.data.environmentVariables);
+          console.log('💬', response.data.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Failed to check database connection:', error);
+      });
   }, [id, loadTicket]);
 
   if (!user) {

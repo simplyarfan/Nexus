@@ -145,10 +145,25 @@ export default function TicketDetail() {
       setNewComment('');
       toast.success('Comment added successfully');
 
-      // Force reload ticket to get fresh comments from database
-      // This ensures comments persist after navigation
-      console.log('🔄 Reloading ticket to fetch fresh comments...');
-      await loadTicket(true);
+      // Immediately add comment to UI (optimistic update)
+      console.log('➕ Adding comment to UI optimistically:', newCommentData.id);
+      setComments((prev) => {
+        // Check if comment already exists (prevent duplicates)
+        const exists = prev.some((c) => c.id === newCommentData.id);
+        if (exists) {
+          console.log('⚠️ Comment already exists in state, skipping');
+          return prev;
+        }
+        return [...prev, newCommentData];
+      });
+
+      // Wait 500ms for database replication, then reload to ensure sync
+      // This handles serverless Postgres connection pooling delays
+      console.log('⏳ Waiting for database sync...');
+      setTimeout(async () => {
+        console.log('🔄 Reloading ticket to verify database sync...');
+        await loadTicket(true);
+      }, 500);
     } catch (error) {
       console.error('❌ Add comment error:', {
         message: error.message,

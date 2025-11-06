@@ -177,29 +177,45 @@ class SupportController {
   static async checkDatabaseConnection(req, res) {
     try {
       const connectionString =
-        process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+        process.env.POSTGRES_URL_NON_POOLING ||
+        process.env.DATABASE_URL_UNPOOLED ||
+        process.env.DATABASE_URL ||
+        process.env.POSTGRES_URL;
 
-      const connectionType =
+      const isUnpooled =
         connectionString &&
-        (connectionString.includes('UNPOOLED') || !connectionString.includes('pooler'))
-          ? 'UNPOOLED (direct)'
-          : 'POOLED (pgBouncer)';
+        (connectionString.includes('UNPOOLED') ||
+          connectionString.includes('NON_POOLING') ||
+          connectionString.includes('pooler=false') ||
+          !connectionString.includes('pooler'));
 
+      const connectionType = isUnpooled ? 'UNPOOLED (direct)' : 'POOLED (pgBouncer)';
+
+      const hasNeonOfficial = !!process.env.POSTGRES_URL_NON_POOLING;
       const hasUnpooled = !!process.env.DATABASE_URL_UNPOOLED;
       const hasPooled = !!process.env.DATABASE_URL;
+
+      const usingVariable = hasNeonOfficial
+        ? 'POSTGRES_URL_NON_POOLING (Neon official) ✅'
+        : hasUnpooled
+          ? 'DATABASE_URL_UNPOOLED ⚠️'
+          : 'DATABASE_URL (pooled) ❌';
 
       res.json({
         success: true,
         data: {
           connectionType,
+          usingVariable,
           environmentVariables: {
+            POSTGRES_URL_NON_POOLING: hasNeonOfficial ? 'SET ✅' : 'NOT SET ❌',
             DATABASE_URL_UNPOOLED: hasUnpooled ? 'SET ✅' : 'NOT SET ❌',
             DATABASE_URL: hasPooled ? 'SET ✅' : 'NOT SET ❌',
           },
-          usingUnpooled: hasUnpooled,
-          message: hasUnpooled
-            ? '✅ Backend is configured to use unpooled connection'
-            : '❌ Backend is using pooled connection - read-after-write issues expected',
+          usingUnpooled: hasNeonOfficial || hasUnpooled,
+          message:
+            hasNeonOfficial || hasUnpooled
+              ? `✅ Backend is using ${usingVariable}`
+              : '❌ Backend is using pooled connection - read-after-write issues expected',
         },
       });
     } catch (error) {

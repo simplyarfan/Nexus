@@ -27,24 +27,39 @@ class Database {
 
     try {
       // Use Vercel's database environment variables
-      // IMPORTANT: Prioritize DATABASE_URL_UNPOOLED for read-after-write consistency
-      // Neon's pooled connection (DATABASE_URL) uses pgBouncer in transaction mode,
-      // which can cause read-after-write issues where INSERTs in one transaction
-      // are not visible to SELECTs in another transaction pool
+      // IMPORTANT: Prioritize unpooled connections for read-after-write consistency
+      // Neon automatically provides these variables:
+      // - POSTGRES_URL_NON_POOLING (official Neon unpooled connection)
+      // - DATABASE_URL_UNPOOLED (alternative unpooled connection)
+      // - DATABASE_URL / POSTGRES_URL (pooled with pgBouncer - causes read-after-write issues)
       const connectionString =
-        process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+        process.env.POSTGRES_URL_NON_POOLING ||
+        process.env.DATABASE_URL_UNPOOLED ||
+        process.env.DATABASE_URL ||
+        process.env.POSTGRES_URL;
 
       if (!connectionString) {
         throw new Error(
-          'No database connection string found. Please set DATABASE_URL_UNPOOLED, DATABASE_URL, or POSTGRES_URL environment variable.',
+          'No database connection string found. Please set POSTGRES_URL_NON_POOLING, DATABASE_URL_UNPOOLED, DATABASE_URL, or POSTGRES_URL environment variable.',
         );
       }
 
+      const isUnpooled =
+        connectionString.includes('UNPOOLED') ||
+        connectionString.includes('NON_POOLING') ||
+        connectionString.includes('pooler=false') ||
+        !connectionString.includes('pooler');
+
+      const connectionType = isUnpooled ? 'UNPOOLED (direct)' : 'POOLED (pgBouncer)';
+
+      console.log('🔌 Connecting to Neon with:', connectionType);
       console.log(
-        '🔌 Connecting to Neon with:',
-        connectionString.includes('UNPOOLED') || connectionString.includes('pooler=false')
-          ? 'UNPOOLED (direct)'
-          : 'POOLED (pgBouncer)',
+        '📋 Using connection from:',
+        process.env.POSTGRES_URL_NON_POOLING
+          ? 'POSTGRES_URL_NON_POOLING (Neon official) ✅'
+          : process.env.DATABASE_URL_UNPOOLED
+            ? 'DATABASE_URL_UNPOOLED ⚠️'
+            : 'DATABASE_URL or POSTGRES_URL (pooled) ❌',
       );
 
       // Connecting to PostgreSQL database

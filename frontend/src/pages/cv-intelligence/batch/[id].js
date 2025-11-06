@@ -155,7 +155,7 @@ const BatchDetail = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-2">Batch Not Found</h2>
           <p className="text-gray-600 mb-6">The requested batch could not be found.</p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/cv-intelligence')}
             className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg transition-colors"
           >
             Back to CV Intelligence
@@ -178,7 +178,7 @@ const BatchDetail = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/cv-intelligence')}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Icons.ArrowLeft className="w-5 h-5 text-gray-600" />

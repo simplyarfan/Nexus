@@ -604,69 +604,10 @@ Best regards,
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="space-y-3">
-                            <div className="text-sm text-gray-900">
-                              {interview.scheduled_time
-                                ? new Date(interview.scheduled_time).toLocaleString()
-                                : '-'}
-                            </div>
-
-                            {/* Inline Action Buttons */}
-                            <div className="flex flex-wrap gap-2">
-                              {interview.status === 'scheduled' && (
-                                <>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      downloadCalendar(interview.id, interview.candidate_name);
-                                    }}
-                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
-                                  >
-                                    Download ICS
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      updateInterviewStatus(interview.id, 'completed');
-                                    }}
-                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
-                                  >
-                                    Complete
-                                  </button>
-                                </>
-                              )}
-                              {interview.status === 'completed' && !interview.outcome && (
-                                <>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      updateInterviewStatus(interview.id, 'completed', 'selected');
-                                    }}
-                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
-                                  >
-                                    Select
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      updateInterviewStatus(interview.id, 'completed', 'rejected');
-                                    }}
-                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors"
-                                  >
-                                    Reject
-                                  </button>
-                                </>
-                              )}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteInterview(interview.id);
-                                }}
-                                className="px-3 py-1.5 border border-red-300 hover:bg-red-50 text-red-600 text-xs font-medium rounded-lg transition-colors"
-                              >
-                                Delete
-                              </button>
-                            </div>
+                          <div className="text-sm text-gray-900">
+                            {interview.scheduled_time
+                              ? new Date(interview.scheduled_time).toLocaleString()
+                              : '-'}
                           </div>
                         </td>
                       </tr>

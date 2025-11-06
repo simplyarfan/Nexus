@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/AuthController');
 const database = require('../models/database');
-const googleCalendarService = require('../services/googleCalendarService');
 const {
   authenticateToken,
   validateCompanyDomain,
@@ -272,7 +271,7 @@ router.get('/outlook/auth', authenticateToken, async (req, res) => {
     authUrl.searchParams.append('response_mode', 'query');
     authUrl.searchParams.append(
       'scope',
-      'offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read',
+      'offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read https://graph.microsoft.com/OnlineMeetings.ReadWrite',
     );
     authUrl.searchParams.append('state', req.user.id); // Pass user ID in state parameter
     authUrl.searchParams.append('prompt', 'select_account');
@@ -365,7 +364,7 @@ router.get('/outlook/callback', async (req, res) => {
         grant_type: 'authorization_code',
         code_verifier: codeVerifier,
         scope:
-          'offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read',
+          'offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read https://graph.microsoft.com/OnlineMeetings.ReadWrite',
       }),
       {
         headers: {
@@ -493,107 +492,5 @@ router.post('/outlook/disconnect', authenticateToken, async (req, res) => {
     });
   }
 });
-
-/**
- * GET /google/auth - Initiate Google OAuth flow
- */
-router.get(
-  '/google/auth',
-  authenticateToken,
-  trackActivity('google_oauth_initiated'),
-  async (req, res) => {
-    try {
-      const authUrl = googleCalendarService.getAuthUrl(req.user.id);
-      res.json({
-        success: true,
-        authUrl,
-      });
-    } catch (error) {
-      console.error('❌ Google OAuth initiation error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to initiate Google OAuth',
-        error: error.message,
-      });
-    }
-  },
-);
-
-/**
- * GET /google/callback - Handle Google OAuth callback
- */
-router.get('/google/callback', async (req, res) => {
-  try {
-    const { code, state: userId } = req.query;
-
-    if (!code) {
-      return res.status(400).json({
-        success: false,
-        message: 'Authorization code is required',
-      });
-    }
-
-    // Exchange code for tokens
-    const tokens = await googleCalendarService.getTokensFromCode(code);
-
-    // Store tokens in database
-    if (userId) {
-      await googleCalendarService.storeUserTokens(userId, tokens);
-    }
-
-    // Redirect back to frontend with success
-    const frontendUrl = process.env.FRONTEND_URL || 'https://thesimpleai.netlify.app';
-    res.redirect(`${frontendUrl}/profile?google_calendar=connected`);
-  } catch (error) {
-    console.error('❌ Google OAuth callback error:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'https://thesimpleai.netlify.app';
-    res.redirect(`${frontendUrl}/profile?google_calendar=error`);
-  }
-});
-
-/**
- * GET /google/status - Check if user has connected Google Calendar
- */
-router.get('/google/status', authenticateToken, async (req, res) => {
-  try {
-    const isConnected = await googleCalendarService.isUserConnected(req.user.id);
-    res.json({
-      success: true,
-      isConnected,
-    });
-  } catch (error) {
-    console.error('❌ Google status check error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to check Google Calendar connection status',
-      error: error.message,
-    });
-  }
-});
-
-/**
- * POST /google/disconnect - Disconnect Google Calendar
- */
-router.post(
-  '/google/disconnect',
-  authenticateToken,
-  trackActivity('google_calendar_disconnected'),
-  async (req, res) => {
-    try {
-      await googleCalendarService.disconnectUser(req.user.id);
-      res.json({
-        success: true,
-        message: 'Google Calendar disconnected successfully',
-      });
-    } catch (error) {
-      console.error('❌ Google disconnect error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to disconnect Google Calendar',
-        error: error.message,
-      });
-    }
-  },
-);
 
 module.exports = router;

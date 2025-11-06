@@ -448,7 +448,7 @@ class Database {
         await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP');
         await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS cv_file_path TEXT');
         await this.run(
-          'ALTER TABLE interviews ADD COLUMN IF NOT EXISTS google_event_id VARCHAR(255)',
+          'ALTER TABLE interviews ADD COLUMN IF NOT EXISTS teams_meeting_id VARCHAR(255)',
         );
         console.log('✅ Added missing columns to interviews table');
       } catch (error) {

@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import AddToCalendarDropdown from '../../components/ui/AddToCalendarDropdown';
 
 // Status Dropdown Component
 const StatusDropdown = ({ currentStatus, currentOutcome, onStatusChange }) => {
@@ -145,6 +144,12 @@ const InterviewDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [interview, setInterview] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleForm, setRescheduleForm] = useState({
+    scheduledTime: '',
+    duration: 60,
+    notes: '',
+  });
 
   useEffect(() => {
     if (!user) {
@@ -228,6 +233,43 @@ const InterviewDetailPage = () => {
     } catch (error) {
       console.error('Calendar download error:', error);
       toast.error('Failed to download calendar');
+    }
+  };
+
+  const rescheduleInterview = async () => {
+    if (!rescheduleForm.scheduledTime) {
+      toast.error('Please select a new date and time');
+      return;
+    }
+
+    try {
+      const headers = getAuthHeaders();
+      const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
+
+      const response = await axios.put(
+        `${API_URL}/interview-coordinator/interview/${id}/reschedule`,
+        {
+          scheduledTime: rescheduleForm.scheduledTime,
+          duration: rescheduleForm.duration,
+          notes: rescheduleForm.notes,
+          notifyRecipients: true,
+        },
+        { headers },
+      );
+
+      if (response.data?.success) {
+        toast.success('Interview rescheduled and notifications sent!');
+        setShowRescheduleModal(false);
+        setRescheduleForm({
+          scheduledTime: '',
+          duration: 60,
+          notes: '',
+        });
+        fetchInterviewDetails();
+      }
+    } catch (error) {
+      console.error('Reschedule error:', error);
+      toast.error(error.response?.data?.message || 'Failed to reschedule interview');
     }
   };
 
@@ -465,17 +507,6 @@ const InterviewDetailPage = () => {
 
             {/* Right Column - Actions */}
             <div className="space-y-6">
-              {/* Calendar Downloads */}
-              {interview.scheduled_time && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Download className="w-5 h-5 mr-2 text-gray-600" />
-                    Add to Calendar
-                  </h3>
-                  <AddToCalendarDropdown interview={interview} />
-                </div>
-              )}
-
               {/* Status Actions */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
@@ -494,6 +525,26 @@ const InterviewDetailPage = () => {
                     >
                       <Calendar className="w-5 h-5 mr-2" />
                       Schedule Interview
+                    </button>
+                  )}
+
+                  {/* Reschedule Button - Show when scheduled */}
+                  {interview.status === 'scheduled' && interview.scheduled_time && (
+                    <button
+                      onClick={() => {
+                        setRescheduleForm({
+                          scheduledTime: new Date(interview.scheduled_time)
+                            .toISOString()
+                            .slice(0, 16),
+                          duration: interview.duration || 60,
+                          notes: interview.notes || '',
+                        });
+                        setShowRescheduleModal(true);
+                      }}
+                      className="w-full px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                    >
+                      <Clock className="w-5 h-5 mr-2" />
+                      Reschedule Interview
                     </button>
                   )}
                 </div>
@@ -542,6 +593,97 @@ const InterviewDetailPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Reschedule Modal */}
+        {showRescheduleModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                  <Clock className="w-6 h-6 mr-2 text-orange-600" />
+                  Reschedule Interview
+                </h3>
+                <button
+                  onClick={() => setShowRescheduleModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={rescheduleForm.scheduledTime}
+                    onChange={(e) =>
+                      setRescheduleForm({ ...rescheduleForm, scheduledTime: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    min="15"
+                    step="15"
+                    value={rescheduleForm.duration}
+                    onChange={(e) =>
+                      setRescheduleForm({ ...rescheduleForm, duration: parseInt(e.target.value) })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for Reschedule (Optional)
+                  </label>
+                  <textarea
+                    value={rescheduleForm.notes}
+                    onChange={(e) =>
+                      setRescheduleForm({ ...rescheduleForm, notes: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                    rows="3"
+                    placeholder="Optional notes about the reschedule..."
+                  />
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>📧 Email Notification:</strong> The candidate and all recipients (CC,
+                    BCC) will be automatically notified of the new date and time via email with an
+                    updated calendar invitation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowRescheduleModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={rescheduleInterview}
+                  className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Confirm Reschedule
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

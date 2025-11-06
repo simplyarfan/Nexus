@@ -54,24 +54,6 @@ try {
   console.error('❌ Failed to load Outlook Email Service:', error.message);
 }
 
-// Load Google Calendar Service
-let GoogleCalendarService = null;
-try {
-  GoogleCalendarService = require('../services/googleCalendarService');
-  console.log('✅ Google Calendar Service loaded successfully');
-} catch (error) {
-  console.error('❌ Failed to load Google Calendar Service:', error.message);
-}
-
-// Load Meet Link Generator Service
-let meetLinkGenerator = null;
-try {
-  meetLinkGenerator = require('../services/meetLinkGenerator');
-  console.log('✅ Meet Link Generator loaded successfully');
-} catch (error) {
-  console.error('❌ Failed to load Meet Link Generator:', error.message);
-}
-
 const router = express.Router();
 
 /**
@@ -319,18 +301,12 @@ router.post(
     try {
       console.log('📅 Scheduling interview for user:', req.user.id);
 
-      let {
-        interviewId,
-        interviewType,
-        scheduledTime,
-        duration,
-        platform,
-        notes,
-        ccEmails,
-        bccEmails,
-      } = req.body;
+      const { interviewId, interviewType, scheduledTime, duration, platform, notes } = req.body;
 
       // Parse ccEmails and bccEmails if they are JSON strings (from FormData)
+      let ccEmails = req.body.ccEmails;
+      let bccEmails = req.body.bccEmails;
+
       if (typeof ccEmails === 'string') {
         try {
           ccEmails = JSON.parse(ccEmails);
@@ -353,60 +329,12 @@ router.post(
         });
       }
 
-      // Generate proper meeting link based on platform using our link generator
-      let meetingLink = '';
-      let googleEventId = null;
-
-      // Prefer real Google Meet if user connected; otherwise generate link
-      if (GoogleCalendarService) {
-        try {
-          const connected = await GoogleCalendarService.isUserConnected(req.user.id);
-          if (
-            connected &&
-            (platform?.toLowerCase() === 'google meet' || platform?.toLowerCase() === 'meet')
-          ) {
-            const calendarResult = await GoogleCalendarService.createCalendarEventWithMeet(
-              req.user.id,
-              {
-                candidateName: interview.candidate_name,
-                candidateEmail: interview.candidate_email,
-                position: interview.job_title,
-                interviewType,
-                scheduledTime,
-                duration: duration || 60,
-                notes,
-              },
-            );
-            meetingLink = calendarResult.meetingLink || '';
-            googleEventId = calendarResult.eventId || null;
-            console.log('✅ Google Calendar event created');
-          }
-        } catch (e) {
-          console.log(
-            '⚠️  Failed to create Google event, falling back to generated link:',
-            e.message,
-          );
-        }
-      }
-
-      // Fallback meeting link
-      if (!meetingLink) {
-        if (meetLinkGenerator) {
-          meetingLink = meetLinkGenerator.generateLinkForPlatform(platform);
-          console.log(`✅ Generated ${platform} link:`, meetingLink);
-        } else {
-          meetingLink = 'Meeting link will be provided';
-        }
-      }
-
-      console.log('🔗 Meeting link:', meetingLink);
-
       await database.connect();
 
-      // Verify interview exists and belongs to user
+      // Verify interview exists and belongs to user FIRST
       const interview = await database.get(
         `
-      SELECT * FROM interviews 
+      SELECT * FROM interviews
       WHERE id = $1 AND scheduled_by = $2
     `,
         [interviewId, req.user.id],
@@ -419,10 +347,59 @@ router.post(
         });
       }
 
-      // Update interview with schedule details
+      // Create real Microsoft Teams meeting via Graph API
+      let meetingLink = '';
+      let teamsMeetingId = null;
+
+      if (!OutlookEmailService) {
+        return res.status(503).json({
+          success: false,
+          message: 'Email service not available. Please contact support.',
+        });
+      }
+
+      try {
+        console.log('🎥 Creating real Teams meeting...');
+
+        // Calculate meeting end time
+        const startTime = new Date(scheduledTime);
+        const endTime = new Date(startTime.getTime() + (duration || 60) * 60000);
+
+        // Combine all participants: candidate + CC emails (BCC hidden from meeting)
+        const allParticipants = [
+          interview.candidate_email,
+          ...(ccEmails || []).filter((email) => email && email.trim()),
+        ];
+
+        const teamsResult = await OutlookEmailService.createTeamsMeeting(req.user.id, {
+          subject: `Interview - ${interview.candidate_name} - ${interview.job_title}`,
+          startDateTime: startTime.toISOString(),
+          endDateTime: endTime.toISOString(),
+          participantEmails: allParticipants,
+        });
+
+        meetingLink = teamsResult.joinUrl;
+        teamsMeetingId = teamsResult.meetingId;
+
+        console.log(
+          '✅ Real Teams meeting created with',
+          allParticipants.length,
+          'participants:',
+          meetingLink,
+        );
+      } catch (error) {
+        console.error('❌ Failed to create Teams meeting:', error.message);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to create Teams meeting. Please ensure Outlook is connected.',
+          error: error.message,
+        });
+      }
+
+      // Update interview with schedule details and Teams meeting ID
       await database.run(
         `
-      UPDATE interviews 
+      UPDATE interviews
       SET interview_type = $1,
           scheduled_time = $2,
           duration = $3,
@@ -431,7 +408,7 @@ router.post(
           notes = $6,
           status = 'scheduled',
           scheduled_at = $7,
-          google_event_id = $8,
+          teams_meeting_id = $8,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = $9
     `,
@@ -439,11 +416,11 @@ router.post(
           interviewType || 'technical',
           scheduledTime,
           duration || 60,
-          platform || 'Video Call',
+          'Microsoft Teams',
           meetingLink || '',
           notes || '',
           new Date(),
-          googleEventId,
+          teamsMeetingId,
           interviewId,
         ],
       );
@@ -549,6 +526,124 @@ router.post(
 );
 
 /**
+ * PUT /interview/:id/reschedule - Reschedule an interview
+ */
+router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { scheduledTime, duration, notes, notifyRecipients } = req.body;
+
+    if (!scheduledTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'scheduledTime is required',
+      });
+    }
+
+    await database.connect();
+
+    // Verify interview exists and belongs to user
+    const interview = await database.get(
+      `
+      SELECT * FROM interviews
+      WHERE id = $1 AND scheduled_by = $2
+    `,
+      [id, req.user.id],
+    );
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found',
+      });
+    }
+
+    // Update interview with new schedule
+    await database.run(
+      `
+      UPDATE interviews
+      SET scheduled_time = $1,
+          duration = COALESCE($2, duration),
+          notes = COALESCE($3, notes),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+    `,
+      [scheduledTime, duration || null, notes || null, id],
+    );
+
+    // Keep existing meeting link (Microsoft Teams)
+    const updatedMeetingLink = interview.meeting_link;
+
+    // Send reschedule notification email if requested
+    if (notifyRecipients !== false && OutlookEmailService) {
+      try {
+        // Generate new ICS file
+        let icsContent = null;
+        if (InterviewCoordinatorService) {
+          icsContent = InterviewCoordinatorService.generateICSInvite({
+            id: interview.id,
+            candidateName: interview.candidate_name,
+            candidateEmail: interview.candidate_email,
+            position: interview.job_title,
+            interviewType: interview.interview_type,
+            scheduledTime,
+            duration: duration || interview.duration,
+            platform: interview.platform,
+            meetingLink: updatedMeetingLink,
+          });
+        }
+
+        // Parse CC and BCC emails (stored as JSON strings)
+        const ccEmails = [];
+        const bccEmails = [];
+        // TODO: Load CC/BCC from interview table when columns are added
+        // For now, using empty arrays
+
+        await OutlookEmailService.sendRescheduleNotification(
+          req.user.id,
+          interview.candidate_email,
+          {
+            candidateName: interview.candidate_name,
+            position: interview.job_title,
+            interviewType: interview.interview_type,
+            oldScheduledTime: interview.scheduled_time,
+            newScheduledTime: scheduledTime,
+            duration: duration || interview.duration,
+            platform: interview.platform,
+            meetingLink: updatedMeetingLink,
+            notes: notes || interview.notes,
+            ccEmails,
+            bccEmails,
+          },
+          icsContent,
+        );
+        console.log('✅ Reschedule notification sent');
+      } catch (error) {
+        console.error('⚠️  Failed to send reschedule notification:', error.message);
+        // Don't fail the request if email fails
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Interview rescheduled successfully',
+      data: {
+        scheduledTime,
+        duration: duration || interview.duration,
+        notificationSent: notifyRecipients !== false,
+      },
+    });
+  } catch (error) {
+    console.error('Reschedule interview error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reschedule interview',
+      error: error.message,
+    });
+  }
+});
+
+/**
  * PUT /interview/:id/status - Update interview status (scheduled/completed/selected/rejected)
  */
 router.put('/interview/:id/status', authenticateToken, async (req, res) => {
@@ -631,7 +726,7 @@ router.put('/interview/:id/status', authenticateToken, async (req, res) => {
 router.get('/calendar/:id/ics', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { type } = req.query; // google, outlook, or apple
+    // const { type } = req.query; // google, outlook, or apple - not currently used
 
     await database.connect();
 

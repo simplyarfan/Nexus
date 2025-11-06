@@ -17,125 +17,9 @@ import {
   Edit2,
   Video,
   AlertCircle,
-  ChevronDown,
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-
-// Status Dropdown Component
-const StatusDropdown = ({ currentStatus, currentOutcome, onStatusChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = React.useRef(null);
-
-  React.useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const statusOptions = [
-    {
-      status: 'awaiting_response',
-      outcome: null,
-      label: 'Awaiting Response',
-      color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      icon: Clock,
-    },
-    {
-      status: 'scheduled',
-      outcome: null,
-      label: 'Scheduled',
-      color: 'bg-blue-100 text-blue-800 border-blue-200',
-      icon: Calendar,
-    },
-    {
-      status: 'completed',
-      outcome: null,
-      label: 'Completed',
-      color: 'bg-gray-100 text-gray-800 border-gray-200',
-      icon: CheckCircle2,
-    },
-    {
-      status: 'completed',
-      outcome: 'selected',
-      label: 'Selected',
-      color: 'bg-green-100 text-green-800 border-green-200',
-      icon: CheckCircle2,
-    },
-    {
-      status: 'completed',
-      outcome: 'rejected',
-      label: 'Rejected',
-      color: 'bg-red-100 text-red-800 border-red-200',
-      icon: XCircle,
-    },
-    {
-      status: 'cancelled',
-      outcome: null,
-      label: 'Cancelled',
-      color: 'bg-red-100 text-red-800 border-red-200',
-      icon: XCircle,
-    },
-  ];
-
-  const currentOption =
-    statusOptions.find((opt) => opt.status === currentStatus && opt.outcome === currentOutcome) ||
-    statusOptions[0];
-
-  const CurrentIcon = currentOption.icon;
-
-  const handleStatusSelect = (option) => {
-    onStatusChange(option.status, option.outcome);
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-3 rounded-lg border-2 transition-all flex items-center justify-between font-semibold ${currentOption.color}`}
-      >
-        <span className="flex items-center">
-          <CurrentIcon className="w-5 h-5 mr-2" />
-          {currentOption.label}
-        </span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
-          {statusOptions.map((option, idx) => {
-            const OptionIcon = option.icon;
-            const isActive = option.status === currentStatus && option.outcome === currentOutcome;
-
-            return (
-              <button
-                key={idx}
-                onClick={() => handleStatusSelect(option)}
-                className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between border-b border-gray-100 last:border-b-0 ${
-                  isActive ? 'bg-gray-50' : ''
-                }`}
-              >
-                <span className="flex items-center space-x-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${option.color}`}>
-                    <OptionIcon className="w-4 h-4 inline mr-1" />
-                    {option.label}
-                  </span>
-                </span>
-                {isActive && <CheckCircle2 className="w-4 h-4 text-green-600" />}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const InterviewDetailPage = () => {
   const { user, getAuthHeaders } = useAuth();
@@ -145,6 +29,19 @@ const InterviewDetailPage = () => {
   const [interview, setInterview] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({
+    interviewType: 'technical',
+    scheduledTime: '',
+    duration: 60,
+    platform: 'Microsoft Teams',
+    notes: '',
+    ccEmails: '',
+    bccEmails: '',
+    cvFile: null,
+  });
   const [rescheduleForm, setRescheduleForm] = useState({
     scheduledTime: '',
     duration: 60,
@@ -274,10 +171,6 @@ const InterviewDetailPage = () => {
   };
 
   const deleteInterview = async () => {
-    if (!confirm('Are you sure you want to delete this interview? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       const headers = getAuthHeaders();
       const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
@@ -290,6 +183,104 @@ const InterviewDetailPage = () => {
       console.error('Delete error:', error);
       toast.error('Failed to delete interview');
     }
+  };
+
+  const cancelInterview = async () => {
+    try {
+      const headers = getAuthHeaders();
+      const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
+
+      await axios.put(
+        `${API_URL}/interview-coordinator/interview/${id}/status`,
+        { status: 'cancelled', outcome: null },
+        { headers },
+      );
+
+      toast.success('Interview cancelled successfully!');
+      setShowCancelModal(false);
+      fetchInterviewDetails();
+    } catch (error) {
+      console.error('Cancel error:', error);
+      toast.error('Failed to cancel interview');
+    }
+  };
+
+  const handleNextStep = async () => {
+    const currentStatus = interview.status;
+
+    if (currentStatus === 'awaiting_response') {
+      // Show inline scheduling form
+      setShowScheduleForm(true);
+    } else if (currentStatus === 'scheduled') {
+      // Move to completed
+      await updateInterviewStatus('completed', null);
+    }
+  };
+
+  const handleScheduleInterview = async (e) => {
+    e.preventDefault();
+
+    if (!scheduleForm.scheduledTime) {
+      toast.error('Please select date and time');
+      return;
+    }
+
+    try {
+      const headers = getAuthHeaders();
+      const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api';
+
+      const formData = new FormData();
+      formData.append('interviewId', id);
+      formData.append('interviewType', scheduleForm.interviewType);
+      formData.append('scheduledTime', scheduleForm.scheduledTime);
+      formData.append('duration', scheduleForm.duration);
+      formData.append('platform', scheduleForm.platform);
+      formData.append('notes', scheduleForm.notes || '');
+
+      // Handle CC and BCC emails
+      const ccEmailsArray = scheduleForm.ccEmails
+        .split(',')
+        .map((e) => e.trim())
+        .filter(Boolean);
+      const bccEmailsArray = scheduleForm.bccEmails
+        .split(',')
+        .map((e) => e.trim())
+        .filter(Boolean);
+
+      formData.append('ccEmails', JSON.stringify(ccEmailsArray));
+      formData.append('bccEmails', JSON.stringify(bccEmailsArray));
+
+      if (scheduleForm.cvFile) {
+        formData.append('cv', scheduleForm.cvFile);
+      }
+
+      const response = await axios.post(`${API_URL}/interview-coordinator/schedule`, formData, {
+        headers,
+      });
+
+      if (response.data?.success) {
+        toast.success('Interview scheduled successfully!');
+        setShowScheduleForm(false);
+        setScheduleForm({
+          interviewType: 'technical',
+          scheduledTime: '',
+          duration: 60,
+          platform: 'Microsoft Teams',
+          notes: '',
+          ccEmails: '',
+          bccEmails: '',
+          cvFile: null,
+        });
+        fetchInterviewDetails();
+      }
+    } catch (error) {
+      console.error('Schedule error:', error);
+      toast.error(error.response?.data?.message || 'Failed to schedule interview');
+    }
+  };
+
+  const handleOutcomeSelect = async (outcome) => {
+    await updateInterviewStatus('completed', outcome);
   };
 
   const getStatusDisplay = (status, outcome) => {
@@ -511,20 +502,23 @@ const InterviewDetailPage = () => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
                 <div className="space-y-3">
-                  <StatusDropdown
-                    currentStatus={interview.status}
-                    currentOutcome={interview.outcome}
-                    onStatusChange={(status, outcome) => updateInterviewStatus(status, outcome)}
-                  />
+                  {/* Current Status Display */}
+                  <div
+                    className={`px-4 py-3 rounded-lg border-2 flex items-center justify-center font-semibold ${statusDisplay.color}`}
+                  >
+                    <StatusIcon className="w-5 h-5 mr-2" />
+                    {statusDisplay.text}
+                  </div>
 
-                  {/* Schedule Interview Button - Show when awaiting response */}
-                  {interview.status === 'awaiting_response' && !interview.scheduled_time && (
+                  {/* Next Step Button - Show for awaiting_response and scheduled */}
+                  {(interview.status === 'awaiting_response' ||
+                    interview.status === 'scheduled') && (
                     <button
-                      onClick={() => router.push(`/interview-coordinator?scheduleCandidate=${id}`)}
+                      onClick={handleNextStep}
                       className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
                     >
                       <Calendar className="w-5 h-5 mr-2" />
-                      Schedule Interview
+                      Next Step
                     </button>
                   )}
 
@@ -547,19 +541,59 @@ const InterviewDetailPage = () => {
                       Reschedule Interview
                     </button>
                   )}
+
+                  {/* Outcome Selection - Show when completed without outcome */}
+                  {interview.status === 'completed' && !interview.outcome && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Select Outcome
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleOutcomeSelect('selected')}
+                          className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                        >
+                          <CheckCircle2 className="w-4 h-4 inline mr-1" />
+                          Select
+                        </button>
+                        <button
+                          onClick={() => handleOutcomeSelect('rejected')}
+                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                        >
+                          <XCircle className="w-4 h-4 inline mr-1" />
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Delete Action */}
+              {/* Danger Zone */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Danger Zone</h3>
-                <button
-                  onClick={deleteInterview}
-                  className="w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-red-200 hover:border-red-300"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Interview
-                </button>
+                <div className="space-y-3">
+                  {/* Cancel Interview - Show if not already cancelled or completed with outcome */}
+                  {interview.status !== 'cancelled' &&
+                    !(interview.status === 'completed' && interview.outcome) && (
+                      <button
+                        onClick={() => setShowCancelModal(true)}
+                        className="w-full px-4 py-3 text-orange-600 hover:bg-orange-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-orange-200 hover:border-orange-300"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Cancel Interview
+                      </button>
+                    )}
+
+                  {/* Delete Interview */}
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    className="w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-red-200 hover:border-red-300"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Interview
+                  </button>
+                </div>
               </div>
 
               {/* Metadata */}
@@ -592,6 +626,173 @@ const InterviewDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Inline Scheduling Form - Show when awaiting_response and Next Step clicked */}
+          {showScheduleForm && interview.status === 'awaiting_response' && (
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">Schedule Interview</h3>
+                  <button
+                    onClick={() => setShowScheduleForm(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleScheduleInterview} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Interview Type *
+                      </label>
+                      <select
+                        value={scheduleForm.interviewType}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, interviewType: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="technical">Technical</option>
+                        <option value="hr">HR</option>
+                        <option value="behavioral">Behavioral</option>
+                        <option value="final">Final</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Duration (minutes) *
+                      </label>
+                      <input
+                        type="number"
+                        min="15"
+                        step="15"
+                        value={scheduleForm.duration}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, duration: parseInt(e.target.value) })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Scheduled Date & Time *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={scheduleForm.scheduledTime}
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, scheduledTime: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Platform *
+                    </label>
+                    <select
+                      value={scheduleForm.platform}
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, platform: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="Microsoft Teams">Microsoft Teams</option>
+                      <option value="Zoom">Zoom</option>
+                      <option value="Google Meet">Google Meet</option>
+                      <option value="Phone">Phone</option>
+                      <option value="In-person">In-person</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Notes (Optional)
+                    </label>
+                    <textarea
+                      value={scheduleForm.notes}
+                      onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
+                      rows="3"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Add any notes or instructions..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        CC Emails (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={scheduleForm.ccEmails}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, ccEmails: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="email1@example.com, email2@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        BCC Emails (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={scheduleForm.bccEmails}
+                        onChange={(e) =>
+                          setScheduleForm({ ...scheduleForm, bccEmails: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="email1@example.com, email2@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Attach CV (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, cvFile: e.target.files[0] })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowScheduleForm(false)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                    >
+                      Schedule Interview
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Reschedule Modal */}
@@ -679,6 +880,85 @@ const InterviewDetailPage = () => {
                   className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-medium"
                 >
                   Confirm Reschedule
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Delete Interview</h3>
+                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this interview with{' '}
+                <strong>{interview.candidate_name}</strong>? All associated data will be permanently
+                removed.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    deleteInterview();
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Delete Interview
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mr-4">
+                  <XCircle className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Cancel Interview</h3>
+                  <p className="text-sm text-gray-600">Mark interview as cancelled</p>
+                </div>
+              </div>
+
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to cancel this interview with{' '}
+                <strong>{interview.candidate_name}</strong>? The interview status will be updated to
+                cancelled.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Go Back
+                </button>
+                <button
+                  onClick={cancelInterview}
+                  className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Cancel Interview
                 </button>
               </div>
             </div>

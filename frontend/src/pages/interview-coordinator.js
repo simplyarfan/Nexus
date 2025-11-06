@@ -409,8 +409,8 @@ Best regards,
                   Connect Your Outlook Account
                 </h1>
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  To use the Interview Coordinator and send interview invitations with Microsoft Teams
-                  links, you need to connect your Outlook email account first.
+                  To use the Interview Coordinator and send interview invitations with Microsoft
+                  Teams links, you need to connect your Outlook email account first.
                 </p>
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start space-x-3">
@@ -418,8 +418,8 @@ Best regards,
                     <div className="text-sm text-orange-800 text-left">
                       <p className="font-medium mb-1">Why is this required?</p>
                       <p className="text-orange-700">
-                        We need your Outlook account to send emails with Microsoft Teams meeting links,
-                        calendar invites, and manage interview schedules on your behalf.
+                        We need your Outlook account to send emails with Microsoft Teams meeting
+                        links, calendar invites, and manage interview schedules on your behalf.
                       </p>
                     </div>
                   </div>

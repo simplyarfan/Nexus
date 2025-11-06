@@ -134,16 +134,12 @@ class OutlookEmailService {
 
       console.log('🎥 Creating Teams meeting via Graph API...');
 
-      const response = await axios.post(
-        `${this.graphApiUrl}/me/onlineMeetings`,
-        meetingPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
+      const response = await axios.post(`${this.graphApiUrl}/me/onlineMeetings`, meetingPayload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
         },
-      );
+      });
 
       const { joinWebUrl, id } = response.data;
 

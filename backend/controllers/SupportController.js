@@ -341,53 +341,77 @@ class SupportController {
       // Only admins can add internal comments
       const isInternalComment = is_internal && isAdmin;
 
-      // Add comment
-      const result = await database.run(
-        `
-        INSERT INTO ticket_comments (ticket_id, user_id, comment, is_internal)
-        VALUES ($1, $2, $3, $4) RETURNING id
-      `,
-        [ticket_id, req.user.id, comment, isInternalComment],
-      );
+      // Get a client from the pool for transaction
+      const client = await database.pool.connect();
 
-      // Handle PostgreSQL result format
-      const commentId = result.rows?.[0]?.id || result.id;
+      let commentId;
+      let createdComment;
 
-      // Immediate validation - fail fast if no ID returned
-      if (!commentId) {
-        console.error('🎫 [SUPPORT] Failed to create comment - no ID returned');
-        console.error('🎫 [SUPPORT] Result structure:', JSON.stringify(result));
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to create comment - database error',
-        });
+      try {
+        // Start transaction
+        await client.query('BEGIN');
+
+        // Add comment
+        const result = await client.query(
+          `
+          INSERT INTO ticket_comments (ticket_id, user_id, comment, is_internal)
+          VALUES ($1, $2, $3, $4) RETURNING id
+        `,
+          [ticket_id, req.user.id, comment, isInternalComment],
+        );
+
+        // Handle PostgreSQL result format
+        commentId = result.rows?.[0]?.id;
+
+        // Immediate validation - fail fast if no ID returned
+        if (!commentId) {
+          await client.query('ROLLBACK');
+          console.error('🎫 [SUPPORT] Failed to create comment - no ID returned');
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to create comment - database error',
+          });
+        }
+
+        // Update ticket's updated_at timestamp
+        await client.query(
+          `
+          UPDATE support_tickets
+          SET updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `,
+          [ticket_id],
+        );
+
+        // Get the created comment with user info (in same transaction)
+        const commentResult = await client.query(
+          `
+          SELECT
+            tc.*,
+            u.first_name,
+            u.last_name,
+            u.email,
+            u.role
+          FROM ticket_comments tc
+          JOIN users u ON tc.user_id = u.id
+          WHERE tc.id = $1
+        `,
+          [commentId],
+        );
+
+        createdComment = commentResult.rows[0];
+
+        // Commit transaction
+        await client.query('COMMIT');
+
+        console.log('✅ [SUPPORT] Comment transaction committed:', commentId);
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ [SUPPORT] Transaction failed:', error);
+        throw error;
+      } finally {
+        client.release();
       }
-
-      // Update ticket's updated_at timestamp
-      await database.run(
-        `
-        UPDATE support_tickets 
-        SET updated_at = CURRENT_TIMESTAMP 
-        WHERE id = $1
-      `,
-        [ticket_id],
-      );
-
-      // Get the created comment with user info
-      const createdComment = await database.get(
-        `
-        SELECT 
-          tc.*,
-          u.first_name,
-          u.last_name,
-          u.email,
-          u.role
-        FROM ticket_comments tc
-        JOIN users u ON tc.user_id = u.id
-        WHERE tc.id = $1
-      `,
-        [commentId],
-      );
 
       // Create notifications
       const NotificationController = require('./NotificationController');

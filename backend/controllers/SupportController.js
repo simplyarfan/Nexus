@@ -348,8 +348,9 @@ class SupportController {
       let createdComment;
 
       try {
-        // Start transaction
+        // Start transaction with synchronous commit to force immediate persistence
         await client.query('BEGIN');
+        await client.query('SET LOCAL synchronous_commit = on');
 
         // Add comment
         const result = await client.query(
@@ -401,10 +402,13 @@ class SupportController {
 
         createdComment = commentResult.rows[0];
 
-        // Commit transaction
+        // Commit transaction and wait for WAL flush
         await client.query('COMMIT');
 
-        console.log('✅ [SUPPORT] Comment transaction committed:', commentId);
+        // Force synchronous wait for write-ahead log flush
+        await client.query('SELECT pg_current_wal_flush_lsn()');
+
+        console.log('✅ [SUPPORT] Comment transaction committed and flushed:', commentId);
       } catch (error) {
         await client.query('ROLLBACK');
         console.error('❌ [SUPPORT] Transaction failed:', error);

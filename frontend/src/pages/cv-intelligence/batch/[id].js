@@ -140,7 +140,7 @@ const BatchDetail = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
           <p className="mt-4 text-gray-600 text-sm">Loading batch details...</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ const BatchDetail = () => {
           <p className="text-gray-600 mb-6">The requested batch could not be found.</p>
           <button
             onClick={() => router.push('/cv-intelligence')}
-            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-colors"
           >
             Back to CV Intelligence
           </button>
@@ -184,7 +184,7 @@ const BatchDetail = () => {
                 <Icons.ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                   <Icons.Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -251,8 +251,8 @@ const BatchDetail = () => {
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Icons.TrendingUp className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Icons.TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Status</p>
@@ -295,7 +295,7 @@ const BatchDetail = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <div className="flex-shrink-0">
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
                             #{index + 1}
                           </div>
                         </div>
@@ -345,7 +345,7 @@ const BatchDetail = () => {
                           <button
                             onClick={() => handleScheduleInterview(candidate)}
                             disabled={schedulingInterview === candidate.id}
-                            className="inline-flex items-center px-3 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
+                            className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
                           >
                             {schedulingInterview === candidate.id ? (
                               <>
@@ -361,7 +361,7 @@ const BatchDetail = () => {
                           </button>
                           <button
                             onClick={() => openCandidateModal(candidate)}
-                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
                           >
                             View Details
                           </button>
@@ -438,7 +438,7 @@ const BatchDetail = () => {
           <div className="bg-white rounded-2xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center">
                   <span className="text-2xl font-bold text-white">
                     #{candidates.findIndex((c) => c.id === selectedCandidate.id) + 1}
                   </span>

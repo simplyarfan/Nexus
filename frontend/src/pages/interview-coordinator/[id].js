@@ -328,7 +328,7 @@ const InterviewDetailPage = () => {
   if (!user || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
       </div>
     );
   }
@@ -374,10 +374,10 @@ const InterviewDetailPage = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Candidate Card */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-orange-500 to-red-600 px-6 py-8">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-8">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                      <User className="w-8 h-8 text-orange-600" />
+                      <User className="w-8 h-8 text-green-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-2xl font-bold text-white mb-1">
@@ -537,7 +537,7 @@ const InterviewDetailPage = () => {
                         });
                         setShowRescheduleModal(true);
                       }}
-                      className="w-full px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                      className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
                     >
                       <Clock className="w-5 h-5 mr-2" />
                       Reschedule Interview
@@ -580,7 +580,7 @@ const InterviewDetailPage = () => {
                     !(interview.status === 'completed' && interview.outcome) && (
                       <button
                         onClick={() => setShowCancelModal(true)}
-                        className="w-full px-4 py-3 text-orange-600 hover:bg-orange-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-orange-200 hover:border-orange-300"
+                        className="w-full px-4 py-3 text-green-600 hover:bg-green-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-orange-200 hover:border-orange-300"
                       >
                         <XCircle className="w-4 h-4 mr-2" />
                         Cancel Interview
@@ -803,7 +803,7 @@ const InterviewDetailPage = () => {
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Clock className="w-6 h-6 mr-2 text-orange-600" />
+                  <Clock className="w-6 h-6 mr-2 text-green-600" />
                   Reschedule Interview
                 </h3>
                 <button
@@ -825,7 +825,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, scheduledTime: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </div>
@@ -842,7 +842,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, duration: parseInt(e.target.value) })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -855,7 +855,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, notes: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
                     rows="3"
                     placeholder="Optional notes about the reschedule..."
                   />
@@ -879,7 +879,7 @@ const InterviewDetailPage = () => {
                 </button>
                 <button
                   onClick={rescheduleInterview}
-                  className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
                 >
                   Confirm Reschedule
                 </button>
@@ -934,8 +934,8 @@ const InterviewDetailPage = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mr-4">
-                  <XCircle className="w-6 h-6 text-orange-600" />
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                  <XCircle className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Cancel Interview</h3>
@@ -958,7 +958,7 @@ const InterviewDetailPage = () => {
                 </button>
                 <button
                   onClick={cancelInterview}
-                  className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
                 >
                   Cancel Interview
                 </button>

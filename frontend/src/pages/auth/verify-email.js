@@ -155,7 +155,7 @@ export default function VerifyEmail() {
             <div className="text-center mb-8">
               <div className="mx-auto w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mb-4">
                 <svg
-                  className="w-8 h-8 text-orange-600 dark:text-orange-400"
+                  className="w-8 h-8 text-green-600 dark:text-orange-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -179,10 +179,10 @@ export default function VerifyEmail() {
 
             {/* Login Redirect Banner */}
             {showLoginBanner && (
-              <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="mb-6 p-4 bg-orange-50 border border-green-200 rounded-lg">
                 <div className="flex items-start">
                   <svg
-                    className="w-5 h-5 text-orange-600 mt-0.5 mr-3"
+                    className="w-5 h-5 text-green-600 mt-0.5 mr-3"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -198,13 +198,13 @@ export default function VerifyEmail() {
                     <p className="text-sm font-medium text-orange-900">
                       Please verify your email address first
                     </p>
-                    <p className="text-sm text-orange-700 mt-1">
+                    <p className="text-sm text-green-700 mt-1">
                       Check your inbox for the verification code we sent you.
                     </p>
                   </div>
                   <button
                     onClick={() => setShowLoginBanner(false)}
-                    className="text-orange-400 hover:text-orange-600 ml-3"
+                    className="text-orange-400 hover:text-green-600 ml-3"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path
@@ -249,7 +249,7 @@ export default function VerifyEmail() {
                     value={digit}
                     onChange={(e) => handleInputChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
                     disabled={loading}
                   />
                 ))}
@@ -297,7 +297,7 @@ export default function VerifyEmail() {
               <button
                 onClick={handleResend}
                 disabled={loading || resendCooldown > 0}
-                className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-green-600 dark:text-orange-400 hover:text-green-700 dark:hover:text-orange-300 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {resendCooldown > 0
                   ? `Resend code in ${resendCooldown}s`

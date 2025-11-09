@@ -75,12 +75,14 @@ router.get('/', authenticateToken, async (req, res) => {
 
     res.json({
       success: true,
-      data: transformedTickets,
-      pagination: {
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit)),
+      data: {
+        tickets: transformedTickets,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / parseInt(limit)),
+        },
       },
     });
   } catch (error) {
@@ -147,7 +149,9 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Ticket created successfully',
-      data: ticket,
+      data: {
+        ticket: ticket,
+      },
     });
   } catch (error) {
     console.error('Error creating ticket:', error);

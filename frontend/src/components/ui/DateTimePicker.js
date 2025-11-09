@@ -151,7 +151,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
               setShowCalendar(!showCalendar);
               setShowTimePicker(false);
             }}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-white"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-green-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
           >
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-gray-400" />
@@ -219,9 +219,9 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                         disabled={disabled}
                         className={`
                           aspect-square rounded-lg text-sm font-medium transition-all
-                          ${disabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-orange-50 text-gray-700'}
+                          ${disabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-green-50 text-gray-700'}
                           ${today && !selected ? 'bg-blue-50 text-blue-600' : ''}
-                          ${selected ? 'bg-orange-600 text-white hover:bg-orange-700' : ''}
+                          ${selected ? 'bg-green-600 text-white hover:bg-green-700' : ''}
                         `}
                       >
                         {date.getDate()}
@@ -235,7 +235,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                   <button
                     type="button"
                     onClick={() => handleDateSelect(new Date())}
-                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                    className="text-sm text-green-600 hover:text-green-700 font-medium"
                   >
                     Today
                   </button>
@@ -260,7 +260,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
               setShowTimePicker(!showTimePicker);
               setShowCalendar(false);
             }}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-white"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-green-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
           >
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-gray-400" />
@@ -284,7 +284,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                     <select
                       value={selectedTime.hour}
                       onChange={(e) => handleTimeChange('hour', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
                     >
                       {hours.map((h) => (
                         <option key={h} value={h}>
@@ -302,7 +302,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                     <select
                       value={selectedTime.minute}
                       onChange={(e) => handleTimeChange('minute', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
                     >
                       {minutes
                         .filter((m) => parseInt(m) % 5 === 0)
@@ -323,7 +323,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                         onClick={() => handleTimeChange('period', 'AM')}
                         className={`flex-1 py-2 text-sm font-medium transition-colors ${
                           selectedTime.period === 'AM'
-                            ? 'bg-orange-600 text-white'
+                            ? 'bg-green-600 text-white'
                             : 'bg-white text-gray-700 hover:bg-gray-50'
                         }`}
                       >
@@ -334,7 +334,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                         onClick={() => handleTimeChange('period', 'PM')}
                         className={`flex-1 py-2 text-sm font-medium transition-colors ${
                           selectedTime.period === 'PM'
-                            ? 'bg-orange-600 text-white'
+                            ? 'bg-green-600 text-white'
                             : 'bg-white text-gray-700 hover:bg-gray-50'
                         }`}
                       >
@@ -370,7 +370,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                             });
                           }
                         }}
-                        className="px-2 py-1.5 text-xs bg-gray-50 hover:bg-orange-50 border border-gray-200 rounded-lg transition-colors"
+                        className="px-2 py-1.5 text-xs bg-gray-50 hover:bg-green-50 border border-gray-200 rounded-lg transition-colors"
                       >
                         {time.label}
                       </button>
@@ -382,7 +382,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                   <button
                     type="button"
                     onClick={() => setShowTimePicker(false)}
-                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                    className="text-sm text-green-600 hover:text-green-700 font-medium"
                   >
                     Done
                   </button>
@@ -398,11 +398,11 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
-          className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200"
+          className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200"
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs font-medium text-orange-600 mb-1">Scheduled for</div>
+              <div className="text-xs font-medium text-green-600 mb-1">Scheduled for</div>
               <div className="text-sm font-semibold text-gray-900">
                 {selectedDate.toLocaleDateString('en-US', {
                   weekday: 'long',
@@ -419,7 +419,7 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
                 setSelectedDate(null);
                 onChange({ target: { value: '' } });
               }}
-              className="text-orange-600 hover:text-orange-700 text-xs font-medium"
+              className="text-green-600 hover:text-green-700 text-xs font-medium"
             >
               Clear
             </button>

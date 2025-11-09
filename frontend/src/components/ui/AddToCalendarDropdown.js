@@ -143,10 +143,10 @@ const AddToCalendarDropdown = ({ interview }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 bg-white border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 text-gray-700 rounded-lg transition-all flex items-center justify-between font-medium group"
+        className="w-full px-4 py-3 bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 text-gray-700 rounded-lg transition-all flex items-center justify-between font-medium group"
       >
         <span className="flex items-center">
-          <Calendar className="w-5 h-5 mr-2 group-hover:text-orange-600" />
+          <Calendar className="w-5 h-5 mr-2 group-hover:text-green-600" />
           Add to Calendar
         </span>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

@@ -13,7 +13,7 @@ export const Logo = ({ size = 'md', showText = true, className }) => {
     <div className={cn('flex items-center space-x-3', className)}>
       <div
         className={cn(
-          'bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center',
+          'bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center',
           sizes[size].container,
         )}
       >

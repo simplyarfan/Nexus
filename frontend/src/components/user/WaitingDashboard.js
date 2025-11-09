@@ -58,7 +58,7 @@ const WaitingDashboard = () => {
       name: 'Reaction Time',
       description: 'How fast are your reflexes?',
       icon: Zap,
-      color: 'from-yellow-500 to-orange-600',
+      color: 'from-yellow-500 to-green-600',
       action: () => setCurrentGame('reaction'),
     },
     {
@@ -95,7 +95,7 @@ const WaitingDashboard = () => {
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
             </div>
             <span className="text-xl font-bold text-gray-900">Nexus</span>
@@ -195,7 +195,7 @@ const WaitingDashboard = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
               <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
@@ -208,7 +208,7 @@ const WaitingDashboard = () => {
         {/* Dashboard content */}
         <div className="p-6 pb-20">
           {/* Welcome section */}
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-8 text-white mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Welcome to Nexus AI Platform!</h2>
@@ -227,7 +227,7 @@ const WaitingDashboard = () => {
           {/* Status Card */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
@@ -272,7 +272,7 @@ const WaitingDashboard = () => {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{game.name}</h3>
                       <p className="text-gray-600 text-sm mb-4">{game.description}</p>
-                      <div className="flex items-center text-orange-600 text-sm font-medium group-hover:text-orange-700">
+                      <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
                         <span>Play Now</span>
                         <Gamepad2 className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -407,13 +407,13 @@ const WaitingDashboard = () => {
                           setReactionTimer(Date.now());
                         }, delay);
                       }}
-                      className="px-4 py-2 text-white bg-gradient-to-r from-orange-500 to-red-600 rounded-lg hover:from-orange-600 hover:to-red-700 transition-colors"
+                      className="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-colors"
                     >
                       Start Game
                     </button>
                   )}
                   {currentGame !== 'reaction' && (
-                    <button className="px-4 py-2 text-white bg-gradient-to-r from-orange-500 to-red-600 rounded-lg hover:from-orange-600 hover:to-red-700 transition-colors opacity-50 cursor-not-allowed">
+                    <button className="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-colors opacity-50 cursor-not-allowed">
                       Coming Soon
                     </button>
                   )}

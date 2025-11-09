@@ -346,7 +346,7 @@ const InterviewDetailPage = () => {
         <title>{interview.candidate_name} - Interview Details</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -383,7 +383,7 @@ const InterviewDetailPage = () => {
                       <h2 className="text-2xl font-bold text-white mb-1">
                         {interview.candidate_name}
                       </h2>
-                      <p className="text-orange-100 flex items-center">
+                      <p className="text-green-100 flex items-center">
                         <Mail className="w-4 h-4 mr-2" />
                         {interview.candidate_email}
                       </p>
@@ -580,7 +580,7 @@ const InterviewDetailPage = () => {
                     !(interview.status === 'completed' && interview.outcome) && (
                       <button
                         onClick={() => setShowCancelModal(true)}
-                        className="w-full px-4 py-3 text-green-600 hover:bg-green-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-orange-200 hover:border-orange-300"
+                        className="w-full px-4 py-3 text-green-600 hover:bg-green-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-green-200 hover:border-green-300"
                       >
                         <XCircle className="w-4 h-4 mr-2" />
                         Cancel Interview

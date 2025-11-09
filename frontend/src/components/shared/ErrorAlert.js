@@ -98,7 +98,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }) => {
         {resetErrorBoundary && (
           <button
             onClick={resetErrorBoundary}
-            className="mt-4 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             Try again
           </button>

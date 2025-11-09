@@ -82,6 +82,124 @@
   }
 }
 
+@layer base {
+  /* Focus ring utility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+}
+
+@layer components {
+  /* Button Base */
+  .btn-base {
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus-ring disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Button Sizes */
+  .btn {
+    @apply btn-base px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply btn-base px-6 py-3 text-base;
+  }
+
+  .btn-sm {
+    @apply btn-base px-3 py-1.5 text-xs;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply bg-green-500 text-white hover:bg-green-600 active:bg-green-700;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-900 border border-gray-300 hover:bg-gray-200 active:bg-gray-300;
+  }
+
+  .btn-success {
+    @apply bg-green-500 text-white hover:bg-green-600 active:bg-green-700;
+  }
+
+  .btn-error {
+    @apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200;
+  }
+
+  /* Input Styles */
+  .input-base {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors;
+  }
+
+  .input-error {
+    @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+  }
+
+  /* Form Styles */
+  .form-group {
+    @apply space-y-1;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .form-error {
+    @apply text-sm text-red-500 mt-1;
+  }
+
+  .form-hint {
+    @apply text-sm text-gray-500 mt-1;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+  }
+
+  .card-hover-effect {
+    @apply card transition-all duration-300 hover:shadow-md hover:border-gray-300;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-700;
+  }
+
+  .badge-gray {
+    @apply bg-gray-100 text-gray-700;
+  }
+
+  /* Modal Styles */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-40;
+  }
+}
+
 @layer utilities {
   /* Green Theme Utility Classes */
   .bg-green-theme {
@@ -98,25 +216,6 @@
 
   .ring-green-theme {
     --tw-ring-color: hsl(var(--ring-green));
-  }
-
-  /* Green Button Styles */
-  .btn-green-primary {
-    background: linear-gradient(135deg, #72e3ad 0%, #14b8a6 100%);
-    color: white;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-  }
-
-  .btn-green-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px 0 rgba(114, 227, 173, 0.3);
-  }
-
-  .btn-green-primary:active {
-    transform: translateY(0);
   }
 
   /* Green Card Styles */

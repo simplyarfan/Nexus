@@ -111,28 +111,20 @@ class OutlookEmailService {
       } = meetingData;
 
       // Create online meeting using Microsoft Graph API
+      // Note: POST /me/onlineMeetings doesn't accept participants in payload
+      // Participants are invited via calendar event separately
       const meetingPayload = {
         startDateTime: startDateTime,
         endDateTime: endDateTime,
         subject: subject || 'Interview Meeting',
-        participants: {
-          attendees: participantEmails.map((email) => ({
-            identity: {
-              user: {
-                id: email,
-                displayName: email.split('@')[0],
-              },
-            },
-            upn: email,
-          })),
-        },
-        allowMeetingChat: allowMeetingChat,
+        allowMeetingChat: allowMeetingChat ? 'enabled' : 'disabled',
         allowTeamworkReactions: allowTeamworkReactions,
         allowAttendeeToEnableCamera: true,
         allowAttendeeToEnableMic: true,
       };
 
       console.log('🎥 Creating Teams meeting via Graph API...');
+      console.log('📅 Meeting payload:', JSON.stringify(meetingPayload, null, 2));
 
       const response = await axios.post(`${this.graphApiUrl}/me/onlineMeetings`, meetingPayload, {
         headers: {

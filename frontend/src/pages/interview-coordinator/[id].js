@@ -254,9 +254,11 @@ const InterviewDetailPage = () => {
         formData.append('cv', scheduleForm.cvFile);
       }
 
-      const response = await axios.post(`${API_URL}/interview-coordinator/schedule`, formData, {
-        headers,
-      });
+      const response = await axios.post(
+        `${API_URL}/interview-coordinator/schedule-interview`,
+        formData,
+        { headers },
+      );
 
       if (response.data?.success) {
         toast.success('Interview scheduled successfully!');

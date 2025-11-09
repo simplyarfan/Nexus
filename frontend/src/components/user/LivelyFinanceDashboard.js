@@ -42,7 +42,7 @@ export default function LivelyFinanceDashboard() {
       name: 'Invoice Processor',
       description: 'Automatically process and validate invoices',
       icon: FileText,
-      color: 'from-green-500 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-500 to-green-600', // UPDATED TO GREEN THEME
       route: '/invoice-processor',
     },
     {
@@ -50,7 +50,7 @@ export default function LivelyFinanceDashboard() {
       name: 'Expense Auditor',
       description: 'Audit expenses and detect anomalies',
       icon: Shield,
-      color: 'from-red-500 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-500 to-green-600', // UPDATED TO GREEN THEME
       route: '/expense-auditor',
     },
   ];
@@ -212,7 +212,7 @@ export default function LivelyFinanceDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Finance Intelligence Hub</h2>
-                <p className="text-orange-100">
+                <p className="text-green-100">
                   Access your AI-powered financial tools and automation systems
                 </p>
               </div>

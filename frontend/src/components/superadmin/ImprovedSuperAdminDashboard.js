@@ -49,7 +49,7 @@ export default function ImprovedSuperAdminDashboard() {
       name: 'User Management',
       description: 'Manage users, roles, and permissions',
       icon: Users,
-      color: 'from-green-500 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-500 to-green-600', // UPDATED TO GREEN THEME
       route: '/admin/users',
     },
     {
@@ -57,7 +57,7 @@ export default function ImprovedSuperAdminDashboard() {
       name: 'Support Management',
       description: 'Handle support tickets and requests',
       icon: LifeBuoy,
-      color: 'from-red-500 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-500 to-green-600', // UPDATED TO GREEN THEME
       route: '/admin/tickets',
     },
     {
@@ -65,7 +65,7 @@ export default function ImprovedSuperAdminDashboard() {
       name: 'Analytics Dashboard',
       description: 'View system analytics and insights',
       icon: BarChart3,
-      color: 'from-green-400 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-400 to-green-600', // UPDATED TO GREEN THEME
       route: '/admin/analytics',
     },
     {
@@ -73,7 +73,7 @@ export default function ImprovedSuperAdminDashboard() {
       name: 'System Health',
       description: 'Monitor system performance and status',
       icon: Server,
-      color: 'from-green-600 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-600 to-green-600', // UPDATED TO GREEN THEME
       route: '/admin/system',
     },
   ];
@@ -248,7 +248,7 @@ export default function ImprovedSuperAdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">SuperAdmin Control Center</h2>
-                  <p className="text-orange-100">
+                  <p className="text-green-100">
                     Manage your AI platform with full administrative access
                   </p>
                 </div>

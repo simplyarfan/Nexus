@@ -212,7 +212,7 @@ const WaitingDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Welcome to Nexus AI Platform!</h2>
-                <p className="text-orange-100">
+                <p className="text-green-100">
                   Your account is being reviewed. You&apos;ll be assigned to a department soon.
                 </p>
               </div>

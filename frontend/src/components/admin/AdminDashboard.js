@@ -23,7 +23,7 @@ const AdminDashboard = () => {
   const router = useRouter();
   const [selectedDepartment, setSelectedDepartment] = useState('all');
 
-  // All agents from all departments with ORANGE THEME GRADIENTS
+  // All agents from all departments with GREEN THEME GRADIENTS
   const allAgents = {
     hr: [
       {
@@ -34,7 +34,7 @@ const AdminDashboard = () => {
         status: 'active',
         metrics: { processed: 1247, timeSaved: '312h', accuracy: '94.5%' },
         features: ['Parse PDFs/Word', 'Skill Matching', 'Auto-Ranking', '+1 more'],
-        gradient: 'from-green-500 to-red-500', // ORANGE THEME
+        gradient: 'from-green-500 to-green-500', // GREEN THEME
         department: 'Human Resources',
       },
       {
@@ -45,7 +45,7 @@ const AdminDashboard = () => {
         status: 'active',
         metrics: { scheduled: 89, conflictsAvoided: 23, satisfaction: '4.8/5' },
         features: ['Calendar Sync', 'Auto-Reminders', 'Panel Coordination', '+1 more'],
-        gradient: 'from-green-600 to-amber-500', // ORANGE THEME
+        gradient: 'from-green-600 to-green-500', // GREEN THEME
         department: 'Human Resources',
       },
       {
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
         status: 'active',
         metrics: { onboarded: 34, completion: '98.2%', avgTime: '2 days' },
         features: ['Custom Plans', 'Task Tracking', 'Document Generation', '+1 more'],
-        gradient: 'from-red-500 to-green-500', // ORANGE THEME
+        gradient: 'from-green-500 to-green-500', // GREEN THEME
         department: 'Human Resources',
       },
       {
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
         status: 'beta',
         metrics: { reports: 156, insights: 42, predictions: '91.3%' },
         features: ['Turnover Prediction', 'Performance Analytics', 'DEI Metrics', '+1 more'],
-        gradient: 'from-green-400 to-green-600', // ORANGE THEME
+        gradient: 'from-green-400 to-green-600', // GREEN THEME
         department: 'Human Resources',
       },
     ],
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { pending: 0, processed: 0, accuracy: 'N/A' },
         features: ['OCR Scanning', 'GL Coding', 'Approval Workflow', '+1 more'],
-        gradient: 'from-green-500 to-green-600', // ORANGE THEME
+        gradient: 'from-green-500 to-green-600', // GREEN THEME
         department: 'Finance',
       },
       {
@@ -91,7 +91,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { audited: 0, flagged: 0, savings: '$0' },
         features: ['Policy Checking', 'Receipt Validation', 'Anomaly Detection', '+1 more'],
-        gradient: 'from-red-500 to-green-600', // ORANGE THEME
+        gradient: 'from-green-500 to-green-600', // GREEN THEME
         department: 'Finance',
       },
       {
@@ -102,7 +102,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { reports: 0, insights: 0, forecasts: 'N/A' },
         features: ['Custom Reports', 'Variance Analysis', 'Forecasting', '+1 more'],
-        gradient: 'from-green-400 to-red-500', // ORANGE THEME
+        gradient: 'from-green-400 to-green-500', // GREEN THEME
         department: 'Finance',
       },
     ],
@@ -115,7 +115,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { qualified: 0, scored: 0, conversion: '0%' },
         features: ['Lead Scoring', 'Data Enrichment', 'Intent Signals', '+1 more'],
-        gradient: 'from-green-600 to-green-600', // ORANGE THEME
+        gradient: 'from-green-600 to-green-600', // GREEN THEME
         department: 'Sales & Marketing',
       },
       {
@@ -126,7 +126,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { proposals: 0, winRate: '0%', avgValue: '$0' },
         features: ['Template Library', 'Pricing Engine', 'E-Signatures', '+1 more'],
-        gradient: 'from-red-600 to-green-500', // ORANGE THEME
+        gradient: 'from-red-600 to-green-500', // GREEN THEME
         department: 'Sales & Marketing',
       },
       {
@@ -137,7 +137,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { campaigns: 0, roi: '0%', reach: '0' },
         features: ['ROI Analysis', 'Attribution', 'A/B Testing', '+1 more'],
-        gradient: 'from-amber-600 to-green-600', // ORANGE THEME
+        gradient: 'from-green-600 to-green-600', // GREEN THEME
         department: 'Sales & Marketing',
       },
     ],
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
     return (
       <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-green-200/50 p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden">
         {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-red-50/30 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-green-50/30 pointer-events-none" />
 
         {/* Department badge */}
         <div className="absolute top-4 right-4 z-10">
@@ -181,7 +181,7 @@ const AdminDashboard = () => {
             </div>
           )}
           {agent.status === 'beta' && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium">
+            <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
               <Sparkles className="w-3 h-3" />
               Beta
             </div>
@@ -261,12 +261,12 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50 relative overflow-hidden">
-      {/* Background decorative elements - ORANGE THEME */}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-red-50 to-green-50 relative overflow-hidden">
+      {/* Background decorative elements - GREEN THEME */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-orange-400 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
         <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-red-400 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-400 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
       </div>
 
       <main className="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -295,7 +295,7 @@ const AdminDashboard = () => {
                 </button>
                 <button
                   onClick={() => router.push('/admin/tickets')}
-                  className="flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all"
+                  className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Support Tickets
@@ -316,7 +316,7 @@ const AdminDashboard = () => {
                   onClick={() => setSelectedDepartment(dept.id)}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
                     selectedDepartment === dept.id
-                      ? 'bg-gradient-to-r from-green-500 to-red-500 text-white shadow-lg'
+                      ? 'bg-gradient-to-r from-green-500 to-green-500 text-white shadow-lg'
                       : 'bg-white/80 text-gray-700 hover:bg-white border border-green-200/50'
                   }`}
                 >

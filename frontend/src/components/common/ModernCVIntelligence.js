@@ -267,7 +267,7 @@ const ModernCVIntelligence = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
           <p className="mt-4 text-gray-600 text-sm">Loading CV Intelligence...</p>
         </div>
       </div>
@@ -293,7 +293,7 @@ const ModernCVIntelligence = () => {
                 <Icons.ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                   <Icons.Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -305,7 +305,7 @@ const ModernCVIntelligence = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center text-sm font-medium transition-colors"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg inline-flex items-center text-sm font-medium transition-colors"
               >
                 <Icons.Plus className="w-4 h-4 mr-2" />
                 New Batch
@@ -326,7 +326,7 @@ const ModernCVIntelligence = () => {
               placeholder="Search batches..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -334,7 +334,7 @@ const ModernCVIntelligence = () => {
         {/* Batches Grid */}
         {filteredBatches.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Icons.Brain className="w-10 h-10 text-white" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -348,7 +348,7 @@ const ModernCVIntelligence = () => {
             {!searchQuery && (
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-3 rounded-lg inline-flex items-center font-medium transition-colors"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg inline-flex items-center font-medium transition-colors"
               >
                 <Icons.Plus className="w-5 h-5 mr-2" />
                 Create Your First Batch
@@ -364,11 +364,11 @@ const ModernCVIntelligence = () => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
                       <Icons.FileText className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
                         {batch.name}
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -426,7 +426,7 @@ const ModernCVIntelligence = () => {
                       e.stopPropagation();
                       router.push(`/cv-intelligence/batch/${batch.id}`);
                     }}
-                    className="flex items-center space-x-2 text-orange-600 hover:text-orange-700 transition-colors"
+                    className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors"
                   >
                     <Icons.Eye className="w-4 h-4" />
                     <span className="text-sm font-medium">View Details</span>
@@ -462,7 +462,7 @@ const ModernCVIntelligence = () => {
                     type="text"
                     value={batchName}
                     onChange={(e) => setBatchName(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Enter batch name..."
                     required
                   />
@@ -472,7 +472,7 @@ const ModernCVIntelligence = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     CV Files (PDF only) - Required *
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-green-400 transition-colors">
                     <Icons.Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-600 mb-2">
                       Upload candidate CVs for AI analysis
@@ -523,7 +523,7 @@ const ModernCVIntelligence = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Job Description (PDF/TXT) - Required *
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-orange-400 transition-colors">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-green-400 transition-colors">
                     <Icons.FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-600 mb-2">
                       Upload job description to rank CVs against requirements
@@ -571,7 +571,7 @@ const ModernCVIntelligence = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg font-medium transition-colors"
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-colors"
                   >
                     Create Batch
                   </button>
@@ -587,7 +587,7 @@ const ModernCVIntelligence = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icons.Brain className="w-8 h-8 text-white animate-pulse" />
               </div>
 
@@ -604,7 +604,7 @@ const ModernCVIntelligence = () => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all duration-500"
+                      className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-500"
                       style={{
                         width: `${(processingProgress.current / processingProgress.total) * 100}%`,
                       }}
@@ -614,7 +614,7 @@ const ModernCVIntelligence = () => {
               )}
 
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
                 <span>Please wait while AI analyzes and ranks candidates...</span>
               </div>
             </div>

@@ -42,7 +42,7 @@ export default function LivelySalesDashboard() {
       name: 'Lead Generator',
       description: 'Generate and qualify leads automatically',
       icon: Target,
-      color: 'from-green-600 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-600 to-green-600', // UPDATED TO GREEN THEME
       route: '/lead-generator',
     },
     {
@@ -50,7 +50,7 @@ export default function LivelySalesDashboard() {
       name: 'Campaign Optimizer',
       description: 'Optimize marketing campaigns for better ROI',
       icon: BarChart3,
-      color: 'from-green-400 to-green-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-400 to-green-600', // UPDATED TO GREEN THEME
       route: '/campaign-optimizer',
     },
   ];
@@ -212,7 +212,7 @@ export default function LivelySalesDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Sales Intelligence Hub</h2>
-                <p className="text-orange-100">
+                <p className="text-green-100">
                   Access your AI-powered sales tools and campaign management systems
                 </p>
               </div>

@@ -265,43 +265,20 @@ export const adminAPI = {
   seedDatabase: () => api.post('/admin/seed-database'),
 };
 
-// Client-side axios instance for Next.js API routes (ticketing system)
-const nextApi = axios.create({
-  baseURL: typeof window !== 'undefined' ? window.location.origin : '',
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add token to Next.js API requests
-nextApi.interceptors.request.use(
-  (config) => {
-    const token = tokenManager.getAccessToken();
-    if (token && !tokenManager.isTokenExpired(token)) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
-
-// Support & Ticketing API (uses Next.js API routes with Prisma)
+// Support & Ticketing API (uses backend Express API with Prisma)
 export const supportAPI = {
-  createTicket: (ticketData) => nextApi.post('/api/tickets', ticketData),
-  getMyTickets: (params) => nextApi.get('/api/tickets', { params }),
-  getAllTickets: (params) => nextApi.get('/api/tickets', { params }),
-  getTicket: (ticketId) => nextApi.get(`/api/tickets/${ticketId}`),
+  createTicket: (ticketData) => api.post('/tickets', ticketData),
+  getMyTickets: (params) => api.get('/tickets', { params }),
+  getAllTickets: (params) => api.get('/tickets', { params }),
+  getTicket: (ticketId) => api.get(`/tickets/${ticketId}`),
   addComment: (ticketId, comment, isInternal = false) =>
-    nextApi.post(`/api/tickets/${ticketId}/comments`, {
+    api.post(`/tickets/${ticketId}/comments`, {
       comment,
       is_internal: isInternal,
     }),
-  updateTicket: (ticketId, updateData) => nextApi.patch(`/api/tickets/${ticketId}`, updateData),
-  updateTicketStatus: (ticketId, status) => nextApi.patch(`/api/tickets/${ticketId}`, { status }),
-  deleteTicket: (ticketId) => nextApi.delete(`/api/tickets/${ticketId}`),
+  updateTicket: (ticketId, updateData) => api.patch(`/tickets/${ticketId}`, updateData),
+  updateTicketStatus: (ticketId, status) => api.patch(`/tickets/${ticketId}`, { status }),
+  deleteTicket: (ticketId) => api.delete(`/tickets/${ticketId}`),
 };
 
 export const healthAPI = {

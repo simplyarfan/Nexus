@@ -36,7 +36,10 @@
   to = "https://thesimpleai.vercel.app/api/init/:splat"
   status = 200
 
-# /api/tickets/* is NOT redirected - handled by Next.js API routes via @netlify/plugin-nextjs
+[[redirects]]
+  from = "/api/tickets/*"
+  to = "https://thesimpleai.vercel.app/api/tickets/:splat"
+  status = 200
 
 # SPA fallback for client-side routing
 [[redirects]]

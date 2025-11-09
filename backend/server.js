@@ -22,7 +22,8 @@ let authRoutes,
   notificationRoutes,
   initRoutes,
   interviewRoutes,
-  debugEmailRoutes;
+  debugEmailRoutes,
+  ticketsRoutes;
 
 // Load each route individually with error handling
 try {
@@ -48,6 +49,13 @@ try {
   analyticsRoutes = require('./routes/analytics');
 } catch (error) {
   console.error('❌ Error loading analytics routes:', error.message);
+}
+
+try {
+  ticketsRoutes = require('./routes/tickets');
+  console.log('✅ Tickets routes loaded successfully (Prisma)');
+} catch (error) {
+  console.error('❌ Error loading tickets routes:', error.message);
 }
 
 // CV Intelligence routes already loaded above
@@ -423,6 +431,14 @@ if (interviewRoutes) {
   console.log('✅ Interview Coordinator routes mounted at /api/interview-coordinator');
 } else {
   console.error('❌ Interview Coordinator routes failed to load');
+}
+
+// Tickets routes (Prisma-based support system)
+if (ticketsRoutes) {
+  app.use('/api/tickets', ticketsRoutes);
+  console.log('✅ Tickets routes mounted at /api/tickets (Prisma)');
+} else {
+  console.error('❌ Tickets routes failed to load');
 }
 
 // Debug email routes (temporary, for diagnosing email issues)

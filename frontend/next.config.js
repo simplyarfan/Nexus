@@ -5,8 +5,8 @@ const nextConfig = {
 
   // Enable serverless functions for API routes (Netlify Functions)
   // Removed 'output: export' to allow API routes to work
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
+  // Removed trailingSlash to fix API route 404s
+  trailingSlash: false,
 
   // Image optimization settings for static export
   images: {

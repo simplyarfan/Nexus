@@ -251,7 +251,7 @@ const InterviewDetailPage = () => {
       formData.append('bccEmails', JSON.stringify(bccEmailsArray));
 
       if (scheduleForm.cvFile) {
-        formData.append('cv', scheduleForm.cvFile);
+        formData.append('cvFile', scheduleForm.cvFile);
       }
 
       const response = await axios.post(

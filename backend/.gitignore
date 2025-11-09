@@ -125,3 +125,8 @@ secrets/
 # Local development files
 .local
 .vercel
+
+# Prisma
+prisma/migrations/
+node_modules/.prisma/
+node_modules/@prisma/

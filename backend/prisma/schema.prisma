@@ -1,0 +1,86 @@
+// Prisma Schema for Ticketing System Migration
+// This coexists with the existing database.js connection system
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL_NON_POOLING")
+}
+
+// ============================================
+// EXISTING USERS TABLE (READ-ONLY ACCESS)
+// ============================================
+model User {
+  id                String   @id
+  email             String   @unique
+  first_name        String?
+  last_name         String?
+  role              String
+  password_hash     String?
+  verification_token String?
+  reset_token       String?
+  reset_token_expiry DateTime?
+  email_verified    Boolean  @default(false)
+  is_2fa_enabled    Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations to ticketing system
+  created_tickets   SupportTicket[] @relation("TicketCreator")
+  ticket_comments   TicketComment[]
+
+  @@map("users")
+}
+
+// ============================================
+// SUPPORT TICKETS TABLE
+// ============================================
+model SupportTicket {
+  id          Int       @id @default(autoincrement())
+  user_id     String
+  subject     String
+  description String    @db.Text
+  status      String    @default("open")
+  priority    String    @default("medium")
+  category    String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  // Relations
+  user        User              @relation("TicketCreator", fields: [user_id], references: [id], onDelete: Cascade)
+  comments    TicketComment[]
+
+  // Indexes for performance
+  @@index([user_id])
+  @@index([status])
+  @@index([priority])
+  @@index([created_at])
+
+  @@map("support_tickets")
+}
+
+// ============================================
+// TICKET COMMENTS TABLE
+// ============================================
+model TicketComment {
+  id          Int       @id @default(autoincrement())
+  ticket_id   Int
+  user_id     String
+  comment     String    @db.Text
+  is_internal Boolean   @default(false)
+  created_at  DateTime  @default(now())
+
+  // Relations
+  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([ticket_id])
+  @@index([user_id])
+  @@index([created_at])
+
+  @@map("ticket_comments")
+}

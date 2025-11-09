@@ -18,7 +18,6 @@ const database = require('./models/database');
 // Load routes with error handling
 let authRoutes,
   analyticsRoutes,
-  supportRoutes,
   cvRoutes,
   notificationRoutes,
   initRoutes,
@@ -49,12 +48,6 @@ try {
   analyticsRoutes = require('./routes/analytics');
 } catch (error) {
   console.error('❌ Error loading analytics routes:', error.message);
-}
-
-try {
-  supportRoutes = require('./routes/support');
-} catch (error) {
-  console.error('❌ Error loading support routes:', error.message);
 }
 
 // CV Intelligence routes already loaded above
@@ -357,14 +350,12 @@ app.get('/', (req, res) => {
       health: '/health',
       auth: '/api/auth/*',
       analytics: '/api/analytics/*',
-      support: '/api/support/*',
       cvIntelligence: '/api/cv-intelligence/*',
       notifications: '/api/notifications/*',
     },
     routesLoaded: {
       auth: !!authRoutes,
       analytics: !!analyticsRoutes,
-      support: !!supportRoutes,
       cv: !!cvRoutes,
       notifications: !!notificationRoutes,
       init: !!initRoutes,
@@ -407,14 +398,6 @@ if (authRoutes) {
 
 if (analyticsRoutes) {
   app.use('/api/analytics', longCacheMiddleware, analyticsRoutes);
-}
-if (supportRoutes) {
-  app.use(
-    '/api/support',
-    shortCacheMiddleware,
-    cacheInvalidationMiddleware(['api:support*']),
-    supportRoutes,
-  );
 }
 if (cvRoutes) {
   app.use('/api/cv-intelligence', cvRoutes);

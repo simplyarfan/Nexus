@@ -265,12 +265,7 @@ export const adminAPI = {
   seedDatabase: () => api.post('/admin/seed-database'),
 };
 
-// Feature flag for new ticketing system (Prisma + Next.js API routes)
-const isNewTicketingEnabled = () => {
-  return process.env.NEXT_PUBLIC_USE_NEW_TICKETING === 'true';
-};
-
-// Create a client-side axios instance for Next.js API routes
+// Client-side axios instance for Next.js API routes (ticketing system)
 const nextApi = axios.create({
   baseURL: typeof window !== 'undefined' ? window.location.origin : '',
   timeout: 30000,
@@ -293,88 +288,20 @@ nextApi.interceptors.request.use(
   },
 );
 
+// Support & Ticketing API (uses Next.js API routes with Prisma)
 export const supportAPI = {
-  createTicket: (ticketData) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.post('/api/tickets', ticketData);
-    }
-    return api.post('/support', ticketData);
-  },
-
-  getMyTickets: (params) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.get('/api/tickets', { params });
-    }
-    return api.get('/support/my-tickets', {
-      params,
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    });
-  },
-
-  getAllTickets: (params) => {
-    if (isNewTicketingEnabled()) {
-      // For new system, all tickets are fetched the same way (auth/role handled server-side)
-      return nextApi.get('/api/tickets', { params });
-    }
-    return api.get('/support/admin/all', {
-      params,
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    });
-  },
-
-  getTicket: (ticketId) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.get(`/api/tickets/${ticketId}`);
-    }
-    return api.get(`/support/${ticketId}`, {
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    });
-  },
-
-  addComment: (ticketId, comment, isInternal = false) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.post(`/api/tickets/${ticketId}/comments`, {
-        comment,
-        is_internal: isInternal,
-      });
-    }
-    return api.post(`/support/${ticketId}/comments`, {
+  createTicket: (ticketData) => nextApi.post('/api/tickets', ticketData),
+  getMyTickets: (params) => nextApi.get('/api/tickets', { params }),
+  getAllTickets: (params) => nextApi.get('/api/tickets', { params }),
+  getTicket: (ticketId) => nextApi.get(`/api/tickets/${ticketId}`),
+  addComment: (ticketId, comment, isInternal = false) =>
+    nextApi.post(`/api/tickets/${ticketId}/comments`, {
       comment,
       is_internal: isInternal,
-    });
-  },
-
-  updateTicket: (ticketId, updateData) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.patch(`/api/tickets/${ticketId}`, updateData);
-    }
-    return api.put(`/support/${ticketId}`, updateData);
-  },
-
-  updateTicketStatus: (ticketId, status) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.patch(`/api/tickets/${ticketId}`, { status });
-    }
-    return api.put(`/support/${ticketId}`, { status });
-  },
-
-  deleteTicket: (ticketId) => {
-    if (isNewTicketingEnabled()) {
-      return nextApi.delete(`/api/tickets/${ticketId}`);
-    }
-    return api.delete(`/support/${ticketId}`);
-  },
-
-  getStats: (timeframe = '30d') => {
-    // Stats endpoint not implemented in new system yet - always use old backend
-    return api.get('/support/admin/stats', {
-      params: { timeframe },
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    });
-  },
-
-  // Debug - Check database connection type (old system only)
-  checkDatabaseConnection: () => api.get('/support/debug/connection'),
+    }),
+  updateTicket: (ticketId, updateData) => nextApi.patch(`/api/tickets/${ticketId}`, updateData),
+  updateTicketStatus: (ticketId, status) => nextApi.patch(`/api/tickets/${ticketId}`, { status }),
+  deleteTicket: (ticketId) => nextApi.delete(`/api/tickets/${ticketId}`),
 };
 
 export const healthAPI = {

@@ -1,175 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from '../../contexts/AuthContext';
-import Head from 'next/head';
-import { supportAPI } from '../../utils/api';
-import ErrorBoundary from '../../components/shared/ErrorBoundary';
-import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
-import {
-  Search,
-  Filter,
-  MessageCircle,
-  MessageSquare,
-  User,
-  Calendar,
-  Tag,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  LifeBuoy,
-  ArrowLeft,
-  Eye,
-  Reply,
-  Sparkles,
-} from 'lucide-react';
 
-export default function TicketsManagement() {
-  const { user, loading } = useAuth();
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
+
+export default function SupportManagement() {
   const router = useRouter();
-  const [tickets, setTickets] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!loading && (!user || user.email !== 'syedarfan@securemaxtech.com')) {
-      router.push('/');
-      return;
-    }
-    if (user) {
-      fetchTickets();
-    }
-  }, [user, loading, router]);
-
-  const fetchTickets = async () => {
-    try {
-      setIsLoading(true);
-      console.log('🎫 Fetching support tickets...');
-
-      const response = await supportAPI.getAllTickets();
-      console.log('📋 Tickets API response:', response);
-
-      if (response && response.data && response.data.data) {
-        // Backend returns: { success: true, data: { tickets: [...], pagination: {...} } }
-        const ticketData = response.data.data.tickets || [];
-        const paginationData = response.data.data.pagination || {};
-
-        console.log('🎫 Setting tickets:', ticketData);
-        console.log('📄 Pagination:', paginationData);
-        setTickets(Array.isArray(ticketData) ? ticketData : []);
-      } else {
-        console.log('⚠️ No ticket data in response, setting empty array');
-        console.log('Response structure:', response);
-        setTickets([]);
-      }
-    } catch (error) {
-      console.error('❌ Error fetching tickets:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-      toast.error(`Failed to fetch tickets: ${error.response?.data?.message || error.message}`);
-      setTickets([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateTicketStatus = async (ticketId, newStatus) => {
-    try {
-      console.log('🔧 Updating ticket status:', ticketId, 'to:', newStatus);
-
-      // Optimistically update the UI immediately
-      setTickets((prevTickets) =>
-        prevTickets.map((ticket) =>
-          ticket.id === ticketId
-            ? { ...ticket, status: newStatus, updated_at: new Date().toISOString() }
-            : ticket,
-        ),
-      );
-
-      const response = await supportAPI.updateTicketStatus(ticketId, newStatus);
-      console.log('📝 Update response:', response);
-
-      // Check if response is successful
-      const isSuccess = response?.data?.success || response?.success;
-
-      if (isSuccess) {
-        toast.success('Ticket status updated');
-        // Refresh in background to ensure consistency
-        setTimeout(() => fetchTickets(), 500);
-      } else {
-        // Revert optimistic update on failure
-        fetchTickets();
-        const errorMessage =
-          response?.data?.message || response?.message || 'Failed to update ticket status';
-        console.error('❌ Update failed:', response);
-        toast.error(errorMessage);
-      }
-    } catch (error) {
-      console.error('❌ Error updating ticket status:', error);
-      console.error('Error details:', error.response?.data);
-
-      // Check if the error is actually a successful update (status 200)
-      if (error.response?.status === 200 || error.response?.data?.success) {
-        toast.success('Ticket status updated');
-        setTimeout(() => fetchTickets(), 500);
-      } else {
-        // Revert optimistic update on failure
-        fetchTickets();
-        toast.error(
-          `Failed to update ticket status: ${error.response?.data?.message || error.message}`,
-        );
-      }
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'open':
-        return <AlertCircle className="w-4 h-4 text-yellow-400" />;
-      case 'in_progress':
-        return <Clock className="w-4 h-4 text-blue-400" />;
-      case 'resolved':
-        return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case 'closed':
-        return <XCircle className="w-4 h-4 text-gray-400" />;
-      default:
-        return <MessageCircle className="w-4 h-4 text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'open':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'resolved':
-        return 'bg-green-100 text-green-800';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // Mock data - replace with API call
+  const tickets = [
+    {
+      id: 1,
+      subject: 'Login Issue',
+      user_name: 'John Doe',
+      user_email: 'john@example.com',
+      status: 'open',
+      priority: 'high',
+      created_at: '2024-01-15T10:30:00',
+    },
+    {
+      id: 2,
+      subject: 'Feature Request',
+      user_name: 'Jane Smith',
+      user_email: 'jane@example.com',
+      status: 'in_progress',
+      priority: 'medium',
+      created_at: '2024-01-14T14:20:00',
+    },
+    {
+      id: 3,
+      subject: 'Bug Report',
+      user_name: 'Bob Johnson',
+      user_email: 'bob@example.com',
+      status: 'resolved',
+      priority: 'low',
+      created_at: '2024-01-13T09:15:00',
+    },
+  ];
 
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
@@ -181,240 +52,279 @@ export default function TicketsManagement() {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-white">Loading tickets...</p>
-        </div>
-      </div>
-    );
-  }
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'open':
+        return 'bg-green-50 text-green-900';
+      case 'in_progress':
+        return 'bg-green-500/10 text-green-600';
+      case 'resolved':
+        return 'bg-green-500/10 text-green-600';
+      case 'closed':
+        return 'bg-gray-100 text-gray-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-500/10 text-red-600';
+      case 'medium':
+        return 'bg-green-50 text-green-900';
+      case 'low':
+        return 'bg-green-500/10 text-green-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  };
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-        <Head>
-          <title>Support Tickets - SimpleAI</title>
-          <meta name="description" content="Manage user support requests and tickets" />
-        </Head>
-
-        <div className="relative z-10">
-          <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Back to Dashboard Button */}
-            <motion.div
-              className="mb-6"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/superadmin')}
+              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
             >
-              <motion.button
-                onClick={() => router.push('/')}
-                className="flex items-center text-gray-600 hover:text-gray-800 bg-white border border-gray-200 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-50 shadow-sm"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </motion.button>
-            </motion.div>
-
-            {/* Header */}
-            <motion.div
-              className="mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-orange-100 rounded-lg">
-                      <LifeBuoy className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900">Support Management</h1>
-                      <p className="text-gray-600">Manage and respond to user support tickets</p>
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Filters */}
-            <motion.div
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Search tickets..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-3 w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
-                </div>
-                <div className="lg:w-48">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="open">Open</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </div>
-                <div className="lg:w-48">
-                  <select
-                    value={priorityFilter}
-                    onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="all">All Priority</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Tickets List */}
-            <motion.div
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-                  <span className="ml-3 text-gray-400">Loading tickets...</span>
-                </div>
-              ) : filteredTickets.length === 0 ? (
-                <div className="text-center py-12">
-                  <LifeBuoy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-white mb-2">No tickets found</h3>
-                  <p className="text-gray-400">Try adjusting your search or filters</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Ticket
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          User
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Priority
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredTickets.map((ticket) => (
-                        <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center">
-                              {getStatusIcon(ticket.status)}
-                              <div className="ml-3">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {ticket.subject}
-                                </div>
-                                <div className="text-sm text-gray-500">#{ticket.id}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-8 w-8">
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-400 to-blue-400 flex items-center justify-center">
-                                  <span className="text-xs font-medium text-white">
-                                    {ticket.user_name?.[0] || 'U'}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="ml-3">
-                                <div className="text-sm font-medium text-white">
-                                  {ticket.user_name}
-                                </div>
-                                <div className="text-sm text-gray-400">{ticket.user_email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}
-                            >
-                              {ticket.status?.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}
-                            >
-                              {ticket.priority}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                            {new Date(ticket.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => router.push(`/support/ticket/${ticket.id}`)}
-                                className="text-blue-400 hover:text-blue-300 p-1 rounded"
-                                title="View ticket"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <select
-                                value={ticket.status}
-                                onChange={(e) => updateTicketStatus(ticket.id, e.target.value)}
-                                className="text-xs bg-white/10 border border-white/20 text-white rounded px-2 py-1"
-                              >
-                                <option value="open">Open</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="resolved">Resolved</option>
-                                <option value="closed">Closed</option>
-                              </select>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </motion.div>
-          </main>
+              <svg className="w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+              <h1 className="text-3xl font-bold text-gray-900">Support Management</h1>
+              <p className="text-gray-600 mt-1">Manage and respond to user support tickets</p>
+            </div>
+          </div>
         </div>
       </div>
-    </ErrorBoundary>
+
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              
+                <p className="text-sm text-gray-600 mb-1">Total Tickets</p>
+                <p className="text-3xl font-bold text-gray-900">{tickets.length}</p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              
+                <p className="text-sm text-gray-600 mb-1">Open</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {tickets.filter((t) => t.status === 'open').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-green-50 text-green-900 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              
+                <p className="text-sm text-gray-600 mb-1">In Progress</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {tickets.filter((t) => t.status === 'in_progress').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              
+                <p className="text-sm text-gray-600 mb-1">Resolved</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {tickets.filter((t) => t.status === 'resolved').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search tickets..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-3 w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-muted-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="lg:w-48">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="all">All Status</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div className="lg:w-48">
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="all">All Priority</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Tickets Table */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-gray-100/50">
+                
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Ticket
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Priority
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Created
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredTickets.length === 0 ? (
+                  
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center text-gray-600">
+                        <svg className="w-16 h-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <p className="text-lg font-medium mb-1">No tickets found</p>
+                        <p className="text-sm">Try adjusting your filters or search criteria</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTickets.map((ticket) => (
+                  <motion.tr
+                    key={ticket.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="hover:bg-green-50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      
+                        <div className="text-sm font-medium text-gray-900">{ticket.subject}</div>
+                        <div className="text-xs text-gray-600">#{ticket.id}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center">
+                            <span className="text-xs font-medium text-white">
+                              {ticket.user_name?.[0] || 'U'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">{ticket.user_name}</div>
+                          <div className="text-xs text-gray-600">{ticket.user_email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                        {ticket.status?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
+                        {ticket.priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(ticket.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => router.push(`/superadmin/tickets/${ticket.id}`)}
+                          className="p-2 text-green-600 hover:bg-green-500/10 rounded-lg transition-colors"
+                          title="View ticket"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <select
+                          value={ticket.status}
+                          className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-primary"
+                        >
+                          <option value="open">Open</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      </div>
+                    </td>
+                  </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

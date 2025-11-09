@@ -1,458 +1,369 @@
-import React, { useState, useEffect } from 'react';
+
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
-import Head from 'next/head';
-import { useAuth } from '../../../contexts/AuthContext';
-import { supportAPI } from '../../../utils/api';
-import toast from 'react-hot-toast';
-import {
-  ArrowLeft,
-  MessageSquare,
-  Send,
-  User,
-  Calendar,
-  Tag,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  Loader,
-} from 'lucide-react';
 
-export default function TicketDetail() {
-  const { user } = useAuth();
+export default function TicketDetail({ params }: { params: { id } }) {
   const router = useRouter();
-  const { id } = router.query;
-  const [ticket, setTicket] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ticketStatus, setTicketStatus] = useState('open');
+  const [replyText, setReplyText] = useState('');
+  const [isInternal, setIsInternal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const statusOptions = [
+  // Mock ticket data - replace with API call
+  const ticket = {
+    id: params.id,
+    subject: 'Login Issue - Cannot access account',
+    description: 'I am unable to log into my account. When I enter my credentials, I get an error message saying "Invalid credentials" even though I am sure my password is correct. I have tried resetting my password multiple times but the issue persists.',
+    user_name: 'John Doe',
+    user_email: 'john@example.com',
+    status: ticketStatus,
+    priority: 'high',
+    created_at: '2024-01-15T10:30:00',
+    updated_at: '2024-01-15T14:45:00',
+    assigned_to: 'Admin User',
+  };
+
+  // Mock comments/activity
+  const activities = [
     {
-      value: 'open',
-      label: 'Open',
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/20',
-      icon: Clock,
+      id: 1,
+      type: 'created',
+      user: 'John Doe',
+      timestamp: '2024-01-15T10:30:00',
+      content: 'Ticket created',
     },
     {
-      value: 'in_progress',
-      label: 'In Progress',
-      color: 'text-yellow-400',
-      bgColor: 'bg-yellow-500/20',
-      icon: AlertCircle,
+      id: 2,
+      type: 'comment',
+      user: 'Admin User',
+      timestamp: '2024-01-15T11:15:00',
+      content: 'Hi John, I can see your account. Let me check the authentication logs to see what might be causing this issue.',
+      isInternal: false,
     },
     {
-      value: 'resolved',
-      label: 'Resolved',
-      color: 'text-green-400',
-      bgColor: 'bg-green-500/20',
-      icon: CheckCircle,
+      id: 3,
+      type: 'internal',
+      user: 'Admin User',
+      timestamp: '2024-01-15T11:20:00',
+      content: 'Found multiple failed login attempts from the same IP. Possible account lockout.',
+      isInternal: true,
+    },
+    {
+      id: 4,
+      type: 'status',
+      user: 'Admin User',
+      timestamp: '2024-01-15T11:25:00',
+      content: 'Status changed from Open to In Progress',
+    },
+    {
+      id: 5,
+      type: 'comment',
+      user: 'Admin User',
+      timestamp: '2024-01-15T14:45:00',
+      content: 'I have reset your account lockout. Please try logging in again. Your account should now work properly.',
+      isInternal: false,
     },
   ];
 
-  const priorityOptions = [
-    { value: 'low', label: 'Low', color: 'text-green-400' },
-    { value: 'medium', label: 'Medium', color: 'text-yellow-400' },
-    { value: 'high', label: 'High', color: 'text-orange-400' },
-    { value: 'urgent', label: 'Urgent', color: 'text-red-400' },
-  ];
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'open':
+        return 'bg-green-50 text-green-900 border-accent';
+      case 'in_progress':
+        return 'bg-green-500/10 text-green-600 border-primary/20';
+      case 'resolved':
+        return 'bg-green-500/10 text-green-600 border-primary/20';
+      case 'closed':
+        return 'bg-gray-100 text-gray-600 border-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
+  };
 
-  // Load ticket and comments on mount
-  const loadTicket = React.useCallback(
-    async (forceRefresh = false) => {
-      if (!id) return;
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-500/10 text-red-600 border-destructive/20';
+      case 'medium':
+        return 'bg-green-50 text-green-900 border-accent';
+      case 'low':
+        return 'bg-green-500/10 text-green-600 border-primary/20';
+      default:
+        return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
+  };
 
-      setIsLoading(true);
-      try {
-        console.log(`🎫 Loading ticket: ${id} (force refresh: ${forceRefresh})`);
-        const timestamp = Date.now();
-        const response = await supportAPI.getTicket(id);
-
-        console.log(`⏱️  Load completed in ${Date.now() - timestamp}ms`);
-
-        if (response.data?.success) {
-          const ticketData = response.data.data.ticket;
-          const commentsData = response.data.data.comments || [];
-
-          console.log('📦 Loaded ticket:', ticketData.id, ticketData.subject);
-          console.log('💬 Loaded comments count:', commentsData.length);
-          console.log(
-            '📋 Comment IDs:',
-            commentsData.map((c) => c.id),
-          );
-          console.log(
-            '👥 Comment authors:',
-            commentsData.map((c) => `${c.first_name} ${c.last_name}`),
-          );
-
-          setTicket(ticketData);
-          setComments(commentsData);
-        } else {
-          console.error('❌ Failed to load ticket - no success flag');
-          toast.error('Failed to load ticket');
-          router.push('/support/my-tickets');
-        }
-      } catch (error) {
-        console.error('❌ Load ticket error:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
-        toast.error('Failed to load ticket');
-        router.push('/support/my-tickets');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [id, router],
-  );
-
-  // Add comment handler
-  const handleAddComment = async (e) => {
+  const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!newComment.trim()) {
-      toast.error('Please enter a comment');
-      return;
-    }
-
-    const commentText = newComment.trim();
-    setIsSubmitting(true);
-
-    try {
-      console.log('💬 Adding comment:', commentText);
-
-      // Add comment to database
-      const response = await supportAPI.addComment(id, commentText, false);
-      console.log('✅ Comment added, response:', {
-        status: response.status,
-        success: response.data?.success,
-        hasComment: !!response.data?.data?.comment,
-        commentId: response.data?.data?.comment?.id,
-      });
-
-      // Get the new comment from response
-      const newCommentData = response.data?.data?.comment || response.data?.comment;
-
-      if (!newCommentData) {
-        console.error('❌ No comment data in response');
-        throw new Error('Comment was not returned from server');
-      }
-
-      // Clear input immediately
-      setNewComment('');
-      toast.success('Comment added successfully');
-
-      // Immediately add comment to UI (optimistic update)
-      console.log('➕ Adding comment to UI optimistically:', newCommentData.id);
-      setComments((prev) => {
-        // Check if comment already exists (prevent duplicates)
-        const exists = prev.some((c) => c.id === newCommentData.id);
-        if (exists) {
-          console.log('⚠️ Comment already exists in state, skipping');
-          return prev;
-        }
-        return [...prev, newCommentData];
-      });
-
-      // Retry reload with backoff until comment appears in database
-      // After backend fix to use DATABASE_URL_UNPOOLED, should work in 1-2 attempts
-      const verifyCommentInDatabase = async (commentId, attempt = 1, maxAttempts = 3) => {
-        console.log(
-          `🔄 Attempt ${attempt}/${maxAttempts}: Verifying comment ${commentId} in database...`,
-        );
-
-        const response = await supportAPI.getTicket(id);
-        if (response.data?.success) {
-          const fetchedComments = response.data.data.comments || [];
-          const commentExists = fetchedComments.some((c) => c.id === commentId);
-
-          console.log(
-            `📊 Fetched ${fetchedComments.length} comments, looking for ID ${commentId}: ${commentExists ? '✅ FOUND' : '❌ NOT FOUND'}`,
-          );
-
-          if (commentExists) {
-            // Comment found! Update state with fresh data
-            setTicket(response.data.data.ticket);
-            setComments(fetchedComments);
-            console.log('✅ Comment verified in database and UI synced');
-            return true;
-          }
-
-          // Not found yet, retry with exponential backoff
-          if (attempt < maxAttempts) {
-            const delay = Math.min(500 * Math.pow(2, attempt - 1), 2000); // 500ms, 1s, 2s
-            console.log(`⏳ Comment not found yet, retrying in ${delay}ms...`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            return verifyCommentInDatabase(commentId, attempt + 1, maxAttempts);
-          } else {
-            console.error(
-              '❌ Max retry attempts reached. Backend may be using pooled connection instead of unpooled.',
-            );
-            console.error(
-              '💡 Check that DATABASE_URL_UNPOOLED is set in backend environment variables.',
-            );
-            return false;
-          }
-        }
-      };
-
-      // Start verification in background (don't await)
-      verifyCommentInDatabase(newCommentData.id).catch((err) => {
-        console.error('❌ Error verifying comment:', err);
-      });
-    } catch (error) {
-      console.error('❌ Add comment error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-      toast.error('Failed to add comment');
-      // Restore comment text on error
-      setNewComment(commentText);
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsLoading(true);
+    // Handle reply submission
+    console.log('Reply:', replyText, 'Internal:', isInternal);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setReplyText('');
+    setIsLoading(false);
   };
-
-  const getStatusStyle = (status) => {
-    const statusOption = statusOptions.find((opt) => opt.value === status);
-    return statusOption
-      ? `${statusOption.color} ${statusOption.bgColor}`
-      : 'text-gray-400 bg-gray-500/20';
-  };
-
-  const getStatusIcon = (status) => {
-    const statusOption = statusOptions.find((opt) => opt.value === status);
-    const IconComponent = statusOption?.icon || Clock;
-    return <IconComponent className="w-4 h-4" />;
-  };
-
-  const getPriorityStyle = (priority) => {
-    const priorityOption = priorityOptions.find((opt) => opt.value === priority);
-    return priorityOption?.color || 'text-gray-400';
-  };
-
-  useEffect(() => {
-    console.log('🔄 useEffect triggered - loading ticket:', id);
-    loadTicket(true); // Always force refresh on mount/id change
-  }, [id, loadTicket]);
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-700">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-700">Loading ticket details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!ticket) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center max-w-md mx-auto">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Ticket Not Found</h3>
-          <p className="text-gray-600 mb-6">
-            The ticket you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to
-            it.
-          </p>
-          <button
-            onClick={() => {
-              const isAdmin = ['admin', 'superadmin'].includes(user?.role);
-              router.push(isAdmin ? '/admin/tickets' : '/support/my-tickets');
-            }}
-            className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all"
-          >
-            {['admin', 'superadmin'].includes(user?.role)
-              ? 'Back to Support Management'
-              : 'Back to My Tickets'}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-      <Head>
-        <title>
-          Ticket #{ticket.id} - {ticket.subject} - simpleAI
-        </title>
-        <meta name="description" content={`Support ticket: ${ticket.subject}`} />
-      </Head>
-
-      <main className="relative z-10 max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => {
-              const isAdmin = ['admin', 'superadmin'].includes(user?.role);
-              router.push(isAdmin ? '/admin/tickets' : '/support/my-tickets');
-            }}
-            className="flex items-center text-gray-600 hover:text-gray-800 bg-white border border-gray-200 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-50 shadow-sm"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {['admin', 'superadmin'].includes(user?.role)
-              ? 'Back to Support Management'
-              : 'Back to My Tickets'}
-          </button>
-        </div>
-
-        {/* Ticket Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex items-start justify-between mb-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/superadmin/tickets')}
+              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm text-gray-500">#{ticket.id}</span>
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${getStatusStyle(ticket.status)}`}
-                >
-                  {getStatusIcon(ticket.status)}
-                  <span className="ml-2 capitalize">{ticket.status.replace('_', ' ')}</span>
-                </span>
-                <span className={`text-sm font-medium ${getPriorityStyle(ticket.priority)}`}>
-                  {ticket.priority.toUpperCase()} PRIORITY
-                </span>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-gray-900">{ticket.subject}</h1>
+                <span className="text-sm text-gray-600">#{ticket.id}</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-3">{ticket.subject}</h1>
-              <p className="text-gray-600 leading-relaxed">{ticket.description}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Created by {ticket.user_name} • {new Date(ticket.created_at).toLocaleString()}
+              </p>
             </div>
-          </div>
-
-          {/* Ticket Meta */}
-          <div className="flex items-center gap-6 text-sm text-gray-500 pt-4 border-t border-gray-200">
-            <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2" />
-              Created {new Date(ticket.created_at).toLocaleDateString()}
-            </div>
-            <div className="flex items-center">
-              <Tag className="w-4 h-4 mr-2" />
-              {ticket.category.replace('_', ' ')}
-            </div>
-            {ticket.updated_at !== ticket.created_at && (
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2" />
-                Updated {new Date(ticket.updated_at).toLocaleDateString()}
-              </div>
-            )}
           </div>
         </div>
+      </div>
 
-        {/* Comments Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-            <MessageSquare className="w-5 h-5 mr-2" />
-            Conversation ({comments.length})
-          </h2>
-
-          {/* Comments List */}
-          <div className="space-y-4 mb-6">
-            {comments.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No comments yet. Start the conversation!</p>
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Ticket Details & Activity */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Ticket Description */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                    <span className="text-lg font-medium text-white">
+                      {ticket.user_name[0]}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-gray-900">{ticket.user_name}</h3>
+                    <span className="text-xs text-gray-600">
+                      {new Date(ticket.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-gray-900 leading-relaxed">{ticket.description}</p>
+                </div>
               </div>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mr-3">
-                        <User className="w-4 h-4 text-white" />
+            </div>
+
+            {/* Activity Timeline */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Activity</h3>
+              <div className="space-y-6">
+                {activities.map((activity, index) => (
+                  <motion.div
+                    key={activity.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="relative"
+                  >
+                    {/* Timeline Line */}
+                    {index !== activities.length - 1 && (
+                      <div className="absolute left-6 top-14 w-0.5 h-full bg-border" />
+                    )}
+
+                    <div className="flex gap-4">
+                      {/* Avatar/Icon */}
+                      <div className="flex-shrink-0">
+                        {activity.type === 'created' || activity.type === 'status' ? (
+                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              {activity.type === 'created' ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              )}
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                            <span className="text-sm font-medium text-white">
+                              {activity.user[0]}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {comment.first_name} {comment.last_name}
-                          {comment.role === 'admin' && (
-                            <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
-                              Admin
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-gray-900">{activity.user}</span>
+                          {activity.isInternal && (
+                            <span className="text-xs px-2 py-0.5 bg-green-50 text-green-900 border border-accent rounded-full">
+                              Internal Note
                             </span>
                           )}
-                          {comment.role === 'superadmin' && (
-                            <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                              Superadmin
-                            </span>
-                          )}
+                          <span className="text-xs text-gray-600">
+                            {new Date(activity.timestamp).toLocaleString()}
+                          </span>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleString()}
+                        <div className={`${activity.type === 'comment' || activity.type === 'internal' ? 'bg-gray-100/50 rounded-lg p-4 mt-2' : ''}`}>
+                          <p className={`text-sm ${activity.type === 'status' ? 'text-gray-600 italic' : 'text-gray-900'}`}>
+                            {activity.content}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-gray-700 leading-relaxed ml-11">{comment.comment}</p>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Add Comment Form */}
-          {ticket.status !== 'resolved' && (
-            <form onSubmit={handleAddComment} className="border-t border-gray-200 pt-6">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Add a comment
-                </label>
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
-                  placeholder="Type your message..."
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !newComment.trim()}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Comment
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-
-          {ticket.status === 'resolved' && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-gray-700">
-                  This ticket has been resolved. If you need further assistance, please create a new
-                  ticket.
-                </p>
+                  </motion.div>
+                ))}
               </div>
             </div>
-          )}
+
+            {/* Reply Form */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Add Reply</h3>
+              <form onSubmit={handleReply} className="space-y-4">
+                
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Type your reply..."
+                    rows={5}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 placeholder-muted-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isInternal}
+                      onChange={(e) => setIsInternal(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-200 text-green-600 focus:ring-primary"
+                    />
+                    <span className="text-sm text-gray-900">Internal note (not visible to user)</span>
+                  </label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      className="px-4 py-2.5 text-gray-900 hover:bg-green-50 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-500/90 transition-colors font-medium inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                      {isLoading ? 'Sending...' : 'Send Reply'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Sidebar - Ticket Info */}
+          <div className="space-y-6">
+            {/* Status & Priority */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+              
+                <label className="block text-sm font-medium text-gray-600 mb-2">Status</label>
+                <select
+                  value={ticketStatus}
+                  onChange={(e) => setTicketStatus(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+
+              
+                <label className="block text-sm font-medium text-gray-600 mb-2">Priority</label>
+                <div className={`inline-flex px-4 py-2 rounded-lg border ${getPriorityColor(ticket.priority)}`}>
+                  <span className="font-semibold capitalize">{ticket.priority}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* User Information */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">User Information</h3>
+              <div className="space-y-3">
+                
+                  <p className="text-xs text-gray-600 mb-1">Name</p>
+                  <p className="text-sm font-medium text-gray-900">{ticket.user_name}</p>
+                </div>
+                
+                  <p className="text-xs text-gray-600 mb-1">Email</p>
+                  <p className="text-sm font-medium text-gray-900">{ticket.user_email}</p>
+                </div>
+                
+                  <p className="text-xs text-gray-600 mb-1">Assigned To</p>
+                  <p className="text-sm font-medium text-gray-900">{ticket.assigned_to}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Ticket Details */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Ticket Details</h3>
+              <div className="space-y-3">
+                
+                  <p className="text-xs text-gray-600 mb-1">Created</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(ticket.created_at).toLocaleString()}
+                  </p>
+                </div>
+                
+                  <p className="text-xs text-gray-600 mb-1">Last Updated</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(ticket.updated_at).toLocaleString()}
+                  </p>
+                </div>
+                
+                  <p className="text-xs text-gray-600 mb-1">Ticket ID</p>
+                  <p className="text-sm font-medium text-gray-900">#{ticket.id}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button className="w-full px-4 py-2.5 bg-gray-50 hover:bg-green-50 border border-gray-200 text-gray-900 rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Assign to Me
+                </button>
+                <button className="w-full px-4 py-2.5 bg-green-500/10 hover:bg-green-500/20 border border-primary/20 text-green-600 rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Mark 
+                </button>
+                <button className="w-full px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-destructive/20 text-red-600 rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Ticket
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

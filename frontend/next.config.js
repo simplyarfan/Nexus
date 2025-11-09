@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // Disable strict mode for static export
+  reactStrictMode: false,
   swcMinify: true,
 
-  // Static export for Netlify - client-side only SPA
-  output: 'export',
+  // Enable serverless functions for API routes (Netlify Functions)
+  // Removed 'output: export' to allow API routes to work
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
 

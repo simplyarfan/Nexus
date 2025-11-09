@@ -41,11 +41,13 @@ npx prisma generate
 ### 4. **Created Infrastructure Files**
 
 #### `src/lib/prisma.js`
+
 - Singleton Prisma client for Next.js API routes
 - Prevents connection leaks in serverless environment
 - Hot-reload safe in development
 
 #### `src/lib/api-auth.js`
+
 - JWT authentication helper for API routes
 - `authenticateRequest()` - Extracts and verifies tokens
 - `withAuth()` - HOC wrapper for protected routes
@@ -54,15 +56,18 @@ npx prisma generate
 ### 5. **Created API Routes**
 
 #### `src/pages/api/tickets/index.js`
+
 - **GET** `/api/tickets` - List tickets (with pagination, filtering)
 - **POST** `/api/tickets` - Create new ticket
 
 #### `src/pages/api/tickets/[id].js`
+
 - **GET** `/api/tickets/:id` - Get ticket details with all comments
 - **PATCH** `/api/tickets/:id` - Update ticket (status, priority, category)
 - **DELETE** `/api/tickets/:id` - Delete ticket (admin/support only)
 
 #### `src/pages/api/tickets/[id]/comments.js`
+
 - **POST** `/api/tickets/:id/comments` - Add comment to ticket
 - **Critical Fix:** Uses Prisma `$transaction()` to guarantee read-after-write consistency
 
@@ -70,24 +75,29 @@ npx prisma generate
 
 ```javascript
 // Feature flag control
-NEXT_PUBLIC_USE_NEW_TICKETING=false  // Old system (default)
-NEXT_PUBLIC_USE_NEW_TICKETING=true   // New system
+NEXT_PUBLIC_USE_NEW_TICKETING = false; // Old system (default)
+NEXT_PUBLIC_USE_NEW_TICKETING = true; // New system
 ```
 
 Modified `supportAPI` to route requests based on feature flag:
+
 - When `false`: Calls old backend at `https://thesimpleai.vercel.app/api/support/*`
 - When `true`: Calls new Next.js routes at `/api/tickets/*`
 
 ### 7. **Updated Configuration**
 
 #### `frontend/.env.example`
+
 Added new environment variables:
+
 - `NEXT_PUBLIC_USE_NEW_TICKETING=false` - Feature flag (disabled by default)
 - `POSTGRES_URL_NON_POOLING` - Direct database connection for Prisma
 - `JWT_SECRET` - Must match backend for token verification
 
 #### `frontend/.gitignore`
+
 Added Prisma ignores:
+
 - `prisma/migrations/`
 - `node_modules/.prisma/`
 - `node_modules/@prisma/`
@@ -144,6 +154,7 @@ const result = await prisma.$transaction(async (tx) => {
 ```
 
 **This guarantees:**
+
 - All operations succeed or all fail (atomicity)
 - Read-after-write consistency (same connection)
 - No race conditions
@@ -151,6 +162,7 @@ const result = await prisma.$transaction(async (tx) => {
 ### ✅ **Type Safety**
 
 Prisma provides full TypeScript support:
+
 - Autocomplete for table names and fields
 - Compile-time error checking
 - Prevents SQL injection
@@ -158,6 +170,7 @@ Prisma provides full TypeScript support:
 ### ✅ **Authorization Checks**
 
 Every route verifies:
+
 1. Valid JWT token (via `withAuth()`)
 2. Ticket ownership or admin/support role
 3. Returns 403 Forbidden if unauthorized
@@ -202,10 +215,12 @@ JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
 ### Local Testing (Recommended)
 
 1. **Test with old system (current state):**
+
    ```bash
    # .env.local
    NEXT_PUBLIC_USE_NEW_TICKETING=false
    ```
+
    - Create tickets, add comments, verify everything works
    - Confirms old system still functional
 
@@ -216,6 +231,7 @@ JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
    POSTGRES_URL_NON_POOLING=postgresql://...
    JWT_SECRET=same_as_backend
    ```
+
    - Create tickets, add comments
    - Navigate away and back to ticket
    - **Verify comments persist** (the original issue)
@@ -224,11 +240,13 @@ JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
 ### Vercel Deployment
 
 1. **Deploy with flag OFF:**
+
    ```bash
    git add .
    git commit -m "Phase 2: Create Next.js API Routes with Prisma"
    git push origin main
    ```
+
    - Vercel auto-deploys
    - New routes deployed but not active
    - Old system continues to work
@@ -265,6 +283,7 @@ JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
 If anything goes wrong:
 
 ### Immediate (2 minutes):
+
 ```bash
 # Vercel Dashboard → Environment Variables
 NEXT_PUBLIC_USE_NEW_TICKETING=false  # Change to false
@@ -272,6 +291,7 @@ NEXT_PUBLIC_USE_NEW_TICKETING=false  # Change to false
 ```
 
 ### Alternative:
+
 ```bash
 git revert HEAD
 git push origin main

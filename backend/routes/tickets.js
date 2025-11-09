@@ -375,16 +375,18 @@ router.post('/:id/comments', authenticateToken, async (req, res) => {
       success: true,
       message: 'Comment added successfully',
       data: {
-        id: result.id,
-        ticket_id: result.ticket_id,
-        user_id: result.user_id,
-        comment: result.comment,
-        is_internal: result.is_internal,
-        created_at: result.created_at,
-        first_name: result.user.first_name,
-        last_name: result.user.last_name,
-        email: result.user.email,
-        role: result.user.role,
+        comment: {
+          id: result.id,
+          ticket_id: result.ticket_id,
+          user_id: result.user_id,
+          comment: result.comment,
+          is_internal: result.is_internal,
+          created_at: result.created_at,
+          first_name: result.user.first_name,
+          last_name: result.user.last_name,
+          email: result.user.email,
+          role: result.user.role,
+        },
       },
     });
   } catch (error) {

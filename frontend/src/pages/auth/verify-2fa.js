@@ -1,256 +1,303 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from '../../contexts/AuthContext';
-import { Shield, ArrowLeft } from 'lucide-react';
+
+
+import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
-import ClientOnly from '../../components/shared/ClientOnly';
-import { api } from '../../utils/api';
+import ButtonGreen from '../../components/ui/ButtonGreen';
+import { fadeIn, scaleIn } from '../../lib/motion';
 
-const Verify2FA = () => {
-  const router = useRouter();
-  const { verify2FA, loading, isAuthenticated } = useAuth();
+export default function TwoFAPage() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [mounted, setMounted] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const inputRefs = useRef([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
 
-  // Get userId from query params
-  const { userId } = router.query;
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const email = "you@company.com"; // In real app, get from state/URL
 
   useEffect(() => {
-    setMounted(true);
+    // Auto-focus first input
+    inputRefs.current[0]?.focus();
   }, []);
 
-  // Cooldown timer effect
   useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
     }
-  }, [resendCooldown]);
+  }, [countdown]);
 
-  // Redirect if already authenticated or no userId
-  useEffect(() => {
-    if (mounted && isAuthenticated && router.isReady) {
-      router.push('/');
-    }
-    if (mounted && router.isReady && !userId) {
-      toast.error('Invalid verification request');
-      router.push('/auth/login');
-    }
-  }, [mounted, isAuthenticated, router, userId]);
-
-  // Handle input change and auto-focus
-  const handleCodeChange = (index, value) => {
-    // Only allow digits
+  const handleChange = (index, value) => {
+    // Only allow numbers
     if (value && !/^\d$/.test(value)) return;
 
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
+    setError('');
 
     // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto-submit when all fields filled
-    if (index === 5 && value && newCode.every((digit) => digit)) {
+    // Auto-submit when all fields are filled
+    if (newCode.every(digit => digit !== '')) {
       handleVerify(newCode.join(''));
     }
   };
 
-  // Handle backspace
-  const handleKeyDown = (index, e) => {
+  const handleKeyDown = (index, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // Handle paste
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').trim();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6);
 
-    if (/^\d{6}$/.test(pastedData)) {
-      const newCode = pastedData.split('');
-      setCode(newCode);
-      inputRefs.current[5]?.focus();
-      // Auto-submit
+    if (!/^\d+$/.test(pastedData)) return;
+
+    const newCode = pastedData.split('').concat(Array(6).fill('')).slice(0, 6);
+    setCode(newCode);
+
+    // Focus last filled input or next empty
+    const lastIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[lastIndex]?.focus();
+
+    // Auto-submit if complete
+    if (pastedData.length === 6) {
       handleVerify(pastedData);
     }
   };
 
-  const handleVerify = async (verificationCode) => {
-    if (verifying) return;
+  const handleVerify = async (codeString) => {
+    setIsLoading(true);
+    setError('');
 
-    const codeString = verificationCode || code.join('');
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    if (codeString.length !== 6) {
-      toast.error('Please enter the complete 6-digit code');
-      return;
-    }
+    // Simulate verification (random success/fail for demo)
+    const success = Math.random() > 0.3;
 
-    setVerifying(true);
-
-    try {
-      const response = await api.post('/auth/verify-2fa', {
-        userId,
-        code: codeString,
-      });
-
-      if (response.data.success) {
-        // Store tokens
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-
-        toast.success('Verification successful!');
-
-        const returnUrl = router.query.returnUrl || '/';
-        router.push(returnUrl);
-      } else {
-        toast.error(response.data.message || 'Verification failed');
-        setCode(['', '', '', '', '', '']);
-        inputRefs.current[0]?.focus();
-      }
-    } catch (error) {
-      console.error('Verification error:', error);
-      toast.error(error.response?.data?.message || 'Verification failed. Please try again.');
+    if (success) {
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } else {
+      setError('Invalid code. Please try again.');
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
-    } finally {
-      setVerifying(false);
     }
+
+    setIsLoading(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    handleVerify();
-  };
+  const handleResend = async () => {
+    setCanResend(false);
+    setCountdown(60);
+    setError('');
 
-  // Show loading during SSR or while mounting
-  if (!mounted || !router.isReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Back button */}
-        <Link
-          href="/auth/login"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to login
-        </Link>
-
-        {/* Icon */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6">
-            <Shield className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Two-Factor Authentication</h1>
-          <p className="text-gray-600">
-            We&apos;ve sent a 6-digit code to your email.
-            <br />
-            Enter it below to complete your sign in.
-          </p>
-        </div>
-
-        {/* Verification Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex justify-center gap-2">
-            {code.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleCodeChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                onPaste={index === 0 ? handlePaste : undefined}
-                className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                disabled={verifying}
-              />
-            ))}
-          </div>
-
-          <button
-            type="submit"
-            disabled={verifying || code.some((digit) => !digit)}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-xl font-medium hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {verifying ? 'Verifying...' : 'Verify Code'}
-          </button>
-        </form>
-
-        {/* Resend */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Didn&apos;t receive the code?{' '}
-            <button
-              onClick={async () => {
-                if (resendCooldown > 0 || resending) return;
-
-                setResending(true);
-                try {
-                  const response = await api.post('/auth/resend-2fa', { userId });
-
-                  if (response.data.success) {
-                    toast.success('A new code has been sent to your email');
-                    setResendCooldown(60); // 60 second cooldown
-                    setCode(['', '', '', '', '', '']); // Clear current code
-                    inputRefs.current[0]?.focus();
-                  } else {
-                    toast.error(response.data.message || 'Failed to resend code');
-                  }
-                } catch (error) {
-                  console.error('Resend error:', error);
-                  toast.error(error.response?.data?.message || 'Failed to resend code');
-                } finally {
-                  setResending(false);
-                }
-              }}
-              className="text-green-600 hover:text-green-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
-              disabled={verifying || resending || resendCooldown > 0}
-            >
-              {resending
-                ? 'Sending...'
-                : resendCooldown > 0
-                  ? `Resend code (${resendCooldown}s)`
-                  : 'Resend code'}
-            </button>
-          </p>
-        </div>
-
-        {/* Help text */}
-        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-          <p className="text-sm text-blue-800">
-            <strong>💡 Tip:</strong> Check your spam folder if you don&apos;t see the email within a
-            few minutes.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+        />
       </div>
+
+      {/* 2FA Card */}
+      <motion.div
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+        className="relative w-full max-w-md"
+      >
+        <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+          {/* Icon */}
+          <motion.div
+            variants={scaleIn}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.1 }}
+            className="flex justify-center mb-6"
+          >
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl">
+              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+          </motion.div>
+
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Two-Factor Authentication
+            </h1>
+            <p className="text-gray-600 mb-2">
+              Enter the 6-digit code sent to
+            </p>
+            <p className="text-green-500 font-medium">
+              {email}
+            </p>
+          </motion.div>
+
+          {/* Code Input */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-6"
+          >
+            <div className="flex gap-2 justify-center mb-2" onPaste={handlePaste}>
+              {code.map((digit, index) => (
+                <motion.input
+                  key={index}
+                  ref={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.3 + index * 0.05 }}
+                  className={`
+                    w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 text-gray-900
+                    ${error ? 'border-destructive bg-red-600/10' : 'border-gray-200 focus:border-primary'}
+                    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+                    transition-all duration-200
+                    ${digit && 'border-primary bg-gray-50'}
+                  `}
+                  disabled={isLoading}
+                />
+              ))}
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-sm text-red-600 text-center"
+              >
+                {error}
+              </motion.p>
+            )}
+          </motion.div>
+
+          {/* Verify Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mb-6"
+          >
+            <ButtonGreen
+              variant="primary"
+              size="lg"
+              fullWidth
+              isLoading={isLoading}
+              onClick={() => handleVerify(code.join(''))}
+              disabled={code.some(digit => !digit)}
+            >
+              Verify Code
+            </ButtonGreen>
+          </motion.div>
+
+          {/* Resend Code */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center mb-6"
+          >
+            <p className="text-sm text-gray-600 mb-2">
+              Didn't receive the code?
+            </p>
+            <button
+              onClick={handleResend}
+              disabled={!canResend}
+              className={`
+                text-sm font-medium transition-colors
+                ${canResend ? 'text-green-500 hover:text-green-500/90' : 'text-gray-600 cursor-not-allowed'}
+              `}
+            >
+              {canResend ? 'Resend code' : `Resend in ${countdown}s`}
+            </button>
+          </motion.div>
+
+          {/* Info Box */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6"
+          >
+            <div className="flex gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="text-sm text-gray-600">
+                <p className="font-medium mb-1">Security Tip</p>
+                <p>Never share your 2FA code with anyone. Nexus staff will never ask for this code.</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Back Link */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="text-center"
+          >
+            <Link href="/auth/login" className="text-sm link">
+              ← Back to login
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Footer */}
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+          transition={{ delay: 0.8 }}
+          className="mt-6 text-center text-sm text-gray-600"
+        >
+          <p>© 2025 Nexus. All rights reserved.</p>
+        </motion.div>
+      </motion.div>
     </div>
   );
-};
-
-// Wrap with ClientOnly to prevent SSR/build issues
-const Verify2FAPage = () => (
-  <ClientOnly>
-    <Verify2FA />
-  </ClientOnly>
-);
-
-export default Verify2FAPage;
+}

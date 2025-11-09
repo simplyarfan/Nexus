@@ -136,7 +136,7 @@ const Register = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -146,8 +146,8 @@ const Register = () => {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-700 rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
             </div>
           </div>
@@ -177,7 +177,7 @@ const Register = () => {
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border ${
                     errors.first_name ? 'border-red-300' : 'border-gray-200'
-                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                   placeholder="John"
                 />
                 {errors.first_name && (
@@ -199,7 +199,7 @@ const Register = () => {
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border ${
                     errors.last_name ? 'border-red-300' : 'border-gray-200'
-                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                   placeholder="Doe"
                 />
                 {errors.last_name && (
@@ -223,7 +223,7 @@ const Register = () => {
                 onChange={handleChange}
                 className={`w-full px-4 py-3 border ${
                   errors.email ? 'border-red-300' : 'border-gray-200'
-                } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                 placeholder="john@example.com"
               />
               {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
@@ -240,7 +240,7 @@ const Register = () => {
                 type="text"
                 value={formData.job_title}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                 placeholder="Software Engineer"
               />
             </div>
@@ -261,7 +261,7 @@ const Register = () => {
                   onChange={handleChange}
                   className={`w-full px-4 py-3 pr-12 border ${
                     errors.password ? 'border-red-300' : 'border-gray-200'
-                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                   placeholder="Create a strong password"
                 />
                 <button
@@ -294,7 +294,7 @@ const Register = () => {
                   onChange={handleChange}
                   className={`w-full px-4 py-3 pr-12 border ${
                     errors.confirmPassword ? 'border-red-300' : 'border-gray-200'
-                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all`}
+                  } rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all`}
                   placeholder="Confirm your password"
                 />
                 <button
@@ -318,7 +318,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-red-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
@@ -331,7 +331,7 @@ const Register = () => {
             Already have an account?{' '}
             <Link
               href="/auth/login"
-              className="text-orange-600 hover:text-orange-500 font-semibold transition-colors"
+              className="text-green-600 hover:text-green-700 font-semibold transition-colors"
             >
               Sign in here
             </Link>

@@ -265,36 +265,115 @@ export const adminAPI = {
   seedDatabase: () => api.post('/admin/seed-database'),
 };
 
+// Feature flag for new ticketing system (Prisma + Next.js API routes)
+const useNewTicketingSystem = () => {
+  return process.env.NEXT_PUBLIC_USE_NEW_TICKETING === 'true';
+};
+
+// Create a client-side axios instance for Next.js API routes
+const nextApi = axios.create({
+  baseURL: typeof window !== 'undefined' ? window.location.origin : '',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add token to Next.js API requests
+nextApi.interceptors.request.use(
+  (config) => {
+    const token = tokenManager.getAccessToken();
+    if (token && !tokenManager.isTokenExpired(token)) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
 export const supportAPI = {
-  createTicket: (ticketData) => api.post('/support', ticketData),
-  getMyTickets: (params) =>
-    api.get('/support/my-tickets', {
+  createTicket: (ticketData) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.post('/api/tickets', ticketData);
+    }
+    return api.post('/support', ticketData);
+  },
+
+  getMyTickets: (params) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.get('/api/tickets', { params });
+    }
+    return api.get('/support/my-tickets', {
       params,
       headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    }),
-  getAllTickets: (params) =>
-    api.get('/support/admin/all', {
+    });
+  },
+
+  getAllTickets: (params) => {
+    if (useNewTicketingSystem()) {
+      // For new system, all tickets are fetched the same way (auth/role handled server-side)
+      return nextApi.get('/api/tickets', { params });
+    }
+    return api.get('/support/admin/all', {
       params,
       headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    }),
-  getTicket: (ticketId) =>
-    api.get(`/support/${ticketId}`, {
+    });
+  },
+
+  getTicket: (ticketId) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.get(`/api/tickets/${ticketId}`);
+    }
+    return api.get(`/support/${ticketId}`, {
       headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    }),
-  addComment: (ticketId, comment, isInternal = false) =>
-    api.post(`/support/${ticketId}/comments`, {
+    });
+  },
+
+  addComment: (ticketId, comment, isInternal = false) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.post(`/api/tickets/${ticketId}/comments`, {
+        comment,
+        is_internal: isInternal,
+      });
+    }
+    return api.post(`/support/${ticketId}/comments`, {
       comment,
       is_internal: isInternal,
-    }),
-  updateTicket: (ticketId, updateData) => api.put(`/support/${ticketId}`, updateData),
-  updateTicketStatus: (ticketId, status) => api.put(`/support/${ticketId}`, { status }),
-  deleteTicket: (ticketId) => api.delete(`/support/${ticketId}`),
-  getStats: (timeframe = '30d') =>
-    api.get('/support/admin/stats', {
+    });
+  },
+
+  updateTicket: (ticketId, updateData) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.patch(`/api/tickets/${ticketId}`, updateData);
+    }
+    return api.put(`/support/${ticketId}`, updateData);
+  },
+
+  updateTicketStatus: (ticketId, status) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.patch(`/api/tickets/${ticketId}`, { status });
+    }
+    return api.put(`/support/${ticketId}`, { status });
+  },
+
+  deleteTicket: (ticketId) => {
+    if (useNewTicketingSystem()) {
+      return nextApi.delete(`/api/tickets/${ticketId}`);
+    }
+    return api.delete(`/support/${ticketId}`);
+  },
+
+  getStats: (timeframe = '30d') => {
+    // Stats endpoint not implemented in new system yet - always use old backend
+    return api.get('/support/admin/stats', {
       params: { timeframe },
       headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    }),
-  // Debug - Check database connection type
+    });
+  },
+
+  // Debug - Check database connection type (old system only)
   checkDatabaseConnection: () => api.get('/support/debug/connection'),
 };
 

@@ -57,3 +57,8 @@ Thumbs.db
 *.p12
 *.pfx
 secrets/
+
+# Prisma
+prisma/migrations/
+node_modules/.prisma/
+node_modules/@prisma/

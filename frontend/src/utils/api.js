@@ -266,7 +266,7 @@ export const adminAPI = {
 };
 
 // Feature flag for new ticketing system (Prisma + Next.js API routes)
-const useNewTicketingSystem = () => {
+const isNewTicketingEnabled = () => {
   return process.env.NEXT_PUBLIC_USE_NEW_TICKETING === 'true';
 };
 
@@ -295,14 +295,14 @@ nextApi.interceptors.request.use(
 
 export const supportAPI = {
   createTicket: (ticketData) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.post('/api/tickets', ticketData);
     }
     return api.post('/support', ticketData);
   },
 
   getMyTickets: (params) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.get('/api/tickets', { params });
     }
     return api.get('/support/my-tickets', {
@@ -312,7 +312,7 @@ export const supportAPI = {
   },
 
   getAllTickets: (params) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       // For new system, all tickets are fetched the same way (auth/role handled server-side)
       return nextApi.get('/api/tickets', { params });
     }
@@ -323,7 +323,7 @@ export const supportAPI = {
   },
 
   getTicket: (ticketId) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.get(`/api/tickets/${ticketId}`);
     }
     return api.get(`/support/${ticketId}`, {
@@ -332,7 +332,7 @@ export const supportAPI = {
   },
 
   addComment: (ticketId, comment, isInternal = false) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.post(`/api/tickets/${ticketId}/comments`, {
         comment,
         is_internal: isInternal,
@@ -345,21 +345,21 @@ export const supportAPI = {
   },
 
   updateTicket: (ticketId, updateData) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.patch(`/api/tickets/${ticketId}`, updateData);
     }
     return api.put(`/support/${ticketId}`, updateData);
   },
 
   updateTicketStatus: (ticketId, status) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.patch(`/api/tickets/${ticketId}`, { status });
     }
     return api.put(`/support/${ticketId}`, { status });
   },
 
   deleteTicket: (ticketId) => {
-    if (useNewTicketingSystem()) {
+    if (isNewTicketingEnabled()) {
       return nextApi.delete(`/api/tickets/${ticketId}`);
     }
     return api.delete(`/support/${ticketId}`);

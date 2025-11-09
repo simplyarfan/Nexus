@@ -225,6 +225,7 @@ JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
    - Confirms old system still functional
 
 2. **Test with new system:**
+
    ```bash
    # .env.local
    NEXT_PUBLIC_USE_NEW_TICKETING=true

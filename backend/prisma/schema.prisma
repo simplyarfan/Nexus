@@ -14,7 +14,7 @@ datasource db {
 // EXISTING USERS TABLE (READ-ONLY ACCESS)
 // ============================================
 model User {
-  id                String   @id
+  id                Int      @id @default(autoincrement())
   email             String   @unique
   first_name        String?
   last_name         String?
@@ -40,7 +40,7 @@ model User {
 // ============================================
 model SupportTicket {
   id          Int       @id @default(autoincrement())
-  user_id     String
+  user_id     Int
   subject     String
   description String    @db.Text
   status      String    @default("open")
@@ -68,7 +68,7 @@ model SupportTicket {
 model TicketComment {
   id          Int       @id @default(autoincrement())
   ticket_id   Int
-  user_id     String
+  user_id     Int
   comment     String    @db.Text
   is_internal Boolean   @default(false)
   created_at  DateTime  @default(now())

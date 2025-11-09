@@ -1,667 +1,329 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/AuthContext';
-import Head from 'next/head';
-import emailService from '../services/emailService';
-import {
-  ArrowLeft,
-  User,
-  Mail,
-  Building,
-  Briefcase,
-  Lock,
-  Save,
-  Settings,
-  LogOut,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  Calendar,
-  Shield,
-} from 'lucide-react';
-import { authAPI } from '../utils/api';
-import toast from 'react-hot-toast';
-import ClientOnly from '../components/shared/ClientOnly';
 
-function ProfileSettings() {
-  const { user, logout, updateUser } = useAuth();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [connectedEmail, setConnectedEmail] = useState({});
 
-  const [profileData, setProfileData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    jobTitle: '',
-    department: '',
-  });
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { fadeIn, scaleIn } from '../lib/motion';
+import ButtonGreen from '../components/ui/ButtonGreen';
+import InputGreen from '../components/ui/InputGreen';
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+export default function ProfilePage() {
+  const [activeTab, setActiveTab] = useState<'profile' >('profile');
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setProfileData({
-        firstName: user.first_name || '',
-        lastName: user.last_name || '',
-        email: user.email || '',
-        jobTitle: user.job_title || '',
-        department: user.department || '',
-      });
-    }
-  }, [user]);
-
-  // Load connected email and check Outlook status on component mount
-  useEffect(() => {
-    const loadEmailStatus = async () => {
-      // Check Outlook connection status from backend
-      const outlookStatus = await emailService.checkOutlookStatus();
-      if (outlookStatus.isConnected && !outlookStatus.isExpired) {
-        setConnectedEmail({
-          outlook: {
-            connected: true,
-            email: outlookStatus.email,
-          },
-        });
-      }
-    };
-    loadEmailStatus();
-  }, []);
-
-  // Handle Outlook connection results from URL query
-  useEffect(() => {
-    const { outlook, message } = router.query;
-
-    // Handle Outlook OAuth callback
-    if (outlook === 'connected') {
-      setActiveTab('email');
-      toast.success('Outlook connected successfully!');
-      // Reload Outlook status
-      emailService.checkOutlookStatus().then((status) => {
-        if (status.isConnected) {
-          setConnectedEmail({
-            outlook: {
-              connected: true,
-              email: status.email,
-            },
-          });
-        }
-      });
-      router.replace('/profile?tab=email', undefined, { shallow: true });
-    } else if (outlook === 'error') {
-      setActiveTab('email');
-      const errorMessage = message ? decodeURIComponent(message) : 'Failed to connect Outlook';
-      toast.error(errorMessage);
-      router.replace('/profile?tab=email', undefined, { shallow: true });
-    }
-  }, [router.query]);
-
-  // Handle URL tab parameter
-  useEffect(() => {
-    const { tab } = router.query;
-    if (tab === 'email') {
-      setActiveTab('email');
-    }
-  }, [router.query]);
-
-  const handleEmailConnected = (provider, userInfo) => {
-    setConnectedEmail(emailService.getConnectedEmail());
-    toast.success(`${provider === 'outlook' ? 'Outlook' : 'Email'} connected successfully!`);
-  };
-
-  const handleDisconnectEmail = async (provider) => {
-    if (provider === 'outlook') {
-      const result = await emailService.disconnectOutlook();
-      if (result.success) {
-        setConnectedEmail({});
-        toast.success('Outlook disconnected successfully');
-      } else {
-        toast.error('Failed to disconnect Outlook');
-      }
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/landing');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await authAPI.updateProfile({
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        jobTitle: profileData.jobTitle,
-        department: profileData.department,
-      });
-
-      if (response.success) {
-        updateUser(response.user);
-        toast.success('Profile updated successfully!');
-      } else {
-        toast.error(response.message || 'Failed to update profile');
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast.error('New password must be at least 6 characters long');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await authAPI.changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      });
-
-      if (response.success) {
-        toast.success('Password changed successfully!');
-        setPasswordData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        });
-      } else {
-        toast.error(response.message || 'Failed to change password');
-      }
-    } catch (error) {
-      console.error('Error changing password:', error);
-      toast.error('Failed to change password');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (section, field, value) => {
-    if (section === 'profile') {
-      setProfileData((prev) => ({ ...prev, [field]: value }));
-    } else if (section === 'password') {
-      setPasswordData((prev) => ({ ...prev, [field]: value }));
-    }
+  const handleSave = async () => {
+    setIsSaving(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsSaving(false);
   };
 
   return (
-    <>
-      <Head>
-        <title>Profile Settings - Nexus</title>
-        <meta name="description" content="Manage your profile settings and preferences" />
-      </Head>
-
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50">
-        {/* Top Navigation */}
-        <div className="bg-white/90 backdrop-blur-xl shadow-lg border border-orange-200/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => router.push('/')}
-                  className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-white/80 transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-semibold text-gray-900">Profile Settings</h1>
-                    <p className="text-sm text-gray-600">Manage your account information</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-gray-600" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {user?.first_name} {user?.last_name}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-white/80 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mb-4">
+            <a href="/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Dashboard
+            </a>
           </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          {/* Tabs */}
-          <div className="mb-8">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('profile')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'profile'
-                      ? 'border-orange-500 text-orange-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <User className="w-4 h-4 inline mr-2" />
-                  Profile
-                </button>
-                <button
-                  onClick={() => setActiveTab('email')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'email'
-                      ? 'border-orange-500 text-orange-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Mail className="w-4 h-4 inline mr-2" />
-                  Email Integration
-                </button>
-                <button
-                  onClick={() => setActiveTab('security')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'security'
-                      ? 'border-orange-500 text-orange-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Lock className="w-4 h-4 inline mr-2" />
-                  Security
-                </button>
-              </nav>
-            </div>
-          </div>
-
-          <div className="space-y-8">
-            {/* Profile Information Tab */}
-            {activeTab === 'profile' && (
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-orange-200/50 overflow-hidden">
-                <div className="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                      <User className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">Profile Information</h2>
-                      <p className="text-orange-100">Update your personal details</p>
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handleProfileUpdate} className="p-8 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        value={profileData.firstName}
-                        onChange={(e) => handleInputChange('profile', 'firstName', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                        placeholder="Enter your first name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        value={profileData.lastName}
-                        onChange={(e) => handleInputChange('profile', 'lastName', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                        placeholder="Enter your last name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={profileData.email}
-                      disabled
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Job Title
-                      </label>
-                      <input
-                        type="text"
-                        value={profileData.jobTitle}
-                        onChange={(e) => handleInputChange('profile', 'jobTitle', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                        placeholder="Enter your job title"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Department
-                        {user?.role === 'user' && (
-                          <span className="text-xs text-gray-500 ml-2">
-                            (Contact admin to change)
-                          </span>
-                        )}
-                      </label>
-                      {user?.role === 'user' ? (
-                        <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600">
-                          {profileData.department || 'No department assigned'}
-                        </div>
-                      ) : (
-                        <select
-                          value={profileData.department}
-                          onChange={(e) =>
-                            handleInputChange('profile', 'department', e.target.value)
-                          }
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                        >
-                          <option value="">Select Department</option>
-                          <option value="Human Resources">Human Resources</option>
-                          <option value="Finance">Finance</option>
-                          <option value="Sales & Marketing">Sales & Marketing</option>
-                          <option value="IT">IT</option>
-                          <option value="Operations">Operations</option>
-                        </select>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-6 border-t border-gray-200">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex items-center px-8 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl hover:from-orange-600 hover:to-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Update Profile
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Email Integration Tab */}
-            {activeTab === 'email' && (
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-orange-200/50 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">Email Integration</h2>
-                      <p className="text-blue-100">
-                        Connect your email for sending interview invitations
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-8">
-                  <div className="space-y-6">
-                    {/* Outlook */}
-                    <div className="border border-gray-200 rounded-lg p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <Mail className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Outlook</h3>
-                            {connectedEmail.outlook?.connected ? (
-                              <p className="text-sm text-green-600">
-                                Connected as {connectedEmail.outlook.email}
-                              </p>
-                            ) : (
-                              <p className="text-sm text-gray-500">
-                                Connect to send interview emails from your company Outlook
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {connectedEmail.outlook?.connected ? (
-                          <button
-                            onClick={() => handleDisconnectEmail('outlook')}
-                            className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-lg transition-colors"
-                          >
-                            Disconnect
-                          </button>
-                        ) : (
-                          <button
-                            onClick={async () => {
-                              const result = await emailService.connectOutlook();
-                              // The page will redirect to Microsoft OAuth
-                              // No need to handle result here - it will be handled in the callback
-                              if (result.success && !result.pending) {
-                                handleEmailConnected('outlook', result.user);
-                              } else if (!result.success && !result.pending) {
-                                toast.error(result.error || 'Failed to connect Outlook');
-                              }
-                            }}
-                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                          >
-                            Connect Outlook
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Benefits */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                      <h4 className="font-semibold text-blue-900 mb-3">
-                        Benefits of Outlook Integration:
-                      </h4>
-                      <ul className="text-sm text-blue-800 space-y-2">
-                        <li className="flex items-center">
-                          <CheckCircle className="w-4 h-4 mr-2 text-blue-600" />
-                          Send interview emails from your company Outlook account
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle className="w-4 h-4 mr-2 text-blue-600" />
-                          Automatic Microsoft Teams meeting links
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle className="w-4 h-4 mr-2 text-blue-600" />
-                          Professional email templates with calendar invitations
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle className="w-4 h-4 mr-2 text-blue-600" />
-                          Automatic .ics calendar file attachments
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Security Tab */}
-            {activeTab === 'security' && (
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-orange-200/50 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-8 py-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">Security Settings</h2>
-                      <p className="text-purple-100">
-                        Update your password and security preferences
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handlePasswordChange} className="p-8 space-y-6">
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Current Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showCurrentPassword ? 'text' : 'password'}
-                          value={passwordData.currentPassword}
-                          onChange={(e) =>
-                            handleInputChange('password', 'currentPassword', e.target.value)
-                          }
-                          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          placeholder="Enter your current password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showCurrentPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                          ) : (
-                            <Eye className="w-5 h-5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        New Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showNewPassword ? 'text' : 'password'}
-                          value={passwordData.newPassword}
-                          onChange={(e) =>
-                            handleInputChange('password', 'newPassword', e.target.value)
-                          }
-                          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          placeholder="Enter your new password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showNewPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                          ) : (
-                            <Eye className="w-5 h-5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Confirm New Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          value={passwordData.confirmPassword}
-                          onChange={(e) =>
-                            handleInputChange('password', 'confirmPassword', e.target.value)
-                          }
-                          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                          placeholder="Confirm your new password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                          ) : (
-                            <Eye className="w-5 h-5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-6 border-t border-gray-200">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex items-center px-8 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-4 h-4 mr-2" />
-                          Change Password
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
+          
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
           </div>
         </div>
       </div>
-    </>
-  );
-}
 
-// Wrap with ClientOnly to prevent SSR/build issues
-export default function ProfilePage() {
-  return (
-    <ClientOnly>
-      <ProfileSettings />
-    </ClientOnly>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <motion.div
+            variants={scaleIn}
+            initial="hidden"
+            animate="visible"
+            className="lg:col-span-1"
+          >
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <nav className="space-y-2">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'profile'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Profile
+                </button>
+                <button
+                  onClick={() => setActiveTab('security')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'security'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Security
+                </button>
+                <button
+                  onClick={() => setActiveTab('notifications')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'notifications'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  Notifications
+                </button>
+                <button
+                  onClick={() => setActiveTab('preferences')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === 'preferences'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Preferences
+                </button>
+              </nav>
+            </div>
+          </motion.div>
+
+          {/* Content Area */}
+          <div className="lg:col-span-3">
+            <motion.div
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              className="bg-white border border-gray-200 rounded-2xl p-8"
+            >
+              {/* Profile Tab */}
+              {activeTab === 'profile' && (
+                <div className="space-y-6">
+                  
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Information</h2>
+                    <p className="text-gray-600">Update your account's profile information</p>
+                  </div>
+
+                  {/* Avatar */}
+                  <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                      JS
+                    </div>
+                    
+                      <ButtonGreen variant="secondary" size="md">
+                        Change Photo
+                      </ButtonGreen>
+                      <p className="text-xs text-gray-600 mt-2">JPG, GIF or PNG. Max size 2MB</p>
+                    </div>
+                  </div>
+
+                  {/* Form */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InputGreen
+                      label="Full Name"
+                      type="text"
+                      placeholder="John Smith"
+                      fullWidth
+                    />
+                    <InputGreen
+                      label="Email"
+                      type="email"
+                      placeholder="john.smith@company.com"
+                      fullWidth
+                    />
+                    <InputGreen
+                      label="Phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      fullWidth
+                    />
+                    <InputGreen
+                      label="Job Title"
+                      type="text"
+                      placeholder="HR Manager"
+                      fullWidth
+                    />
+                  </div>
+
+                  
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Bio</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Tell us about yourself..."
+                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <ButtonGreen variant="primary" size="lg" isLoading={isSaving} onClick={handleSave}>
+                      Save Changes
+                    </ButtonGreen>
+                    <ButtonGreen variant="secondary" size="lg">
+                      Cancel
+                    </ButtonGreen>
+                  </div>
+                </div>
+              )}
+
+              {/* Security Tab */}
+              {activeTab === 'security' && (
+                <div className="space-y-6">
+                  
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Security Settings</h2>
+                    <p className="text-gray-600">Manage your account security</p>
+                  </div>
+
+                  {/* Change Password */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
+                    <InputGreen
+                      label="Current Password"
+                      type="password"
+                      placeholder="••••••••"
+                      fullWidth
+                    />
+                    <InputGreen
+                      label="New Password"
+                      type="password"
+                      placeholder="••••••••"
+                      fullWidth
+                    />
+                    <InputGreen
+                      label="Confirm New Password"
+                      type="password"
+                      placeholder="••••••••"
+                      fullWidth
+                    />
+                  </div>
+
+                  {/* 2FA */}
+                  <div className="border-t border-gray-200 pt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Two-Factor Authentication</h3>
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                        <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      
+                        <p className="font-medium text-gray-900">2FA is Enabled</p>
+                        <p className="text-sm text-gray-600">Extra security for your account - Required for all users</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <ButtonGreen variant="primary" size="lg" isLoading={isSaving} onClick={handleSave}>
+                      Update Security
+                    </ButtonGreen>
+                  </div>
+                </div>
+              )}
+
+              {/* Notifications Tab */}
+              {activeTab === 'notifications' && (
+                <div className="space-y-6">
+                  
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Notification Preferences</h2>
+                    <p className="text-gray-600">Configure how you receive notifications</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Email Notifications', description: 'Receive email updates for important events' },
+                      { label: 'Interview Reminders', description: 'Get notified before scheduled interviews' },
+                      { label: 'New Applications', description: 'Alerts when new candidates apply' },
+                      { label: 'System Updates', description: 'Important platform updates and announcements' },
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        
+                          <p className="font-medium text-gray-900">{item.label}</p>
+                          <p className="text-sm text-gray-600">{item.description}</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" defaultChecked={index < 2} />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <ButtonGreen variant="primary" size="lg" isLoading={isSaving} onClick={handleSave}>
+                      Save Preferences
+                    </ButtonGreen>
+                  </div>
+                </div>
+              )}
+
+              {/* Preferences Tab */}
+              {activeTab === 'preferences' && (
+                <div className="space-y-6">
+                  
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">General Preferences</h2>
+                    <p className="text-gray-600">Customize your experience</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Language</label>
+                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                        English (US)</option>
+                        English (UK)</option>
+                        Spanish</option>
+                        French</option>
+                      </select>
+                    </div>
+
+                    
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Timezone</label>
+                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                        Pacific Time (PT)</option>
+                        Mountain Time (MT)</option>
+                        Central Time (CT)</option>
+                        Eastern Time (ET)</option>
+                      </select>
+                    </div>
+
+                    
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Date Format</label>
+                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                        MM/DD/YYYY</option>
+                        DD/MM/YYYY</option>
+                        YYYY-MM-DD</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <ButtonGreen variant="primary" size="lg" isLoading={isSaving} onClick={handleSave}>
+                      Save Preferences
+                    </ButtonGreen>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

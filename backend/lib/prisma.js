@@ -17,14 +17,16 @@ const globalForPrisma = global;
 /**
  * Create Prisma Client with production-ready configuration
  */
-const prisma = globalForPrisma.prisma || new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.POSTGRES_URL_NON_POOLING
-    }
-  }
-});
+const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    datasources: {
+      db: {
+        url: process.env.POSTGRES_URL_NON_POOLING,
+      },
+    },
+  });
 
 /**
  * In development, store in global to prevent multiple instances

@@ -65,6 +65,7 @@ DATABASE_URL="postgresql://user:pass@ep-xxx-pooler.region.neon.tech/db?sslmode=r
 ## Phase 2: Create API Routes (NEXT)
 
 Will create Next.js API routes in `frontend/src/pages/api/tickets/`:
+
 - `index.js` - List/Create tickets
 - `[id].js` - Get/Update/Delete single ticket
 - `[id]/comments.js` - Add comments
@@ -116,6 +117,7 @@ git push origin main
 ## Next Steps
 
 Run Phase 2:
+
 ```bash
 # Say "START PHASE 2" to begin creating API routes
 ```

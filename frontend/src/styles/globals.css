@@ -16,11 +16,6 @@
 
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
-  }
-
-  * {
-    @apply dark;
   }
 }
 

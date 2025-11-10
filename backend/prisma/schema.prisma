@@ -1,5 +1,5 @@
-// Prisma Schema for Ticketing System Migration
-// This coexists with the existing database.js connection system
+// Prisma Schema for Nexus Backend
+// Production-ready schema with full authentication and ticketing system
 
 generator client {
   provider = "prisma-client-js"
@@ -7,32 +7,80 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL_NON_POOLING")
+  url      = env("DATABASE_URL")
 }
 
 // ============================================
-// EXISTING USERS TABLE (READ-ONLY ACCESS)
+// USERS TABLE - Complete Authentication System
 // ============================================
 model User {
-  id                Int      @id @default(autoincrement())
-  email             String   @unique
-  first_name        String?
-  last_name         String?
-  role              String
-  password_hash     String?
-  verification_token String?
-  reset_token       String?
-  reset_token_expiry DateTime?
-  email_verified    Boolean  @default(false)
-  is_2fa_enabled    Boolean  @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  id                          Int       @id @default(autoincrement())
+  email                       String    @unique
+  first_name                  String?
+  last_name                   String?
+  role                        String    @default("user")
+  password_hash               String
+  department                  String?
+  job_title                   String?
+  
+  // Email Verification
+  email_verified              Boolean   @default(false)
+  verification_token          String?
+  verification_token_expires  DateTime?
+  
+  // Password Reset
+  reset_token                 String?
+  reset_token_expires         DateTime?
+  
+  // Two-Factor Authentication
+  is_2fa_enabled              Boolean   @default(false)
+  two_factor_code             String?
+  two_factor_code_expires     DateTime?
+  
+  // Security & Account Management
+  is_active                   Boolean   @default(true)
+  failed_login_attempts       Int       @default(0)
+  account_locked_until        DateTime?
+  last_login                  DateTime?
+  
+  // Timestamps
+  created_at                  DateTime  @default(now())
+  updated_at                  DateTime  @updatedAt
+  
+  // Relations
+  created_tickets             SupportTicket[]   @relation("TicketCreator")
+  ticket_comments             TicketComment[]
+  sessions                    UserSession[]
 
-  // Relations to ticketing system
-  created_tickets   SupportTicket[] @relation("TicketCreator")
-  ticket_comments   TicketComment[]
-
+  // Indexes for performance
+  @@index([email])
+  @@index([role])
+  @@index([is_active])
   @@map("users")
+}
+
+// ============================================
+// USER SESSIONS TABLE - JWT Session Management
+// ============================================
+model UserSession {
+  id             Int       @id @default(autoincrement())
+  user_id        Int
+  session_token  String    @unique
+  refresh_token  String    @unique
+  ip_address     String?
+  user_agent     String?
+  expires_at     DateTime
+  created_at     DateTime  @default(now())
+  
+  // Relations
+  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  // Indexes for performance
+  @@index([user_id])
+  @@index([session_token])
+  @@index([refresh_token])
+  @@index([expires_at])
+  @@map("user_sessions")
 }
 
 // ============================================
@@ -58,7 +106,6 @@ model SupportTicket {
   @@index([status])
   @@index([priority])
   @@index([created_at])
-
   @@map("support_tickets")
 }
 
@@ -81,6 +128,5 @@ model TicketComment {
   @@index([ticket_id])
   @@index([user_id])
   @@index([created_at])
-
   @@map("ticket_comments")
 }

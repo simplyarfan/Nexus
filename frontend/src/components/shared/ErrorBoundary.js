@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component {
       console.error('Production error:', {
         error: error.toString(),
         stack: error.stack,
-        componentStack: errorInfo.componentStack,
+        componentStack: errorInfo?.componentStack || 'No stack trace available',
       });
     }
   }
@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component {
               We&apos;re sorry, but something unexpected happened. Please try refreshing the page.
             </div>
 
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
               <details className="mt-4">
                 <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
                   Error Details (Development)
@@ -68,10 +68,12 @@ class ErrorBoundary extends React.Component {
                   <div className="mb-2">
                     <strong>Error:</strong> {this.state.error && this.state.error.toString()}
                   </div>
-                  <div>
-                    <strong>Component Stack:</strong>
-                    <pre className="whitespace-pre-wrap">{this.state.errorInfo.componentStack}</pre>
-                  </div>
+                  {this.state.errorInfo?.componentStack && (
+                    <div>
+                      <strong>Component Stack:</strong>
+                      <pre className="whitespace-pre-wrap">{this.state.errorInfo.componentStack}</pre>
+                    </div>
+                  )}
                 </div>
               </details>
             )}

@@ -45,7 +45,6 @@ export default function SystemHealth() {
               <p className="text-gray-600 mt-1">Monitor system performance and status</p>
             </div>
           </div>
-          </div>
         </div>
       </div>
 

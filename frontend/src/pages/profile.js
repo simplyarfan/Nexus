@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
@@ -21,7 +22,7 @@ export default function ProfilePage() {
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a
+            <Link
               href="/dashboard"
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -34,7 +35,7 @@ export default function ProfilePage() {
                 />
               </svg>
               Back to Dashboard
-            </a>
+            </Link>
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Settings</h1>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
@@ -318,7 +319,7 @@ Best regards,
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a
+            <Link
               href="/dashboard"
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -331,7 +332,7 @@ Best regards,
                 />
               </svg>
               Back to Dashboard
-            </a>
+            </Link>
           </div>
           <div className="flex items-center justify-between">
             <div>

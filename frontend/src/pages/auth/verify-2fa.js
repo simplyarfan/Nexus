@@ -57,7 +57,7 @@ export default function TwoFAPage() {
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').slice(0, 6);
 

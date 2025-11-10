@@ -307,7 +307,7 @@ export default function CVIntelligencePage() {
                       placeholder="e.g., Sr. AI Developer - December 2024"
                       className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     />
-                    <p className="text-xs text-gray-600 mt-2">The batch name should describe the role you're hiring for</p>
+                    <p className="text-xs text-gray-600 mt-2">The batch name should describe the role you&apos;re hiring for</p>
                   </div>
 
                   {/* 2. CV Upload Area */}

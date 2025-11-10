@@ -16,7 +16,7 @@ export default function CreateTicket() {
     category: 'general',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -39,7 +39,7 @@ export default function CreateTicket() {
     }, 2000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -248,7 +248,7 @@ export default function CreateTicket() {
                   Your support ticket h created successfully.
                 </p>
                 <p className="text-sm text-gray-600">
-                  We'll get back to you soon.
+                  We&apos;ll get back to you soon.
                 </p>
               </div>
             </motion.div>

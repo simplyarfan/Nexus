@@ -95,7 +95,7 @@ export default function TicketDetail({ params }) {
     }
   };
 
-  const handleReply = async (e: React.FormEvent) => {
+  const handleReply = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     // Handle reply submission

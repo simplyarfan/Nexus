@@ -19,7 +19,7 @@ export default function SupportPage() {
       category: 'Technical',
       created: '2024-12-05',
       assignedTo: 'Tech Support',
-      messages,
+      messages: 3,
     },
     {
       id: 'TKT-002',
@@ -30,7 +30,7 @@ export default function SupportPage() {
       category: 'Integration',
       created: '2024-12-04',
       assignedTo: 'John Smith',
-      messages,
+      messages: 5,
     },
     {
       id: 'TKT-003',
@@ -41,7 +41,7 @@ export default function SupportPage() {
       category: 'Account',
       created: '2024-12-03',
       assignedTo: 'Sarah Johnson',
-      messages,
+      messages: 8,
     },
     {
       id: 'TKT-004',
@@ -52,14 +52,14 @@ export default function SupportPage() {
       category: 'Technical',
       created: '2024-12-02',
       assignedTo: 'Tech Support',
-      messages,
+      messages: 2,
     },
   ];
 
   const stats = [
-    { label: 'Open Tickets', value, color: 'text-red-600' },
-    { label: 'In Progress', value, color: 'text-green-500' },
-    { label: 'Resolved', value, color: 'text-green-600' },
+    { label: 'Open Tickets', value: 2, color: 'text-red-600' },
+    { label: 'In Progress', value: 1, color: 'text-green-500' },
+    { label: 'Resolved', value: 1, color: 'text-green-600' },
   ];
 
   return (
@@ -100,7 +100,7 @@ export default function SupportPage() {
               variants={scaleIn}
               initial="hidden"
               animate="visible"
-              transition={{ delay * 0.1 }}
+              transition={{ delay: index * 0.1 }}
               className="bg-white border border-gray-200 rounded-2xl p-6"
             >
               <p className="text-sm text-gray-600 mb-2">{stat.label}</p>
@@ -168,9 +168,9 @@ export default function SupportPage() {
           {tickets.map((ticket, index) => (
             <motion.div
               key={ticket.id}
-              initial={{ opacity, y }}
-              animate={{ opacity, y }}
-              transition={{ delay.3 + index * 0.05 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + index * 0.05 }}
               className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
@@ -181,7 +181,7 @@ export default function SupportPage() {
                       className={`px-3 py-1 text-xs font-medium rounded-full ${
                         ticket.priority === 'High'
                           ? 'bg-red-600/10 text-red-600'
-                          .priority === 'Medium'
+                          : ticket.priority === 'Medium'
                             ? 'bg-green-500/10 text-green-500'
                             : 'bg-gray-200 text-gray-600'
                       }`}
@@ -199,7 +199,7 @@ export default function SupportPage() {
                   className={`px-3 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
                     ticket.status === 'Open'
                       ? 'bg-red-600/10 text-red-600'
-                      .status === 'In Progress'
+                      : ticket.status === 'In Progress'
                         ? 'bg-green-500/10 text-green-500'
                         : 'bg-green-500/10 text-green-600'
                   }`}

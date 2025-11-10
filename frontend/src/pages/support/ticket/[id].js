@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 
-export default function TicketDetail({ params }: { params: { id } }) {
+export default function TicketDetail({ params }) {
   const router = useRouter();
   const [ticketStatus, setTicketStatus] = useState('open');
   const [replyText, setReplyText] = useState('');

@@ -94,10 +94,11 @@ export default function SupportManagement() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            
+            <div>
               <h1 className="text-3xl font-bold text-gray-900">Support Management</h1>
               <p className="text-gray-600 mt-1">Manage and respond to user support tickets</p>
             </div>
+          </div>
           </div>
         </div>
       </div>

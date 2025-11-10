@@ -5,33 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
 
-
-  name;
-  position;
-  score;
-  email;
-  phone;
-  location;
-  experience;
-  education;
-  salary;
-  matchedSkills;
-  missingSkills;
-  additionalSkills;
-  experienceTimeline: { company; role; period }[];
-  certifications;
-  professionalAssessment;
-};
-
-
-  name;
-  position;
-  cvCount;
-  dateCreated;
-  status: 'Completed' ;
-  candidates;
-};
-
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [view, setView] = useState('batches');

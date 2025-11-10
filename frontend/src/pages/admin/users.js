@@ -71,10 +71,11 @@ export default function UserManagement() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              
-                <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-                <p className="text-gray-600 mt-1">Manage users, roles, and permissions</p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+              <p className="text-gray-600 mt-1">Manage users, roles, and permissions</p>
+            </div>
+          </div>
             </div>
             <button
               onClick={() => setShowAddModal(true)}

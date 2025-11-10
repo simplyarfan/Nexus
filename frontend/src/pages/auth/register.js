@@ -421,7 +421,7 @@ export default function Register() {
                       </div>
                       <div className="text-sm text-gray-600">
                         <p className="font-medium mb-1">Email Verification Required</p>
-                        <p>We'll send a verification link to {formData.email}</p>
+                        <p>We&apos;ll send a verification link to {formData.email}</p>
                       </div>
                     </div>
                   </div>

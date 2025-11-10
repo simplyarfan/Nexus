@@ -14,10 +14,10 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [errors, setErrors] = useState>({});
+  const [errors, setErrors] = useState({});
 
   // Password strength calculation
-  const getPasswordStrength = (password): { strength; label; color } => {
+  const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, label: '', color: '' };
 
     let strength = 0;

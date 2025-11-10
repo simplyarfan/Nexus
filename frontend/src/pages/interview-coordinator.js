@@ -4,26 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
-import DateTimePicker from '@/components/ui/DateTimePicker';
-
-
-  timestamp;
-  details?;
-};
-
-
-  candidateName;
-  candidateEmail;
-  position;
-  status: 'awaiting_response' ;
-  createdDate;
-  scheduledTime?;
-  duration?;
-  meetingLink?;
-  interviewType?;
-  workflow?;
-  rejectionReason?;
-};
+import DateTimePicker from '../components/ui/DateTimePicker';
 
 export default function InterviewsPage() {
   const [view, setView] = useState('list');

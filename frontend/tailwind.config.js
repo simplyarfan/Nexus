@@ -9,166 +9,181 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Semantic tokens for DARK theme (authenticated pages)
-        background: '#000000', // Pure black
-        foreground: '#ffffff', // White text
-        card: '#0a0a0a', // Very dark gray for cards
-        'card-foreground': '#ffffff',
-        popover: '#0a0a0a',
-        'popover-foreground': '#ffffff',
+        // Design system colors using CSS variables (from prototype)
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        card: {
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)',
+        },
+        popover: {
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)',
+        },
         primary: {
-          DEFAULT: '#72e3ad', // Primary green from prototype
-          foreground: '#000000', // Black text on green
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
         },
         secondary: {
-          DEFAULT: '#1a1a1a', // Dark gray for secondary elements
-          foreground: '#ffffff',
+          DEFAULT: 'var(--secondary)',
+          foreground: 'var(--secondary-foreground)',
         },
         muted: {
-          DEFAULT: '#1a1a1a',
-          foreground: '#a1a1aa', // Muted gray text
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)',
         },
         accent: {
-          DEFAULT: '#1a1a1a',
-          foreground: '#ffffff',
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)',
         },
         destructive: {
-          DEFAULT: '#ef4444', // Red for errors
-          foreground: '#ffffff',
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)',
         },
-        border: '#27272a', // Dark border
-        input: '#27272a',
-        ring: '#72e3ad', // Green focus ring
-        // Green scale (keep for compatibility)
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+        chart: {
+          1: 'var(--chart-1)',
+          2: 'var(--chart-2)',
+          3: 'var(--chart-3)',
+          4: 'var(--chart-4)',
+          5: 'var(--chart-5)',
+        },
+        sidebar: {
+          DEFAULT: 'var(--sidebar)',
+          foreground: 'var(--sidebar-foreground)',
+          primary: 'var(--sidebar-primary)',
+          'primary-foreground': 'var(--sidebar-primary-foreground)',
+          accent: 'var(--sidebar-accent)',
+          'accent-foreground': 'var(--sidebar-accent-foreground)',
+          border: 'var(--sidebar-border)',
+          ring: 'var(--sidebar-ring)',
+        },
+        // Keep green scale for compatibility
         green: {
           50: '#f0fdf9',
           100: '#ccfbef',
           200: '#99f6e0',
           300: '#5fe9ce',
           400: '#2dd4b4',
-          500: '#72e3ad', // Primary green from prototype
+          500: '#72e3ad',
           600: '#14b8a6',
           700: '#0f9384',
           800: '#115e59',
           900: '#134e4a',
         },
-        // Orange/Red Theme (Keep for landing pages)
+        // Keep orange scale for landing pages
         orange: {
           50: '#fff7ed',
           100: '#ffedd5',
           200: '#fed7aa',
           300: '#fdba74',
           400: '#fb923c',
-          500: '#f97316', // Orange-500
-          600: '#ea580c', // Orange-600
+          500: '#f97316',
+          600: '#ea580c',
           700: '#c2410c',
           800: '#9a3412',
           900: '#7c2d12',
         },
       },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        // Green gradients (New - for authenticated pages)
-        'gradient-green': 'linear-gradient(135deg, #72e3ad 0%, #14b8a6 100%)',
-        'gradient-green-soft': 'linear-gradient(135deg, #ccfbef 0%, #72e3ad 100%)',
-        // Orange gradients (Keep for landing pages)
-        'gradient-primary': 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-        'gradient-secondary': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-        'gradient-warm': 'linear-gradient(135deg, #f97316 0%, #ef4444 50%, #fbbf24 100%)',
-        'mesh-gradient':
-          'radial-gradient(at 40% 20%, hsla(28,100%,74%,1) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(12,100%,60%,1) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(45,100%,70%,1) 0px, transparent 50%)',
+      fontFamily: {
+        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      fontSize: {
+        // Display
+        'display-lg': ['64px', { lineHeight: '72px', fontWeight: '700' }],
+        'display-md': ['48px', { lineHeight: '56px', fontWeight: '700' }],
+        'display-sm': ['36px', { lineHeight: '44px', fontWeight: '700' }],
+        // Headings
+        'h1': ['32px', { lineHeight: '40px', fontWeight: '600' }],
+        'h2': ['24px', { lineHeight: '32px', fontWeight: '600' }],
+        'h3': ['20px', { lineHeight: '28px', fontWeight: '600' }],
+        'h4': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        // Body
+        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        // Labels
+        'label-lg': ['14px', { lineHeight: '20px', fontWeight: '500' }],
+        'label-md': ['12px', { lineHeight: '16px', fontWeight: '500' }],
+        'label-sm': ['10px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        'xs': '4px',
+        'xl': '16px',
+        '2xl': '24px',
+      },
+      boxShadow: {
+        'sm': '0px 1px 2px rgba(0, 0, 0, 0.05)',
+        'DEFAULT': '0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06)',
+        'md': '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'lg': '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'xl': '0px 20px 25px -5px rgba(0, 0, 0, 0.1), 0px 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        '2xl': '0px 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        'inner': 'inset 0px 2px 4px rgba(0, 0, 0, 0.06)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'fade-in-up': 'fadeInUp 0.5s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-in-out',
+        'fade-out': 'fadeOut 0.3s ease-in-out',
         'slide-in-right': 'slideInRight 0.3s ease-out',
+        'slide-in-left': 'slideInLeft 0.3s ease-out',
+        'slide-in-up': 'slideInUp 0.3s ease-out',
+        'slide-in-down': 'slideInDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
-        float: 'float 6s ease-in-out infinite',
-        glow: 'glow 2s ease-in-out infinite alternate',
-        'pulse-orange': 'pulseOrange 2s ease-in-out infinite',
+        'shimmer': 'shimmer 2s infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+        fadeOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
         },
         slideInRight: {
-          '0%': { opacity: '0', transform: 'translateX(20px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' },
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideInLeft: {
+          '0%': { transform: 'translateX(-100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideInUp: {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideInDown: {
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.9)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
+          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-20px)' },
-        },
-        glow: {
-          '0%': { boxShadow: '0 0 5px rgba(249, 115, 22, 0.5)' },
-          '100%': { boxShadow: '0 0 20px rgba(249, 115, 22, 0.8)' },
-        },
-        pulseOrange: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.8' },
+        shimmer: {
+          '0%': { backgroundPosition: '-1000px 0' },
+          '100%': { backgroundPosition: '1000px 0' },
         },
       },
-      fontFamily: {
-        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'], // Outfit primary, Inter fallback
-        display: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
-        inter: ['Inter', 'system-ui', 'sans-serif'], // Keep Inter available for landing pages
-        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'shimmer-gradient': 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
       },
-      borderRadius: {
-        xs: '4px',
-        sm: '6px',
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
-        '2xl': '24px',
-        '4xl': '2rem',
-      },
-      spacing: {
-        18: '4.5rem', // 72px
-        88: '22rem', // 352px
-        128: '32rem', // 512px
-      },
-      boxShadow: {
-        '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        xs: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        sm: '0 2px 4px 0 rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
-        md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        // Green-themed shadows
-        'green-sm': '0 2px 8px 0 rgba(114, 227, 173, 0.15)',
-        'green-md': '0 4px 12px 0 rgba(114, 227, 173, 0.2)',
-        'green-lg': '0 8px 24px 0 rgba(114, 227, 173, 0.25)',
-      },
-      fontSize: {
-        // Display sizes
-        'display-lg': ['64px', { lineHeight: '1.1', fontWeight: '700' }],
-        'display-md': ['48px', { lineHeight: '1.2', fontWeight: '700' }],
-        'display-sm': ['36px', { lineHeight: '1.2', fontWeight: '700' }],
-        // Heading sizes
-        'heading-1': ['32px', { lineHeight: '1.3', fontWeight: '600' }],
-        'heading-2': ['24px', { lineHeight: '1.4', fontWeight: '600' }],
-        'heading-3': ['20px', { lineHeight: '1.4', fontWeight: '600' }],
-        'heading-4': ['18px', { lineHeight: '1.5', fontWeight: '600' }],
-        // Body sizes
-        'body-lg': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
-        'body-md': ['14px', { lineHeight: '1.6', fontWeight: '400' }],
-        'body-sm': ['12px', { lineHeight: '1.5', fontWeight: '400' }],
-        // Label sizes
-        'label-lg': ['14px', { lineHeight: '1.4', fontWeight: '500' }],
-        'label-md': ['12px', { lineHeight: '1.4', fontWeight: '500' }],
-        'label-sm': ['10px', { lineHeight: '1.4', fontWeight: '500' }],
+      transitionDuration: {
+        '2000': '2000ms',
       },
     },
   },

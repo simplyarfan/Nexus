@@ -18,18 +18,8 @@ import { cn } from '../../lib/utils';
  */
 const InputGreen = forwardRef(
   (
-    {
-      label,
-      error,
-      hint,
-      leftIcon,
-      rightIcon,
-      fullWidth = false,
-      className,
-      id,
-      ...props
-    },
-    ref
+    { label, error, hint, leftIcon, rightIcon, fullWidth = false, className, id, ...props },
+    ref,
   ) => {
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -58,7 +48,7 @@ const InputGreen = forwardRef(
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
               fullWidth && 'w-full',
-              className
+              className,
             )}
             {...props}
           />
@@ -83,7 +73,7 @@ const InputGreen = forwardRef(
         {hint && !error && <p className="form-hint">{hint}</p>}
       </div>
     );
-  }
+  },
 );
 
 InputGreen.displayName = 'InputGreen';

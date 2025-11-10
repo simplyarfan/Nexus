@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -41,7 +39,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors: Record<string, string> = {};
+    const newErrors = {};
 
     // Validation
     if (!password) {
@@ -62,7 +60,7 @@ export default function ResetPasswordPage() {
       setIsLoading(true);
 
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setIsLoading(false);
       setIsSuccess(true);
@@ -82,7 +80,7 @@ export default function ResetPasswordPage() {
             transition={{
               duration: 20,
               repeat: Infinity,
-              ease: "linear"
+              ease: 'linear',
             }}
             className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
           />
@@ -105,8 +103,18 @@ export default function ResetPasswordPage() {
               className="flex justify-center mb-6"
             >
               <div className="inline-flex items-center justify-center w-20 h-20 bg-ring rounded-full">
-                <svg className="w-10 h-10 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-10 h-10 text-background"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             </motion.div>
@@ -118,21 +126,22 @@ export default function ResetPasswordPage() {
               transition={{ delay: 0.2 }}
               className="text-center mb-8"
             >
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                Password Reset Successful!
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-3">Password Reset Successful!</h1>
               <p className="text-gray-600 mb-6">
-                Your password has been successfully reset. You can now sign in with your new password.
+                Your password has been successfully reset. You can now sign in with your new
+                password.
               </p>
 
               <div className="bg-ring/10 border border-ring/50 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-3 justify-center">
                   <svg className="w-5 h-5 text-ring" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
-                  <p className="text-sm text-ring font-medium">
-                    Your account is now secure
-                  </p>
+                  <p className="text-sm text-ring font-medium">Your account is now secure</p>
                 </div>
               </div>
             </motion.div>
@@ -177,7 +186,7 @@ export default function ResetPasswordPage() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: 'linear',
           }}
           className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
         />
@@ -200,8 +209,18 @@ export default function ResetPasswordPage() {
             className="flex justify-center mb-6"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              <svg
+                className="w-8 h-8 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                />
               </svg>
             </div>
           </motion.div>
@@ -213,12 +232,8 @@ export default function ResetPasswordPage() {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Reset Your Password
-            </h1>
-            <p className="text-gray-600">
-              Choose a strong password for your account
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Reset Your Password</h1>
+            <p className="text-gray-600">Choose a strong password for your account</p>
           </motion.div>
 
           {/* Form */}
@@ -240,7 +255,12 @@ export default function ResetPasswordPage() {
                 fullWidth
                 leftIcon={
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 }
                 rightIcon={
@@ -250,13 +270,38 @@ export default function ResetPasswordPage() {
                     className="text-gray-400 hover:text-gray-600 transition-colors pointer-events-auto cursor-pointer"
                   >
                     {showPassword ? (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
                       </svg>
                     ) : (
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
                       </svg>
                     )}
                   </button>
@@ -272,7 +317,9 @@ export default function ResetPasswordPage() {
                 >
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Password Strength</span>
-                    <span className={`font-medium ${passwordStrength.strength > 60 ? 'text-ring' : 'text-ring/60'}`}>
+                    <span
+                      className={`font-medium ${passwordStrength.strength > 60 ? 'text-ring' : 'text-ring/60'}`}
+                    >
                       {passwordStrength.label}
                     </span>
                   </div>
@@ -288,7 +335,11 @@ export default function ResetPasswordPage() {
                     <li className={password.length >= 8 ? 'text-ring' : ''}>
                       • At least 8 characters
                     </li>
-                    <li className={/[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-ring' : ''}>
+                    <li
+                      className={
+                        /[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-ring' : ''
+                      }
+                    >
                       • Mix of uppercase & lowercase
                     </li>
                     <li className={/\d/.test(password) ? 'text-ring' : ''}>
@@ -309,7 +360,12 @@ export default function ResetPasswordPage() {
               fullWidth
               leftIcon={
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               }
               rightIcon={
@@ -320,25 +376,34 @@ export default function ResetPasswordPage() {
                 >
                   {showConfirmPassword ? (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
                     </svg>
                   ) : (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
                     </svg>
                   )}
                 </button>
               }
             />
 
-            <ButtonGreen
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              isLoading={isLoading}
-            >
+            <ButtonGreen type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
               Reset Password
             </ButtonGreen>
 
@@ -346,12 +411,16 @@ export default function ResetPasswordPage() {
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
                   <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="text-sm text-gray-600">
                   <p className="font-medium mb-1">Password Requirements</p>
-                  <p>Use a strong, unique password that you haven't used elsewhere.</p>
+                  <p>Use a strong, unique password that you haven&apos;t used elsewhere.</p>
                 </div>
               </div>
             </div>

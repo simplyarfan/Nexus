@@ -256,7 +256,7 @@ export default function About() {
                       description: 'Became the leading AI platform with 50,000+ active developers.',
                       side: 'left',
                     },
-                  ].map((milestone, index) => (
+                  ].map((milestone, _index) => (
                     <motion.div
                       key={milestone.year}
                       initial={{ opacity: 0, x: milestone.side === 'left' ? -40 : 40 }}

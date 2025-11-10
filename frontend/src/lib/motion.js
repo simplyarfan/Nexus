@@ -12,12 +12,12 @@ export const fadeIn = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -28,13 +28,13 @@ export const slideInRight = {
   visible: {
     x: 0,
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
   exit: {
     x: 100,
     opacity: 0,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -45,13 +45,13 @@ export const slideInLeft = {
   visible: {
     x: 0,
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
   exit: {
     x: -100,
     opacity: 0,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -62,13 +62,13 @@ export const slideInDown = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
   exit: {
     y: -50,
     opacity: 0,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -79,13 +79,13 @@ export const slideInUp = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" }
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
   exit: {
     y: 50,
     opacity: 0,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -96,13 +96,13 @@ export const scaleIn = {
   visible: {
     scale: 1,
     opacity: 1,
-    transition: { duration: 0.2, ease: "easeOut" }
+    transition: { duration: 0.2, ease: 'easeOut' },
   },
   exit: {
     scale: 0.9,
     opacity: 0,
-    transition: { duration: 0.15 }
-  }
+    transition: { duration: 0.15 },
+  },
 };
 
 /**
@@ -114,9 +114,9 @@ export const staggerContainer = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
-  }
+      delayChildren: 0.1,
+    },
+  },
 };
 
 /**
@@ -127,8 +127,8 @@ export const staggerItem = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 /**
@@ -138,7 +138,7 @@ export const modalVariants = {
   hidden: {
     scale: 0.95,
     opacity: 0,
-    y: 20
+    y: 20,
   },
   visible: {
     scale: 1,
@@ -146,15 +146,15 @@ export const modalVariants = {
     y: 0,
     transition: {
       duration: 0.2,
-      ease: [0.4, 0, 0.2, 1] // Custom easing
-    }
+      ease: [0.4, 0, 0.2, 1], // Custom easing
+    },
   },
   exit: {
     scale: 0.95,
     opacity: 0,
     y: 20,
-    transition: { duration: 0.15 }
-  }
+    transition: { duration: 0.15 },
+  },
 };
 
 /**
@@ -164,12 +164,12 @@ export const backdropVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.2 }
+    transition: { duration: 0.2 },
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -182,14 +182,14 @@ export const pageTransition = {
     y: 0,
     transition: {
       duration: 0.4,
-      ease: "easeOut"
-    }
+      ease: 'easeOut',
+    },
   },
   exit: {
     opacity: 0,
     y: -20,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 /**
@@ -200,9 +200,9 @@ export const cardHover = {
   hover: {
     scale: 1.02,
     y: -4,
-    transition: { duration: 0.2, ease: "easeOut" }
+    transition: { duration: 0.2, ease: 'easeOut' },
   },
-  tap: { scale: 0.98 }
+  tap: { scale: 0.98 },
 };
 
 /**
@@ -210,7 +210,7 @@ export const cardHover = {
  */
 export const buttonTap = {
   scale: 0.95,
-  transition: { duration: 0.1 }
+  transition: { duration: 0.1 },
 };
 
 /**
@@ -221,8 +221,8 @@ export const ripple = {
   animate: {
     scale: 2,
     opacity: 0,
-    transition: { duration: 0.6, ease: "easeOut" }
-  }
+    transition: { duration: 0.6, ease: 'easeOut' },
+  },
 };
 
 /**
@@ -232,7 +232,7 @@ export const toastVariants = {
   hidden: {
     x: 400,
     opacity: 0,
-    scale: 0.8
+    scale: 0.8,
   },
   visible: {
     x: 0,
@@ -240,15 +240,15 @@ export const toastVariants = {
     scale: 1,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1]
-    }
+      ease: [0.4, 0, 0.2, 1],
+    },
   },
   exit: {
     x: 400,
     opacity: 0,
     scale: 0.8,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 /**
@@ -261,9 +261,9 @@ export const skeletonPulse = {
     transition: {
       duration: 1.5,
       repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
+      ease: 'easeInOut',
+    },
+  },
 };
 
 /**
@@ -275,9 +275,9 @@ export const bounce = {
     transition: {
       duration: 0.6,
       repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
+      ease: 'easeInOut',
+    },
+  },
 };
 
 /**
@@ -289,16 +289,16 @@ export const rotate = {
     transition: {
       duration: 1,
       repeat: Infinity,
-      ease: "linear"
-    }
-  }
+      ease: 'linear',
+    },
+  },
 };
 
 /**
  * Spring animation config
  */
 export const springConfig = {
-  type: "spring",
+  type: 'spring',
   stiffness: 300,
-  damping: 30
+  damping: 30,
 };

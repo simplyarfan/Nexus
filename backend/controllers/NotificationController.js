@@ -1,5 +1,4 @@
 const database = require('../models/database');
-const { validationResult } = require('express-validator');
 
 class NotificationController {
   // Get user notifications
@@ -279,7 +278,7 @@ class NotificationController {
       }
 
       // Get updater details
-      const updater = await database.get(
+      const _updater = await database.get(
         `
         SELECT first_name, last_name FROM users WHERE id = $1
       `,

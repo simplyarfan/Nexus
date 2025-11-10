@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     // - Nodemailer with SMTP
     // - EmailJS (client-side)
 
-    console.log('Contact form submission:', {
+    console.warn('Contact form submission:', {
       firstName,
       lastName,
       email,
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       `,
     };
 
-    console.log('Email would be sent:', emailData);
+    console.warn('Email would be sent:', emailData);
 
     // Return success
     res.status(200).json({

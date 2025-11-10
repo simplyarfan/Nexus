@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, CheckCheck } from 'lucide-react';
+import { Bell, Check, CheckCheck } from 'lucide-react';
 import { notificationsAPI } from '../utils/api';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';

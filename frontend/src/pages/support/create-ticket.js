@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -8,7 +6,7 @@ export default function CreateTicket() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [errors, setErrors] = useState>({});
+  const [errors] = useState({});
   const [formData, setFormData] = useState({
     subject: '',
     description: '',
@@ -56,15 +54,24 @@ export default function CreateTicket() {
               onClick={() => router.back()}
               className="p-2 hover:bg-green-50 rounded-lg transition-colors"
             >
-              <svg className="w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-5 h-5 text-gray-900"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Create Support Ticket</h1>
               <p className="text-gray-600 mt-1">Submit a new support request</p>
             </div>
-          </div>
           </div>
         </div>
       </div>
@@ -77,7 +84,7 @@ export default function CreateTicket() {
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Subject */}
-            
+            <div>
               <label htmlFor="subject" className="block text-sm font-semibold text-gray-900 mb-2">
                 Subject <span className="text-red-600">*</span>
               </label>
@@ -91,13 +98,11 @@ export default function CreateTicket() {
                 placeholder="Brief description of your issue"
                 className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent ${errors.subject ? 'border-destructive' : 'border-gray-200'}`}
               />
-              {errors.subject && (
-                <p className="text-sm text-red-600 mt-1">{errors.subject}</p>
-              )}
+              {errors.subject && <p className="text-sm text-red-600 mt-1">{errors.subject}</p>}
             </div>
 
             {/* Category */}
-            
+            <div>
               <label htmlFor="category" className="block text-sm font-semibold text-gray-900 mb-2">
                 Category <span className="text-red-600">*</span>
               </label>
@@ -116,13 +121,11 @@ export default function CreateTicket() {
                 <option value="bug">Bug Report</option>
                 <option value="other">Other</option>
               </select>
-              {errors.category && (
-                <p className="text-sm text-red-600 mt-1">{errors.category}</p>
-              )}
+              {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
             </div>
 
             {/* Priority */}
-            
+            <div>
               <label htmlFor="priority" className="block text-sm font-semibold text-gray-900 mb-2">
                 Priority <span className="text-red-600">*</span>
               </label>
@@ -138,14 +141,15 @@ export default function CreateTicket() {
                 <option value="medium">Medium - Affects my work but h</option>
                 <option value="high">High - Blocking my work, needs urgent attention</option>
               </select>
-              {errors.priority && (
-                <p className="text-sm text-red-600 mt-1">{errors.priority}</p>
-              )}
+              {errors.priority && <p className="text-sm text-red-600 mt-1">{errors.priority}</p>}
             </div>
 
             {/* Description */}
-            
-              <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-semibold text-gray-900 mb-2"
+              >
                 Description <span className="text-red-600">*</span>
               </label>
               <textarea
@@ -162,7 +166,8 @@ export default function CreateTicket() {
                 <p className="text-sm text-red-600 mt-1">{errors.description}</p>
               )}
               <p className="text-xs text-gray-600 mt-2">
-                Tip: Include steps to reproduce the issue, error messages, and any relevant screenshots
+                Tip: Include steps to reproduce the issue, error messages, and any relevant
+                screenshots
               </p>
             </div>
 
@@ -170,16 +175,25 @@ export default function CreateTicket() {
             <div className="bg-green-500/10 border border-primary/20 rounded-lg p-4">
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-5 h-5 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
-                
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                    What happens next?
-                  </h4>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-1">What happens next?</h4>
                   <p className="text-sm text-gray-600">
-                    Our support team will review your ticket and respond within 24 hours. You'll receive email notifications for any updates.
+                    Our support team will review your ticket and respond within 24 hours.
+                    You&apos;ll receive email notifications for any updates.
                   </p>
                 </div>
               </div>
@@ -195,8 +209,19 @@ export default function CreateTicket() {
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Submitting...
                   </span>
@@ -233,23 +258,34 @@ export default function CreateTicket() {
                 className="absolute top-4 right-4 p-1.5 hover:bg-green-50 rounded-lg transition-colors"
                 aria-label="Close"
               >
-                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-500/10 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Ticket Submitted!</h3>
-                <p className="text-gray-600 mb-1">
-                  Your support ticket h created successfully.
-                </p>
-                <p className="text-sm text-gray-600">
-                  We&apos;ll get back to you soon.
-                </p>
+                <p className="text-gray-600 mb-1">Your support ticket h created successfully.</p>
+                <p className="text-sm text-gray-600">We&apos;ll get back to you soon.</p>
               </div>
             </motion.div>
           </motion.div>

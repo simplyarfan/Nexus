@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Link from 'next/link';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import { Mail, MessageSquare, MapPin, Phone } from 'lucide-react';
@@ -18,7 +17,7 @@ export default function Contact() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission
-    console.log('Form submitted:', formData);
+    console.warn('Form submitted:', formData);
   };
 
   return (

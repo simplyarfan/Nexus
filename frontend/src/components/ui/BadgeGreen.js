@@ -50,7 +50,7 @@ export default function BadgeGreen({
             variant === 'success' && 'bg-green-500',
             variant === 'warning' && 'bg-yellow-500',
             variant === 'error' && 'bg-red-500',
-            variant === 'gray' && 'bg-gray-500'
+            variant === 'gray' && 'bg-gray-500',
           )}
         />
       )}

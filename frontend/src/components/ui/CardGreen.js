@@ -32,8 +32,8 @@ export default function CardGreen({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       variants={hover ? cardHover : undefined}
-      whileHover={hover ? "hover" : undefined}
-      whileTap={hover ? "tap" : undefined}
+      whileHover={hover ? 'hover' : undefined}
+      whileTap={hover ? 'tap' : undefined}
       className={cn('card', paddings[padding], hover && 'cursor-pointer', className)}
       {...props}
     >

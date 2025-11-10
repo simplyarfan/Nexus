@@ -9,7 +9,37 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Green Primary Theme (New - for authenticated pages)
+        // Semantic tokens for DARK theme (authenticated pages)
+        background: '#000000', // Pure black
+        foreground: '#ffffff', // White text
+        card: '#0a0a0a', // Very dark gray for cards
+        'card-foreground': '#ffffff',
+        popover: '#0a0a0a',
+        'popover-foreground': '#ffffff',
+        primary: {
+          DEFAULT: '#72e3ad', // Primary green from prototype
+          foreground: '#000000', // Black text on green
+        },
+        secondary: {
+          DEFAULT: '#1a1a1a', // Dark gray for secondary elements
+          foreground: '#ffffff',
+        },
+        muted: {
+          DEFAULT: '#1a1a1a',
+          foreground: '#a1a1aa', // Muted gray text
+        },
+        accent: {
+          DEFAULT: '#1a1a1a',
+          foreground: '#ffffff',
+        },
+        destructive: {
+          DEFAULT: '#ef4444', // Red for errors
+          foreground: '#ffffff',
+        },
+        border: '#27272a', // Dark border
+        input: '#27272a',
+        ring: '#72e3ad', // Green focus ring
+        // Green scale (keep for compatibility)
         green: {
           50: '#f0fdf9',
           100: '#ccfbef',
@@ -34,43 +64,6 @@ module.exports = {
           700: '#c2410c',
           800: '#9a3412',
           900: '#7c2d12',
-        },
-        // Map primary to orange for backward compatibility (landing pages)
-        primary: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316', // Orange-500
-          600: '#ea580c', // Orange-600
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-        },
-        secondary: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444', // Red-500
-          600: '#dc2626', // Red-600
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-        },
-        accent: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b', // Amber-500
-          600: '#d97706', // Amber-600
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
         },
       },
       backgroundImage: {
@@ -141,9 +134,9 @@ module.exports = {
         '4xl': '2rem',
       },
       spacing: {
-        18: '4.5rem',   // 72px
-        88: '22rem',    // 352px
-        128: '32rem',   // 512px
+        18: '4.5rem', // 72px
+        88: '22rem', // 352px
+        128: '32rem', // 512px
       },
       boxShadow: {
         '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',

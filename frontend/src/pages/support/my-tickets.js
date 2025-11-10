@@ -13,7 +13,6 @@ import {
   Settings,
   LogOut,
   Search,
-  Filter,
   Eye,
 } from 'lucide-react';
 import { supportAPI } from '../../utils/api';

@@ -1,12 +1,12 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import ButtonGreen from '../../components/ui/ButtonGreen';
 import { fadeIn, scaleIn } from '../../lib/motion';
 
 export default function TwoFAPage() {
+  const router = useRouter();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,7 +15,7 @@ export default function TwoFAPage() {
 
   const inputRefs = useRef([]);
 
-  const email = "you@company.com"; // In real app, get from state/URL
+  const email = 'you@company.com'; // In real app, get from state/URL
 
   useEffect(() => {
     // Auto-focus first input
@@ -46,7 +46,7 @@ export default function TwoFAPage() {
     }
 
     // Auto-submit when all fields are filled
-    if (newCode.every(digit => digit !== '')) {
+    if (newCode.every((digit) => digit !== '')) {
       handleVerify(newCode.join(''));
     }
   };
@@ -81,7 +81,7 @@ export default function TwoFAPage() {
     setError('');
 
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Simulate verification (random success/fail for demo)
     const success = Math.random() > 0.3;
@@ -104,7 +104,7 @@ export default function TwoFAPage() {
     setError('');
 
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   };
 
   return (
@@ -119,7 +119,7 @@ export default function TwoFAPage() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: 'linear',
           }}
           className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
         />
@@ -142,8 +142,18 @@ export default function TwoFAPage() {
             className="flex justify-center mb-6"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg
+                className="w-8 h-8 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
               </svg>
             </div>
           </motion.div>
@@ -155,15 +165,9 @@ export default function TwoFAPage() {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Two-Factor Authentication
-            </h1>
-            <p className="text-gray-600 mb-2">
-              Enter the 6-digit code sent to
-            </p>
-            <p className="text-green-500 font-medium">
-              {email}
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Two-Factor Authentication</h1>
+            <p className="text-gray-600 mb-2">Enter the 6-digit code sent to</p>
+            <p className="text-green-500 font-medium">{email}</p>
           </motion.div>
 
           {/* Code Input */}
@@ -226,7 +230,7 @@ export default function TwoFAPage() {
               fullWidth
               isLoading={isLoading}
               onClick={() => handleVerify(code.join(''))}
-              disabled={code.some(digit => !digit)}
+              disabled={code.some((digit) => !digit)}
             >
               Verify Code
             </ButtonGreen>
@@ -239,9 +243,7 @@ export default function TwoFAPage() {
             transition={{ delay: 0.5 }}
             className="text-center mb-6"
           >
-            <p className="text-sm text-gray-600 mb-2">
-              Didn't receive the code?
-            </p>
+            <p className="text-sm text-gray-600 mb-2">Didn&apos;t receive the code?</p>
             <button
               onClick={handleResend}
               disabled={!canResend}
@@ -264,12 +266,18 @@ export default function TwoFAPage() {
             <div className="flex gap-3">
               <div className="flex-shrink-0">
                 <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="text-sm text-gray-600">
                 <p className="font-medium mb-1">Security Tip</p>
-                <p>Never share your 2FA code with anyone. Nexus staff will never ask for this code.</p>
+                <p>
+                  Never share your 2FA code with anyone. Nexus staff will never ask for this code.
+                </p>
               </div>
             </div>
           </motion.div>

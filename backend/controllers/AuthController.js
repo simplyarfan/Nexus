@@ -318,12 +318,11 @@ const login = async (req, res) => {
     );
 
     // Generate tokens with remember me support
-    const { accessToken, refreshToken, expiresIn } = generateTokens(
-      user.id,
-      user.email,
-      user.role,
-      rememberMe || false,
-    );
+    const {
+      accessToken,
+      refreshToken,
+      expiresIn: _expiresIn,
+    } = generateTokens(user.id, user.email, user.role, rememberMe || false);
 
     // Create session record
     await database.run(

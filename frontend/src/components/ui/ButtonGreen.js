@@ -31,7 +31,7 @@ const ButtonGreen = forwardRef(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     const variants = {
       primary: 'btn-primary',
@@ -57,7 +57,7 @@ const ButtonGreen = forwardRef(
           sizes[size],
           fullWidth && 'w-full',
           (disabled || isLoading) && 'opacity-50 cursor-not-allowed',
-          className
+          className,
         )}
         disabled={disabled || isLoading}
         {...props}
@@ -95,7 +95,7 @@ const ButtonGreen = forwardRef(
         )}
       </motion.button>
     );
-  }
+  },
 );
 
 ButtonGreen.displayName = 'ButtonGreen';

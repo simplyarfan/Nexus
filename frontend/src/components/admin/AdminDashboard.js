@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
   Users,
   MessageSquare,
-  Settings,
   Shield,
   FileText,
   Calendar,
@@ -12,10 +11,7 @@ import {
   BarChart3,
   Target,
   TrendingUp,
-  DollarSign,
-  Building2,
   Sparkles,
-  User,
 } from 'lucide-react';
 
 const AdminDashboard = () => {

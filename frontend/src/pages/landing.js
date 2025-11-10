@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Users, BarChart3, Sparkles, Star } from 'lucide-react';
+import { Brain, Users, BarChart3, Sparkles } from 'lucide-react';
 import Aurora from '../components/reactbits/Aurora';
 import BlurText from '../components/reactbits/BlurText';
 import SplitText from '../components/reactbits/SplitText';
@@ -10,7 +10,7 @@ import { StaggeredMenu } from '../components/reactbits/StaggeredMenu';
 import GradientText from '../components/text/GradientText';
 
 export default function LandingPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   return (
     <>

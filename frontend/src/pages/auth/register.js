@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -9,8 +7,6 @@ import InputGreen from '../../components/ui/InputGreen';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { slideInRight, slideInLeft, scaleIn } from '../../lib/motion';
-
-
 
 export default function Register() {
   const router = useRouter();
@@ -39,7 +35,7 @@ export default function Register() {
       // Clear the message after displaying
       localStorage.removeItem('microsoft_signup_message');
     }
-  });
+  }, [router.query.source]);
 
   // Password strength calculation
   const getPasswordStrength = (password) => {
@@ -53,7 +49,7 @@ export default function Register() {
     if (/[^a-zA-Z\d]/.test(password)) strength++;
 
     const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    const colors = ['bg-red-500', 'bg-green-500/60', 'bg-green-500/80', 'bg-green-500', 'bg-green-500'];
+    const colors = ['bg-destructive', 'bg-primary/60', 'bg-primary/80', 'bg-primary', 'bg-primary'];
 
     return {
       strength: (strength / 5) * 100,
@@ -75,7 +71,8 @@ export default function Register() {
 
     if (currentStep === 2) {
       if (!formData.password) newErrors.password = 'Password is required';
-      else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+      else if (formData.password.length < 8)
+        newErrors.password = 'Password must be at least 8 characters';
       if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
       else if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
@@ -130,7 +127,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -141,9 +138,9 @@ export default function Register() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: 'linear',
           }}
-          className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl"
         />
       </div>
 
@@ -154,7 +151,7 @@ export default function Register() {
         animate="visible"
         className="relative w-full max-w-md"
       >
-        <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+        <div className="bg-card backdrop-blur-xl rounded-2xl shadow-2xl border border-border p-8">
           {/* Header */}
           <motion.div
             variants={scaleIn}
@@ -163,17 +160,23 @@ export default function Register() {
             transition={{ delay: 0.1 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl mb-4 shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
+              <svg
+                className="w-8 h-8 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Create Account
-            </h1>
-            <p className="text-gray-600">
-              Join Nexus to streamline your hiring process
-            </p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
+            <p className="text-muted-foreground">Join Nexus to streamline your hiring process</p>
           </motion.div>
 
           {/* Microsoft Message */}
@@ -181,18 +184,24 @@ export default function Register() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4"
+              className="mb-6 bg-accent border border-border rounded-lg p-4"
             >
               <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none">
-                  <path fill="#f35325" d="M1 1h10v10H1z"/>
-                  <path fill="#81bc06" d="M13 1h10v10H13z"/>
-                  <path fill="#05a6f0" d="M1 13h10v10H1z"/>
-                  <path fill="#ffba08" d="M13 13h10v10H13z"/>
+                <svg
+                  className="w-5 h-5 text-primary flex-shrink-0 mt-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path fill="#f35325" d="M1 1h10v10H1z" />
+                  <path fill="#81bc06" d="M13 1h10v10H13z" />
+                  <path fill="#05a6f0" d="M1 13h10v10H1z" />
+                  <path fill="#ffba08" d="M13 13h10v10H13z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 mb-1">Microsoft Account Detected</p>
-                  <p className="text-sm text-gray-600">{microsoftMessage}</p>
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Microsoft Account Detected
+                  </p>
+                  <p className="text-sm text-muted-foreground">{microsoftMessage}</p>
                 </div>
               </div>
             </motion.div>
@@ -210,12 +219,18 @@ export default function Register() {
                 <div key={s} className="flex items-center">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shadow-sm transition-all ${
-                      step >= s ? 'bg-green-500 text-white scale-110' : 'bg-gray-200 text-gray-600'
+                      step >= s
+                        ? 'bg-primary text-primary-foreground scale-110'
+                        : 'bg-muted text-muted-foreground'
                     } ${step === s ? 'scale-110' : ''}`}
                   >
                     {step > s ? (
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     ) : (
                       s
@@ -223,13 +238,13 @@ export default function Register() {
                   </div>
                   {s < 3 && (
                     <div
-                      className={`w-16 h-1 mx-2 transition-colors ${step > s ? 'bg-green-500' : 'bg-gray-200'}`}
+                      className={`w-16 h-1 mx-2 transition-colors ${step > s ? 'bg-primary' : 'bg-muted'}`}
                     />
                   )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between text-xs text-gray-600">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>Basic Info</span>
               <span>Security</span>
               <span>Details</span>
@@ -258,8 +273,18 @@ export default function Register() {
                     error={errors.name}
                     fullWidth
                     leftIcon={
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
                       </svg>
                     }
                   />
@@ -274,13 +299,29 @@ export default function Register() {
                     hint="Use your company email address"
                     fullWidth
                     leftIcon={
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                        />
                       </svg>
                     }
                   />
 
-                  <ButtonGreen type="button" variant="primary" size="lg" fullWidth onClick={handleNext}>
+                  <ButtonGreen
+                    type="button"
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    onClick={handleNext}
+                  >
                     Continue
                   </ButtonGreen>
                 </motion.div>
@@ -305,8 +346,18 @@ export default function Register() {
                     error={errors.password}
                     fullWidth
                     leftIcon={
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
                       </svg>
                     }
                   />
@@ -319,12 +370,14 @@ export default function Register() {
                       className="space-y-2"
                     >
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Password Strength</span>
-                        <span className={`font-medium ${passwordStrength.strength > 60 ? 'text-green-600' : 'text-green-600/60'}`}>
+                        <span className="text-muted-foreground">Password Strength</span>
+                        <span
+                          className={`font-medium ${passwordStrength.strength > 60 ? 'text-primary' : 'text-primary/60'}`}
+                        >
                           {passwordStrength.label}
                         </span>
                       </div>
-                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${passwordStrength.strength}%` }}
@@ -332,14 +385,20 @@ export default function Register() {
                           transition={{ duration: 0.3 }}
                         />
                       </div>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        <li className={formData.password.length >= 8 ? 'text-green-600' : ''}>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li className={formData.password.length >= 8 ? 'text-primary' : ''}>
                           • At least 8 characters
                         </li>
-                        <li className={/[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) ? 'text-green-600' : ''}>
+                        <li
+                          className={
+                            /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password)
+                              ? 'text-primary'
+                              : ''
+                          }
+                        >
                           • Mix of uppercase & lowercase
                         </li>
-                        <li className={/\d/.test(formData.password) ? 'text-green-600' : ''}>
+                        <li className={/\d/.test(formData.password) ? 'text-primary' : ''}>
                           • At least one number
                         </li>
                       </ul>
@@ -355,17 +414,39 @@ export default function Register() {
                     error={errors.confirmPassword}
                     fullWidth
                     leftIcon={
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
                     }
                   />
 
                   <div className="flex gap-3">
-                    <ButtonGreen type="button" variant="secondary" size="lg" fullWidth onClick={handleBack}>
+                    <ButtonGreen
+                      type="button"
+                      variant="secondary"
+                      size="lg"
+                      fullWidth
+                      onClick={handleBack}
+                    >
                       Back
                     </ButtonGreen>
-                    <ButtonGreen type="button" variant="primary" size="lg" fullWidth onClick={handleNext}>
+                    <ButtonGreen
+                      type="button"
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      onClick={handleNext}
+                    >
                       Continue
                     </ButtonGreen>
                   </div>
@@ -391,8 +472,18 @@ export default function Register() {
                     error={errors.department}
                     fullWidth
                     leftIcon={
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
                       </svg>
                     }
                   />
@@ -406,20 +497,38 @@ export default function Register() {
                     error={errors.jobTitle}
                     fullWidth
                     leftIcon={
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
                       </svg>
                     }
                   />
 
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="bg-accent border border-border rounded-lg p-4">
                     <div className="flex gap-3">
                       <div className="flex-shrink-0">
-                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        <svg
+                          className="w-5 h-5 text-primary"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         <p className="font-medium mb-1">Email Verification Required</p>
                         <p>We&apos;ll send a verification link to {formData.email}</p>
                       </div>
@@ -427,10 +536,22 @@ export default function Register() {
                   </div>
 
                   <div className="flex gap-3">
-                    <ButtonGreen type="button" variant="secondary" size="lg" fullWidth onClick={handleBack}>
+                    <ButtonGreen
+                      type="button"
+                      variant="secondary"
+                      size="lg"
+                      fullWidth
+                      onClick={handleBack}
+                    >
                       Back
                     </ButtonGreen>
-                    <ButtonGreen type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
+                    <ButtonGreen
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      isLoading={isLoading}
+                    >
                       Create Account
                     </ButtonGreen>
                   </div>
@@ -446,9 +567,9 @@ export default function Register() {
             transition={{ delay: 0.5 }}
             className="mt-6 text-center"
           >
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-green-500 hover:text-green-500/90 font-medium">
+              <Link href="/auth/login" className="text-primary hover:text-primary/90 font-medium">
                 Sign in
               </Link>
             </p>

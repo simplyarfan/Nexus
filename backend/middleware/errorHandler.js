@@ -77,7 +77,7 @@ const errorResponse = (error, req, res) => {
 /**
  * Main error handler middleware
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Handle known operational errors
   if (err.isOperational) {
     return errorResponse(err, req, res);

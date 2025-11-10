@@ -1,6 +1,5 @@
 const database = require('./database');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
 
 class User {
   constructor(userData) {

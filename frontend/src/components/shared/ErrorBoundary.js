@@ -71,7 +71,9 @@ class ErrorBoundary extends React.Component {
                   {this.state.errorInfo?.componentStack && (
                     <div>
                       <strong>Component Stack:</strong>
-                      <pre className="whitespace-pre-wrap">{this.state.errorInfo.componentStack}</pre>
+                      <pre className="whitespace-pre-wrap">
+                        {this.state.errorInfo.componentStack}
+                      </pre>
                     </div>
                   )}
                 </div>

@@ -15,18 +15,8 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    {
-      label,
-      error,
-      hint,
-      leftIcon,
-      rightIcon,
-      fullWidth = false,
-      className,
-      id,
-      ...props
-    },
-    ref
+    { label, error, hint, leftIcon, rightIcon, fullWidth = false, className, id, ...props },
+    ref,
   ) => {
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -55,7 +45,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
               fullWidth && 'w-full',
-              className
+              className,
             )}
             {...props}
           />
@@ -80,7 +70,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {hint && !error && <p className="form-hint">{hint}</p>}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';

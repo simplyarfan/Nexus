@@ -347,8 +347,12 @@ export default function HRDashboard() {
                                 <p className="font-medium text-foreground text-sm">
                                   {notification.title}
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">{notification.detail}</p>
-                                <p className="text-xs text-muted-foreground mt-2">{notification.time}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {notification.detail}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {notification.time}
+                                </p>
                               </div>
                             ))}
                           </div>

@@ -86,9 +86,7 @@ export default function TicketsPage() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
-              <p className="mt-2 text-gray-600">
-                View and manage your support requests
-              </p>
+              <p className="mt-2 text-gray-600">View and manage your support requests</p>
             </div>
             <Link
               href="/support"
@@ -149,12 +147,14 @@ export default function TicketsPage() {
                           <div className="ml-4 flex-shrink-0 flex items-center space-x-2">
                             <span
                               className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                                ticket.status
+                                ticket.status,
                               )}`}
                             >
                               {ticket.status}
                             </span>
-                            <span className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}>
+                            <span
+                              className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}
+                            >
                               {ticket.priority}
                             </span>
                           </div>
@@ -162,8 +162,7 @@ export default function TicketsPage() {
                         <div className="mt-2 flex items-center text-sm text-gray-500">
                           <span>
                             {ticket.category && `${ticket.category} • `}
-                            Created{' '}
-                            {new Date(ticket.created_at).toLocaleDateString()}
+                            Created {new Date(ticket.created_at).toLocaleDateString()}
                           </span>
                         </div>
                       </div>

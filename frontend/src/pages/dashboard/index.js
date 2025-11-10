@@ -170,7 +170,11 @@ export default function Dashboard() {
                   transition={{ duration: 0.5 }}
                 >
                   <h1 className="text-4xl font-bold text-foreground mb-2">
-                    {user.role === 'admin' ? 'Admin Dashboard' : user.role === 'superadmin' ? 'SuperAdmin Dashboard' : 'HR Dashboard'}
+                    {user.role === 'admin'
+                      ? 'Admin Dashboard'
+                      : user.role === 'superadmin'
+                        ? 'SuperAdmin Dashboard'
+                        : 'HR Dashboard'}
                   </h1>
                   <p className="text-muted-foreground text-lg">
                     Welcome back! Manage your AI-powered recruitment tools

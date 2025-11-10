@@ -78,7 +78,7 @@ export default function Modal({
               onClick={(e) => e.stopPropagation()}
               className={cn(
                 'relative bg-white rounded-lg shadow-xl w-full pointer-events-auto',
-                sizes[size]
+                sizes[size],
               )}
             >
               {/* Header */}
@@ -86,12 +86,8 @@ export default function Modal({
                 <div className="px-6 py-4 border-b border-gray-200">
                   <div className="flex items-start justify-between">
                     <div>
-                      {title && (
-                        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-                      )}
-                      {description && (
-                        <p className="mt-1 text-sm text-gray-500">{description}</p>
-                      )}
+                      {title && <h2 className="text-xl font-semibold text-gray-900">{title}</h2>}
+                      {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
                     </div>
                     {showClose && (
                       <button
@@ -135,7 +131,12 @@ interface ModalFooterProps {
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
-    <div className={cn('px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end gap-3', className)}>
+    <div
+      className={cn(
+        'px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end gap-3',
+        className,
+      )}
+    >
       {children}
     </div>
   );

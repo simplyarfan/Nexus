@@ -26,7 +26,9 @@ class MicrosoftAuthService {
         authority: `https://login.microsoftonline.com/${
           process.env.NEXT_PUBLIC_OUTLOOK_TENANT_ID || 'common'
         }`,
-        redirectUri: process.env.NEXT_PUBLIC_OUTLOOK_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : ''),
+        redirectUri:
+          process.env.NEXT_PUBLIC_OUTLOOK_REDIRECT_URI ||
+          (typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : ''),
       },
       cache: {
         cacheLocation: 'localStorage',
@@ -180,13 +182,16 @@ class MicrosoftAuthService {
    */
   async checkUserExists(email) {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/check-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/check-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
         },
-        body: JSON.stringify({ email }),
-      });
+      );
 
       const data = await response.json();
       return {

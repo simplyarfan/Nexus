@@ -97,7 +97,7 @@ export default function AuthCallback() {
             firstName,
             lastName,
             accessToken,
-          })
+          }),
         );
 
         setTimeout(() => router.push('/auth/register'), 1500);

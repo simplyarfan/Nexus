@@ -108,12 +108,7 @@ export default function TicketDetailPage() {
             href="/tickets"
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
           >
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -128,27 +123,20 @@ export default function TicketDetailPage() {
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {ticket.subject}
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-900">{ticket.subject}</h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Ticket #{ticket.id} • Created{' '}
-                  {new Date(ticket.created_at).toLocaleDateString()}
+                  Ticket #{ticket.id} • Created {new Date(ticket.created_at).toLocaleDateString()}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
                 <span
                   className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                    ticket.status
+                    ticket.status,
                   )}`}
                 >
                   {ticket.status}
                 </span>
-                <span
-                  className={`text-sm font-medium ${getPriorityColor(
-                    ticket.priority
-                  )}`}
-                >
+                <span className={`text-sm font-medium ${getPriorityColor(ticket.priority)}`}>
                   {ticket.priority}
                 </span>
               </div>
@@ -157,9 +145,7 @@ export default function TicketDetailPage() {
             {ticket.category && (
               <div className="mb-4">
                 <span className="text-sm text-gray-600">Category:</span>
-                <span className="ml-2 text-sm font-medium text-gray-900">
-                  {ticket.category}
-                </span>
+                <span className="ml-2 text-sm font-medium text-gray-900">{ticket.category}</span>
               </div>
             )}
 
@@ -178,10 +164,7 @@ export default function TicketDetailPage() {
             {ticket.comments && ticket.comments.length > 0 ? (
               <div className="space-y-4 mb-6">
                 {ticket.comments.map((c) => (
-                  <div
-                    key={c.id}
-                    className="border-l-4 border-blue-500 pl-4 py-2"
-                  >
+                  <div key={c.id} className="border-l-4 border-blue-500 pl-4 py-2">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-900">
                         {c.user?.first_name} {c.user?.last_name}
@@ -201,10 +184,7 @@ export default function TicketDetailPage() {
             {/* Add Comment Form */}
             {ticket.status !== 'closed' && (
               <form onSubmit={handleSubmitComment}>
-                <label
-                  htmlFor="comment"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
                   Add a comment
                 </label>
                 <textarea

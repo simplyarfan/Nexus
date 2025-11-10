@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
-export interface BadgeProps extends Omit<HTMLMotionProps<"span">, 'children'> {
+export interface BadgeProps extends Omit<HTMLMotionProps<'span'>, 'children'> {
   variant?: 'primary' | 'success' | 'warning' | 'error' | 'gray';
   size?: 'sm' | 'md' | 'lg';
   dot?: boolean;
@@ -47,7 +47,7 @@ export default function Badge({
             variant === 'success' && 'bg-success-500',
             variant === 'warning' && 'bg-warning-500',
             variant === 'error' && 'bg-error-500',
-            variant === 'gray' && 'bg-gray-500'
+            variant === 'gray' && 'bg-gray-500',
           )}
         />
       )}

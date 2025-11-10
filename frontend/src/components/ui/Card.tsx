@@ -4,7 +4,7 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { cardHover } from '@/lib/motion';
 
-export interface CardProps extends HTMLMotionProps<"div"> {
+export interface CardProps extends HTMLMotionProps<'div'> {
   hover?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   children: React.ReactNode;
@@ -29,8 +29,8 @@ export default function Card({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       variants={hover ? cardHover : undefined}
-      whileHover={hover ? "hover" : undefined}
-      whileTap={hover ? "tap" : undefined}
+      whileHover={hover ? 'hover' : undefined}
+      whileTap={hover ? 'tap' : undefined}
       className={cn('card', paddings[padding], hover && 'cursor-pointer', className)}
       {...props}
     >

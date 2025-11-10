@@ -49,38 +49,32 @@ export function useApi() {
         setLoading(false);
         return response.data;
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message ||
-          err.message ||
-          'An error occurred';
-        
+        const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+
         setError(errorMessage);
         setLoading(false);
         throw err;
       }
     },
-    [token]
+    [token],
   );
 
   // Convenience methods
-  const get = useCallback(
-    (endpoint, config) => request('GET', endpoint, null, config),
-    [request]
-  );
+  const get = useCallback((endpoint, config) => request('GET', endpoint, null, config), [request]);
 
   const post = useCallback(
     (endpoint, data, config) => request('POST', endpoint, data, config),
-    [request]
+    [request],
   );
 
   const put = useCallback(
     (endpoint, data, config) => request('PUT', endpoint, data, config),
-    [request]
+    [request],
   );
 
   const del = useCallback(
     (endpoint, config) => request('DELETE', endpoint, null, config),
-    [request]
+    [request],
   );
 
   return {

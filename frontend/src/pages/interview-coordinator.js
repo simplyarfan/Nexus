@@ -336,7 +336,9 @@ Best regards,
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Interview Coordinator (HR-02)</h1>
-              <p className="text-muted-foreground mt-1">Schedule and manage interviews efficiently</p>
+              <p className="text-muted-foreground mt-1">
+                Schedule and manage interviews efficiently
+              </p>
             </div>
             <div className="flex gap-3">
               {view !== 'list' && (
@@ -553,7 +555,9 @@ Best regards,
                 {/* Interview Details */}
                 {selectedInterview.scheduledTime && (
                   <div className="mb-6 pb-6 border-b border-border">
-                    <h3 className="text-lg font-semibold text-foreground mb-4">Interview Details</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Interview Details
+                    </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Scheduled Time</p>
@@ -854,7 +858,9 @@ Best regards,
                           </div>
                         ) : (
                           <div className="text-center">
-                            <p className="text-sm font-medium text-foreground">Click to upload CV</p>
+                            <p className="text-sm font-medium text-foreground">
+                              Click to upload CV
+                            </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               PDF, DOC, or DOCX (Max 10MB)
                             </p>
@@ -881,7 +887,9 @@ Best regards,
                         className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="email1@example.com, email2@example.com"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Comma-separated email addresses</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Comma-separated email addresses
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
@@ -896,7 +904,9 @@ Best regards,
                         className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="email1@example.com, email2@example.com"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Comma-separated email addresses</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Comma-separated email addresses
+                      </p>
                     </div>
                   </div>
 
@@ -1067,7 +1077,9 @@ Best regards,
                           </div>
                         ) : (
                           <div className="text-center">
-                            <p className="text-sm font-medium text-foreground">Click to upload CV</p>
+                            <p className="text-sm font-medium text-foreground">
+                              Click to upload CV
+                            </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               PDF, DOC, or DOCX (Max 10MB)
                             </p>

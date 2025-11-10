@@ -126,7 +126,9 @@ export default function ResetPasswordPage() {
               transition={{ delay: 0.2 }}
               className="text-center mb-8"
             >
-              <h1 className="text-3xl font-bold text-foreground mb-3">Password Reset Successful!</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-3">
+                Password Reset Successful!
+              </h1>
               <p className="text-muted-foreground mb-6">
                 Your password has been successfully reset. You can now sign in with your new
                 password.

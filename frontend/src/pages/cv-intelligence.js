@@ -163,10 +163,7 @@ export default function CVIntelligencePage() {
 
               <div className="flex gap-3 mt-6">
                 {view === 'candidates' && (
-                  <button
-                    onClick={() => setView('batches')}
-                    className="btn-ghost"
-                  >
+                  <button onClick={() => setView('batches')} className="btn-ghost">
                     <svg
                       className="w-5 h-5 mr-2"
                       fill="none"
@@ -183,11 +180,13 @@ export default function CVIntelligencePage() {
                     Back to Batches
                   </button>
                 )}
-                <button
-                  onClick={() => setView('upload')}
-                  className="btn-primary"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button onClick={() => setView('upload')} className="btn-primary">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -215,7 +214,9 @@ export default function CVIntelligencePage() {
                 >
                   <div className="mb-6">
                     <h2 className="text-2xl font-bold text-foreground mb-2">CV Batches</h2>
-                    <p className="text-muted-foreground">View and manage your CV screening batches</p>
+                    <p className="text-muted-foreground">
+                      View and manage your CV screening batches
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -501,7 +502,9 @@ export default function CVIntelligencePage() {
                                   .join('')}
                               </div>
                               <div>
-                                <h3 className="text-xl font-bold text-foreground">{candidate.name}</h3>
+                                <h3 className="text-xl font-bold text-foreground">
+                                  {candidate.name}
+                                </h3>
                                 <p className="text-sm text-muted-foreground">
                                   {candidate.experience} of experience • {candidate.location}
                                 </p>
@@ -519,11 +522,15 @@ export default function CVIntelligencePage() {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Experience</p>
-                            <p className="text-sm font-medium text-foreground">{candidate.experience}</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {candidate.experience}
+                            </p>
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Education</p>
-                            <p className="text-sm font-medium text-foreground">{candidate.education}</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {candidate.education}
+                            </p>
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Skills Match</p>

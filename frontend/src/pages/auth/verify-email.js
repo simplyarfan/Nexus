@@ -108,7 +108,9 @@ export default function VerifyEmailPage() {
             transition={{ delay: 0.4 }}
             className="bg-secondary rounded-lg p-4 mb-6"
           >
-            <p className="text-sm text-foreground font-medium mb-2">Didn&apos;t receive the email?</p>
+            <p className="text-sm text-foreground font-medium mb-2">
+              Didn&apos;t receive the email?
+            </p>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li className="flex items-start gap-2">
                 <svg

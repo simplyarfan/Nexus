@@ -40,7 +40,7 @@ export default function Register() {
           email: data.email || '',
         }));
         setMicrosoftMessage(
-          `We found your Microsoft account (${data.email}). Please complete your registration below.`
+          `We found your Microsoft account (${data.email}). Please complete your registration below.`,
         );
         // Clear OAuth data after using it
         localStorage.removeItem('oauthData');

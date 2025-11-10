@@ -38,7 +38,9 @@ export default function ProfilePage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-            <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
+            <p className="text-muted-foreground mt-1">
+              Manage your account settings and preferences
+            </p>
           </div>
         </div>
       </div>
@@ -150,7 +152,9 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold text-foreground mb-2">Profile Information</h2>
-                    <p className="text-muted-foreground">Update your account&apos;s profile information</p>
+                    <p className="text-muted-foreground">
+                      Update your account&apos;s profile information
+                    </p>
                   </div>
 
                   {/* Avatar */}
@@ -162,7 +166,9 @@ export default function ProfilePage() {
                       <ButtonGreen variant="secondary" size="md">
                         Change Photo
                       </ButtonGreen>
-                      <p className="text-xs text-muted-foreground mt-2">JPG, GIF or PNG. Max size 2MB</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        JPG, GIF or PNG. Max size 2MB
+                      </p>
                     </div>
                   </div>
 

@@ -21,7 +21,7 @@ import {
   Target,
 } from 'lucide-react';
 
-export default function LivelySalesDashboard() {
+export default function SalesDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function LivelySalesDashboard() {
       name: 'Lead Generator',
       description: 'Generate and qualify leads automatically',
       icon: Target,
-      color: 'from-orange-600 to-red-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-600 to-green-600', // UPDATED TO GREEN THEME
       route: '/lead-generator',
     },
     {
@@ -50,7 +50,7 @@ export default function LivelySalesDashboard() {
       name: 'Campaign Optimizer',
       description: 'Optimize marketing campaigns for better ROI',
       icon: BarChart3,
-      color: 'from-amber-500 to-orange-600', // UPDATED TO ORANGE THEME
+      color: 'from-green-400 to-green-600', // UPDATED TO GREEN THEME
       route: '/campaign-optimizer',
     },
   ];
@@ -79,7 +79,7 @@ export default function LivelySalesDashboard() {
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
             </div>
             <span className="text-xl font-bold text-gray-900">Nexus</span>
@@ -195,7 +195,7 @@ export default function LivelySalesDashboard() {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
               <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
@@ -208,11 +208,11 @@ export default function LivelySalesDashboard() {
         {/* Dashboard content */}
         <div className="p-6 pb-20">
           {/* Welcome section */}
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-8 text-white mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Sales Intelligence Hub</h2>
-                <p className="text-orange-100">
+                <p className="text-green-100">
                   Access your AI-powered sales tools and campaign management systems
                 </p>
               </div>
@@ -241,7 +241,7 @@ export default function LivelySalesDashboard() {
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{agent.name}</h3>
                     <p className="text-gray-600 text-sm mb-4">{agent.description}</p>
-                    <div className="flex items-center text-orange-600 text-sm font-medium group-hover:text-orange-700">
+                    <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
                       <span>Launch Agent</span>
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>

@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
-import LivelyHRDashboard from '../components/user/LivelyHRDashboard';
-import LivelyFinanceDashboard from '../components/user/LivelyFinanceDashboard';
-import LivelySalesDashboard from '../components/user/LivelySalesDashboard';
+import HRDashboard from '../components/user/HRDashboard';
+import FinanceDashboard from '../components/user/FinanceDashboard';
+import SalesDashboard from '../components/user/SalesDashboard';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import WaitingDashboard from '../components/user/WaitingDashboard';
 import LandingPage from './landing';
@@ -15,9 +15,9 @@ const Dashboard = () => {
 
   // Dashboard mapping for cleaner code
   const DASHBOARD_MAP = {
-    'Human Resources': LivelyHRDashboard,
-    Finance: LivelyFinanceDashboard,
-    'Sales & Marketing': LivelySalesDashboard,
+    'Human Resources': HRDashboard,
+    Finance: FinanceDashboard,
+    'Sales & Marketing': SalesDashboard,
   };
 
   // Redirect superadmin users to /superadmin route

@@ -18,7 +18,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
 
-export default function ModernSidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle }) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [hoveredItem, setHoveredItem] = useState(null);

@@ -18,10 +18,10 @@ import {
   X,
   ChevronRight,
   ChevronUp,
-  Target,
+  Shield,
 } from 'lucide-react';
 
-export default function LivelySalesDashboard() {
+export default function FinanceDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,20 +38,20 @@ export default function LivelySalesDashboard() {
 
   const aiAgents = [
     {
-      id: 'lead-generator',
-      name: 'Lead Generator',
-      description: 'Generate and qualify leads automatically',
-      icon: Target,
-      color: 'from-green-600 to-green-600', // UPDATED TO GREEN THEME
-      route: '/lead-generator',
+      id: 'invoice-processor',
+      name: 'Invoice Processor',
+      description: 'Automatically process and validate invoices',
+      icon: FileText,
+      color: 'from-green-500 to-green-600', // UPDATED TO GREEN THEME
+      route: '/invoice-processor',
     },
     {
-      id: 'campaign-optimizer',
-      name: 'Campaign Optimizer',
-      description: 'Optimize marketing campaigns for better ROI',
-      icon: BarChart3,
-      color: 'from-green-400 to-green-600', // UPDATED TO GREEN THEME
-      route: '/campaign-optimizer',
+      id: 'expense-auditor',
+      name: 'Expense Auditor',
+      description: 'Audit expenses and detect anomalies',
+      icon: Shield,
+      color: 'from-green-500 to-green-600', // UPDATED TO GREEN THEME
+      route: '/expense-auditor',
     },
   ];
 
@@ -162,7 +162,7 @@ export default function LivelySalesDashboard() {
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">Sales & Marketing</p>
+                <p className="text-xs text-gray-500 truncate">Finance Department</p>
               </div>
               <ChevronUp
                 className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
@@ -185,7 +185,7 @@ export default function LivelySalesDashboard() {
                 <Menu className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Sales & Marketing Dashboard</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Finance Dashboard</h1>
                 <p className="text-sm text-gray-500">Welcome back, {user?.first_name}!</p>
               </div>
             </div>
@@ -211,9 +211,9 @@ export default function LivelySalesDashboard() {
           <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Sales Intelligence Hub</h2>
+                <h2 className="text-2xl font-bold mb-2">Finance Intelligence Hub</h2>
                 <p className="text-green-100">
-                  Access your AI-powered sales tools and campaign management systems
+                  Access your AI-powered financial tools and automation systems
                 </p>
               </div>
               <div className="hidden md:block">

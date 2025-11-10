@@ -110,9 +110,9 @@ ${user?.email || ''}`;
 
       // Send availability request
       const headers = getAuthHeaders();
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://thesimpleai.vercel.app/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const response = await axios.post(
-        `${API_URL}/interview-coordinator/request-availability`,
+        `${API_URL}/api/interview-coordinator/request-availability`,
         requestData,
         { headers },
       );

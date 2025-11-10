@@ -177,8 +177,8 @@ When making changes:
 
 - [GitHub Repository](https://github.com/YOUR-USERNAME/nexus)
 - [Documentation](./docs/)
-- [Production Site](https://thesimpleai.netlify.app)
-- [API Documentation](https://thesimpleai.vercel.app/api)
+- [Production Site](https://your-frontend.netlify.app)
+- [API Documentation](https://your-backend-api.vercel.app/api)
 
 ---
 

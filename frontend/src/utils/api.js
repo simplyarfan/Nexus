@@ -12,16 +12,16 @@ const getApiBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) {
     baseUrl = process.env.NEXT_PUBLIC_API_URL;
   } else if (typeof window === 'undefined') {
-    // Server-side rendering fallback
-    baseUrl = 'https://thesimpleai.vercel.app';
+    // Server-side rendering - require env variable
+    baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
   } else {
     // Client-side fallback
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       baseUrl = 'http://localhost:5000';
     } else {
-      // Production fallback
-      baseUrl = 'https://thesimpleai.vercel.app';
+      // Production - require env variable
+      baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
     }
   }
 
@@ -283,7 +283,7 @@ export const supportAPI = {
 
 export const healthAPI = {
   check: () =>
-    axios.get('https://thesimpleai.vercel.app/health', {
+    axios.get(`${API_BASE_URL}/health`, {
       headers: {
         'Content-Type': 'application/json',
       },

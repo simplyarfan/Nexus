@@ -107,7 +107,7 @@ class EmailService {
    * Send password reset link
    */
   async sendPasswordReset(email, token, firstName) {
-    const resetLink = `${process.env.FRONTEND_URL || 'https://thesimpleai.netlify.app'}/auth/reset-password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
     const subject = 'Password Reset Request - Enterprise AI Hub';
     const html = this.generatePasswordResetTemplate(resetLink, firstName);
 

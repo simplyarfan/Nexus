@@ -55,8 +55,8 @@ All in one place, for free!
 ## Quick Links
 
 - [GitHub Repository](https://github.com/YOUR-USERNAME/nexus)
-- [Production](https://thesimpleai.netlify.app)
-- [Backend API](https://thesimpleai.vercel.app)
+- [Production](https://your-frontend.netlify.app)
+- [Backend API](https://your-backend-api.vercel.app)
 - [Figma Designs](#)
 
 ## Current Sprint (Week of [Date])

@@ -64,7 +64,7 @@ jobs:
         working-directory: ./frontend
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://thesimpleai.vercel.app' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_OUTLOOK_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_OUTLOOK_CLIENT_ID }}
           NEXT_PUBLIC_OUTLOOK_TENANT_ID: ${{ secrets.NEXT_PUBLIC_OUTLOOK_TENANT_ID }}
           NEXT_PUBLIC_OUTLOOK_REDIRECT_URI: ${{ secrets.NEXT_PUBLIC_OUTLOOK_REDIRECT_URI }}

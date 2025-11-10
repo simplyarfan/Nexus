@@ -10,7 +10,7 @@
   - `simple.js`
   - `[id]/` folder
 
-**Why removed:** Frontend should NOT have API routes. All APIs are now in backend at https://thesimpleai.vercel.app
+**Why removed:** Frontend should NOT have API routes. All APIs are now in backend
 
 ### **2. Database Files** ❌
 - `/prisma/schema.prisma` - Prisma schema
@@ -89,7 +89,7 @@ frontend/
 ## 🔗 API Integration
 
 All API calls now point to:
-- **Backend URL:** `https://thesimpleai.vercel.app`
+- **Backend URL:** Set via `NEXT_PUBLIC_API_URL` environment variable
 - **Configured in:** `.env.local` as `NEXT_PUBLIC_API_URL`
 
 Example API calls using the new `useApi` hook:

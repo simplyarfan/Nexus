@@ -13,7 +13,7 @@ const securityHeaders = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", 'https://thesimpleai.vercel.app', 'https://thesimpleai.netlify.app'],
+      connectSrc: ["'self'"],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -88,8 +88,6 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://thesimpleai.netlify.app',
-      'https://test--thesimpleai.netlify.app', // Test branch preview
     ];
 
     // Allow requests with no origin (mobile apps, Postman, etc.)

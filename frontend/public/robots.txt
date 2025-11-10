@@ -4,7 +4,7 @@ Allow: /
 # Modern AI Platform - Updated
 
 # Sitemap
-Sitemap: https://thesimpleai.netlify.app/sitemap.xml
+Sitemap: https://your-frontend.netlify.app/sitemap.xml
 
 # Disallow admin pages from search engines
 Disallow: /admin/

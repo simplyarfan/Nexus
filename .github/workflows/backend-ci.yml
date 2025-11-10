@@ -57,11 +57,13 @@ jobs:
 
       - name: Syntax check
         working-directory: ./backend
-        run: node -c server.js
+        run: node -c api/health.js
 
       - name: Check for critical files
         working-directory: ./backend
         run: |
-          [ -f "server.js" ] || exit 1
+          [ -d "api" ] || exit 1
+          [ -f "api/health.js" ] || exit 1
           [ -f "package.json" ] || exit 1
+          [ -f "vercel.json" ] || exit 1
           echo "✅ All critical backend files present"

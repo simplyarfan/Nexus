@@ -71,7 +71,7 @@ Purpose: Give any LLM an immediate, actionable understanding of the codebase so 
 ### Frontend Architecture
 
 - Framework: Next.js configured for static export (SPA) via `frontend/next.config.js` with `output: 'export'` and `trailingSlash: true`.
-- Deployment: Netlify with `frontend/netlify.toml` (build to `out/`), redirects `/api/*` to backend `https://thesimpleai.vercel.app` by default.
+- Deployment: Netlify with `frontend/netlify.toml` (build to `out/`), redirects `/api/*` to backend `https://your-backend-api.vercel.app` by default.
 - Auth state: `frontend/src/contexts/AuthContext.js` manages user, tokens (Cookies), `checkAuth` on mount, and helpers (`login`, `register`, `verifyEmail`, `resendVerification`, `logout`).
 - API client: `frontend/src/utils/api.js` axios instance at `${NEXT_PUBLIC_API_URL}/api`, request ID header, 401 interceptor to refresh token.
 
@@ -87,7 +87,7 @@ Purpose: Give any LLM an immediate, actionable understanding of the codebase so 
   - Cache (optional): `REDIS_URL` or `UPSTASH_REDIS_REST_URL`
   - Admin/dev: `ADMIN_SECRET`, `CREATE_DEFAULT_ADMIN` (dev-only), `COMPANY_DOMAIN`
 - Frontend:
-  - `NEXT_PUBLIC_API_URL` (e.g., `https://thesimpleai.vercel.app`)
+  - `NEXT_PUBLIC_API_URL` (e.g., `https://your-backend-api.vercel.app`)
   - `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_COMPANY_DOMAIN` (optional)
 
 ### Build & Deploy

@@ -12,7 +12,6 @@ const getCorsHeaders = (origin) => {
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
     : [
-        'https://thesimpleai.netlify.app',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
       ];

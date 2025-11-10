@@ -5,41 +5,44 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Proxy specific backend API routes (order matters - specific before general)
-[[redirects]]
-  from = "/api/auth/*"
-  to = "https://thesimpleai.vercel.app/api/auth/:splat"
-  status = 200
+# NOTE: Backend API proxying disabled - configure NEXT_PUBLIC_API_URL environment variable instead
+# If you need to proxy API requests through Netlify, uncomment and update the redirects below
+# with your backend API URL (e.g., https://your-backend.vercel.app)
 
-[[redirects]]
-  from = "/api/analytics/*"
-  to = "https://thesimpleai.vercel.app/api/analytics/:splat"
-  status = 200
+# [[redirects]]
+#   from = "/api/auth/*"
+#   to = "https://your-backend-api.vercel.app/api/auth/:splat"
+#   status = 200
 
-[[redirects]]
-  from = "/api/cv-intelligence/*"
-  to = "https://thesimpleai.vercel.app/api/cv-intelligence/:splat"
-  status = 200
+# [[redirects]]
+#   from = "/api/analytics/*"
+#   to = "https://your-backend-api.vercel.app/api/analytics/:splat"
+#   status = 200
 
-[[redirects]]
-  from = "/api/notifications/*"
-  to = "https://thesimpleai.vercel.app/api/notifications/:splat"
-  status = 200
+# [[redirects]]
+#   from = "/api/cv-intelligence/*"
+#   to = "https://your-backend-api.vercel.app/api/cv-intelligence/:splat"
+#   status = 200
 
-[[redirects]]
-  from = "/api/interview-coordinator/*"
-  to = "https://thesimpleai.vercel.app/api/interview-coordinator/:splat"
-  status = 200
+# [[redirects]]
+#   from = "/api/notifications/*"
+#   to = "https://your-backend-api.vercel.app/api/notifications/:splat"
+#   status = 200
 
-[[redirects]]
-  from = "/api/init/*"
-  to = "https://thesimpleai.vercel.app/api/init/:splat"
-  status = 200
+# [[redirects]]
+#   from = "/api/interview-coordinator/*"
+#   to = "https://your-backend-api.vercel.app/api/interview-coordinator/:splat"
+#   status = 200
 
-[[redirects]]
-  from = "/api/tickets/*"
-  to = "https://thesimpleai.vercel.app/api/tickets/:splat"
-  status = 200
+# [[redirects]]
+#   from = "/api/init/*"
+#   to = "https://your-backend-api.vercel.app/api/init/:splat"
+#   status = 200
+
+# [[redirects]]
+#   from = "/api/tickets/*"
+#   to = "https://your-backend-api.vercel.app/api/tickets/:splat"
+#   status = 200
 
 # SPA fallback for client-side routing
 [[redirects]]

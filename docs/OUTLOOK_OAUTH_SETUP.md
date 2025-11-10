@@ -31,7 +31,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 
 4. **Configure Redirect URI**
    - Platform: **Web**
-   - Production: `https://thesimpleai.vercel.app/api/auth/outlook/callback`
+   - Production: `https://your-backend-api.vercel.app/api/auth/outlook/callback`
    - Development: `http://localhost:5000/api/auth/outlook/callback`
 
 5. **Click Register**
@@ -110,7 +110,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 
 1. **Go to Vercel Dashboard**
    - Visit: https://vercel.com/dashboard
-   - Select your project: `thesimpleai`
+   - Select your project: `your-project-name`
 
 2. **Navigate to Settings → Environment Variables**
 
@@ -130,7 +130,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
    Environment: Production, Preview, Development
 
    Name: OUTLOOK_REDIRECT_URI
-   Value: https://thesimpleai.vercel.app/api/auth/outlook/callback
+   Value: https://your-backend-api.vercel.app/api/auth/outlook/callback
    Environment: Production, Preview
    ```
 
@@ -143,7 +143,7 @@ This guide helps you set up Microsoft Outlook OAuth2 authentication for the Inte
 ### From the Application
 
 1. **Login to your application**
-   - Go to: https://thesimpleai.netlify.app/auth/login
+   - Go to: https://your-frontend.netlify.app/auth/login
    - Sign in with your account
 
 2. **Navigate to Profile Settings**

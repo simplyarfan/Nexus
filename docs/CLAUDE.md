@@ -211,8 +211,8 @@ JWT_SECRET=your_32_char_secret
 JWT_REFRESH_SECRET=your_32_char_refresh_secret
 
 # URLs for OAuth callbacks and email links
-BACKEND_URL=https://thesimpleai.vercel.app
-FRONTEND_URL=https://thesimpleai.netlify.app
+BACKEND_URL=https://your-backend-api.vercel.app
+FRONTEND_URL=https://your-frontend.netlify.app
 
 # Email (Gmail SMTP or similar)
 EMAIL_USER=your_email@domain.com
@@ -235,7 +235,7 @@ UPSTASH_REDIS_REST_URL=https://...
 
 ```bash
 # Backend API endpoint
-NEXT_PUBLIC_API_URL=https://thesimpleai.vercel.app
+NEXT_PUBLIC_API_URL=https://your-backend-api.vercel.app
 
 # Optional branding
 NEXT_PUBLIC_APP_NAME=Enterprise AI Hub

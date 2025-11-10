@@ -5,9 +5,9 @@
 
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-import { useAuth } from './useAuth';
+import { useAuth } from '../contexts/AuthContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://thesimpleai.vercel.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function useApi() {
   const [loading, setLoading] = useState(false);

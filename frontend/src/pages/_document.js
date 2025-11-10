@@ -2,7 +2,7 @@ import { Html, Head, Main, NextScript } from 'next/document';
 
 export default function Document() {
   return (
-    <Html lang="en" suppressHydrationWarning>
+    <Html lang="en" className="dark" suppressHydrationWarning>
       <Head>
         {/* Outfit Font for authenticated pages - Green theme UI */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

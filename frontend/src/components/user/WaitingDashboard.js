@@ -78,7 +78,7 @@ const WaitingDashboard = () => {
   const [reactionScore, setReactionScore] = useState(null);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -89,22 +89,22 @@ const WaitingDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-border">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
             </div>
-            <span className="text-xl font-bold text-gray-900">Nexus</span>
+            <span className="text-xl font-bold text-foreground">Nexus</span>
           </div>
         </div>
 
         <nav className="mt-6 px-4">
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Status
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -116,11 +116,11 @@ const WaitingDashboard = () => {
           </div>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
           <div className="relative">
             {/* Dropdown Menu */}
             {userDropdownOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-lg shadow-lg py-2">
                 {quickActions.map((action) => (
                   <button
                     key={action.name}
@@ -128,13 +128,13 @@ const WaitingDashboard = () => {
                       router.push(action.route);
                       setUserDropdownOpen(false);
                     }}
-                    className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center px-4 py-2 text-left text-foreground hover:bg-secondary transition-colors"
                   >
-                    <action.icon className="w-4 h-4 mr-3 text-gray-400" />
+                    <action.icon className="w-4 h-4 mr-3 text-muted-foreground" />
                     <span className="text-sm font-medium">{action.name}</span>
                   </button>
                 ))}
-                <div className="border-t border-gray-200 my-1"></div>
+                <div className="border-t border-border my-1"></div>
                 <button
                   onClick={() => {
                     handleLogout();
@@ -151,19 +151,19 @@ const WaitingDashboard = () => {
             {/* User Profile Button */}
             <button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-secondary transition-colors"
             >
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-gray-600" />
+              <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {user?.first_name} {user?.last_name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">Pending Assignment</p>
+                <p className="text-xs text-muted-foreground truncate">Pending Assignment</p>
               </div>
               <ChevronUp
-                className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-muted-foreground transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
               />
             </button>
           </div>
@@ -173,32 +173,32 @@ const WaitingDashboard = () => {
       {/* Main content */}
       <div className="lg:pl-64 min-h-screen">
         {/* Top bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+                className="lg:hidden p-2 rounded-lg hover:bg-secondary"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Waiting for Assignment</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-xl font-semibold text-foreground">Waiting for Assignment</h1>
+                <p className="text-sm text-muted-foreground">
                   Welcome, {user?.first_name} {user?.last_name}!
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+              <button className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary">
                 <Bell className="w-5 h-5" />
               </button>
             </div>
@@ -208,11 +208,11 @@ const WaitingDashboard = () => {
         {/* Dashboard content */}
         <div className="p-6 pb-20">
           {/* Welcome section */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white mb-8">
+          <div className="bg-gradient-to-r from-primary to-primary rounded-2xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Welcome to Nexus AI Platform!</h2>
-                <p className="text-green-100">
+                <p className="text-primary-foreground/80">
                   Your account is being reviewed. You&apos;ll be assigned to a department soon.
                 </p>
               </div>
@@ -225,14 +225,14 @@ const WaitingDashboard = () => {
           </div>
 
           {/* Status Card */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
+          <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-primary rounded-xl flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Under Review</h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Account Under Review</h3>
+                <p className="text-muted-foreground text-sm mb-4">
                   Our admin team is reviewing your account and will assign you to the appropriate
                   department based on your role and responsibilities.
                 </p>
@@ -249,8 +249,8 @@ const WaitingDashboard = () => {
           {/* Fun Mini-Games Grid */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Play While You Wait</h3>
-              <div className="flex items-center text-sm text-gray-500">
+              <h3 className="text-xl font-bold text-foreground">Play While You Wait</h3>
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Trophy className="w-4 h-4 mr-1" />
                 <span>Pass the time with fun games!</span>
               </div>
@@ -261,7 +261,7 @@ const WaitingDashboard = () => {
                 <div
                   key={game.id}
                   onClick={game.action}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer group hover:scale-105"
+                  className="bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all duration-200 cursor-pointer group hover:scale-105"
                 >
                   <div className="flex items-start space-x-4">
                     <div
@@ -270,9 +270,9 @@ const WaitingDashboard = () => {
                       <game.icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{game.name}</h3>
-                      <p className="text-gray-600 text-sm mb-4">{game.description}</p>
-                      <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">{game.name}</h3>
+                      <p className="text-muted-foreground text-sm mb-4">{game.description}</p>
+                      <div className="flex items-center text-primary text-sm font-medium group-hover:text-primary/80">
                         <span>Play Now</span>
                         <Gamepad2 className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -286,16 +286,16 @@ const WaitingDashboard = () => {
           {/* Game Modal */}
           {currentGame && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <div className="bg-card rounded-2xl p-8 max-w-md w-full mx-4">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">
+                  <h3 className="text-xl font-bold text-foreground">
                     {miniGames.find((g) => g.id === currentGame)?.name}
                   </h3>
                   <button
                     onClick={() => setCurrentGame(null)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-secondary rounded-lg transition-colors"
                   >
-                    <Plus className="w-5 h-5 text-gray-400 rotate-45" />
+                    <Plus className="w-5 h-5 text-muted-foreground rotate-45" />
                   </button>
                 </div>
 
@@ -303,7 +303,7 @@ const WaitingDashboard = () => {
                   {currentGame === 'memory' && (
                     <div>
                       <Brain className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">
+                      <p className="text-muted-foreground mb-4">
                         Match the pairs of cards by remembering their positions!
                       </p>
                       <div className="grid grid-cols-4 gap-2">
@@ -322,14 +322,14 @@ const WaitingDashboard = () => {
                   {currentGame === 'reaction' && (
                     <div>
                       <Zap className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">
+                      <p className="text-muted-foreground mb-4">
                         {!gameStarted
                           ? 'Click START to begin!'
                           : 'Click as fast as you can when the circle turns green!'}
                       </p>
                       {reactionScore !== null && (
-                        <div className="mb-4 p-3 bg-green-50 rounded-lg">
-                          <p className="text-green-700 font-bold">Your time: {reactionScore}ms</p>
+                        <div className="mb-4 p-3 bg-primary/10 rounded-lg">
+                          <p className="text-primary font-bold">Your time: {reactionScore}ms</p>
                         </div>
                       )}
                       <div
@@ -343,7 +343,7 @@ const WaitingDashboard = () => {
                         }}
                         className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center cursor-pointer transition-all ${
                           !gameStarted
-                            ? 'bg-gray-200'
+                            ? 'bg-secondary'
                             : reactionGreen
                               ? 'bg-green-400'
                               : 'bg-red-400'
@@ -352,7 +352,7 @@ const WaitingDashboard = () => {
                         <span
                           className={`font-bold ${
                             !gameStarted
-                              ? 'text-gray-600'
+                              ? 'text-muted-foreground'
                               : reactionGreen
                                 ? 'text-green-900'
                                 : 'text-red-900'
@@ -366,17 +366,17 @@ const WaitingDashboard = () => {
 
                   {currentGame === 'puzzle' && (
                     <div>
-                      <Puzzle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-4">
+                      <Puzzle className="w-16 h-16 text-primary mx-auto mb-4" />
+                      <p className="text-muted-foreground mb-4">
                         Arrange the numbers from 1 to 8 in order!
                       </p>
                       <div className="grid grid-cols-3 gap-1 max-w-32 mx-auto">
                         {[1, 2, 3, 4, 5, 6, 7, 8, ''].map((num, i) => (
                           <div
                             key={i}
-                            className={`w-10 h-10 ${num ? 'bg-green-100 hover:bg-green-200' : 'bg-gray-50'} rounded border flex items-center justify-center cursor-pointer transition-colors`}
+                            className={`w-10 h-10 ${num ? 'bg-primary/10 hover:bg-primary/20' : 'bg-background'} rounded border flex items-center justify-center cursor-pointer transition-colors`}
                           >
-                            <span className="text-green-600 font-bold">{num}</span>
+                            <span className="text-primary font-bold">{num}</span>
                           </div>
                         ))}
                       </div>
@@ -392,7 +392,7 @@ const WaitingDashboard = () => {
                       setReactionScore(null);
                       setReactionGreen(false);
                     }}
-                    className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 text-muted-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
                   >
                     Close
                   </button>
@@ -407,13 +407,13 @@ const WaitingDashboard = () => {
                           setReactionTimer(Date.now());
                         }, delay);
                       }}
-                      className="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-colors"
+                      className="px-4 py-2 text-white bg-gradient-to-r from-primary to-primary rounded-lg hover:opacity-90 transition-colors"
                     >
                       Start Game
                     </button>
                   )}
                   {currentGame !== 'reaction' && (
-                    <button className="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-colors opacity-50 cursor-not-allowed">
+                    <button className="px-4 py-2 text-white bg-gradient-to-r from-primary to-primary rounded-lg opacity-50 cursor-not-allowed">
                       Coming Soon
                     </button>
                   )}

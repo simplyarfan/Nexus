@@ -374,9 +374,62 @@ const resendVerificationCode = async (userId) => {
   };
 };
 
+/**
+ * Check if user exists by email
+ */
+const checkUserExists = async (email) => {
+  if (!email) {
+    throw { statusCode: 400, message: 'Email is required' };
+  }
+
+  // Validate email domain
+  const allowedDomain = '@securemaxtech.com';
+  if (!email.toLowerCase().endsWith(allowedDomain)) {
+    throw {
+      statusCode: 400,
+      message: 'Email must be from securemaxtech.com domain',
+    };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+    select: {
+      id: true,
+      email: true,
+      first_name: true,
+      last_name: true,
+      department: true,
+      job_title: true,
+      role: true,
+      email_verified: true,
+      is_active: true,
+    },
+  });
+
+  return {
+    success: true,
+    exists: !!user,
+    user: user
+      ? {
+          id: user.id,
+          email: user.email,
+          name: `${user.first_name} ${user.last_name}`,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          department: user.department,
+          jobTitle: user.job_title,
+          role: user.role,
+          emailVerified: user.email_verified,
+          isActive: user.is_active,
+        }
+      : null,
+  };
+};
+
 module.exports = {
   registerUser,
   loginUser,
   verifyEmail,
   resendVerificationCode,
+  checkUserExists,
 };

@@ -118,38 +118,38 @@ export default function InterviewsPage() {
   ];
 
   const stats = [
-    { label: 'Total Interviews', value: interviews.length, color: 'text-green-500' },
+    { label: 'Total Interviews', value: interviews.length, color: 'text-primary' },
     {
       label: 'Awaiting Response',
       value: interviews.filter((i) => i.status === 'awaiting_response').length,
-      color: 'text-gray-600',
+      color: 'text-muted-foreground',
     },
     {
       label: 'Scheduled',
       value: interviews.filter((i) => i.status === 'scheduled').length,
-      color: 'text-green-600',
+      color: 'text-primary',
     },
     {
       label: 'Completed',
       value: interviews.filter((i) => i.status === 'completed').length,
-      color: 'text-green-500',
+      color: 'text-primary',
     },
   ];
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'awaiting_response':
-        return 'bg-gray-200 text-gray-600';
+        return 'bg-secondary text-muted-foreground';
       case 'scheduled':
-        return 'bg-gray-50 text-green-500';
+        return 'bg-primary/10 text-primary';
       case 'completed':
-        return 'bg-gray-50 text-green-600';
+        return 'bg-primary/10 text-primary';
       case 'rejected':
-        return 'bg-gray-50 text-red-600';
+        return 'bg-red-50 text-red-600';
       case 'cancelled':
-        return 'bg-gray-50 text-red-600';
+        return 'bg-red-50 text-red-600';
       default:
-        return 'bg-gray-50 text-gray-900';
+        return 'bg-secondary text-foreground';
     }
   };
 
@@ -216,17 +216,17 @@ export default function InterviewsPage() {
   const getStageColor = (stage) => {
     switch (stage) {
       case 'initial_email':
-        return 'bg-gray-50 text-green-500 border-green-500';
+        return 'bg-primary/10 text-primary border-primary';
       case 'awaiting_response':
-        return 'bg-gray-50 text-gray-600 border-muted-foreground';
+        return 'bg-secondary text-muted-foreground border-muted-foreground';
       case 'scheduled':
-        return 'bg-gray-50 text-green-600 border-ring';
+        return 'bg-primary/10 text-primary border-ring';
       case 'completed':
-        return 'bg-gray-50 text-green-600 border-ring';
+        return 'bg-primary/10 text-primary border-ring';
       case 'rejected':
-        return 'bg-gray-50 text-red-600 border-destructive';
+        return 'bg-red-50 text-red-600 border-destructive';
       default:
-        return 'bg-gray-50 text-gray-900 border-gray-200';
+        return 'bg-secondary text-foreground border-border';
     }
   };
 
@@ -313,14 +313,14 @@ Best regards,
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
             <a
               href="/dashboard"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -335,8 +335,8 @@ Best regards,
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Interview Coordinator (HR-02)</h1>
-              <p className="text-gray-600 mt-1">Schedule and manage interviews efficiently</p>
+              <h1 className="text-3xl font-bold text-foreground">Interview Coordinator (HR-02)</h1>
+              <p className="text-muted-foreground mt-1">Schedule and manage interviews efficiently</p>
             </div>
             <div className="flex gap-3">
               {view !== 'list' && (
@@ -393,9 +393,9 @@ Best regards,
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white border border-gray-200 rounded-2xl p-6"
+                    className="bg-card border border-border rounded-2xl p-6"
                   >
-                    <p className="text-sm text-gray-600 mb-2">{stat.label}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
                     <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
                   </motion.div>
                 ))}
@@ -403,7 +403,7 @@ Best regards,
 
               {/* Interviews List */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">All Interviews</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-6">All Interviews</h2>
                 <div className="space-y-4">
                   {interviews.map((interview, index) => (
                     <motion.div
@@ -411,22 +411,22 @@ Best regards,
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
-                      className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-shadow"
+                      className="bg-card border border-border rounded-2xl p-6 hover:shadow-lg transition-shadow"
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold">
                               {interview.candidateName
                                 .split(' ')
                                 .map((n) => n[0])
                                 .join('')}
                             </div>
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
+                              <h3 className="text-lg font-semibold text-foreground">
                                 {interview.candidateName}
                               </h3>
-                              <p className="text-sm text-gray-600">{interview.position}</p>
+                              <p className="text-sm text-muted-foreground">{interview.position}</p>
                             </div>
                           </div>
                         </div>
@@ -439,22 +439,22 @@ Best regards,
 
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <p className="text-xs text-gray-600 mb-1">Request Sent</p>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs text-muted-foreground mb-1">Request Sent</p>
+                          <p className="text-sm font-medium text-foreground">
                             {new Date(interview.createdDate).toLocaleDateString()}
                           </p>
                         </div>
                         {interview.scheduledTime && (
                           <>
                             <div>
-                              <p className="text-xs text-gray-600 mb-1">Scheduled Time</p>
-                              <p className="text-sm font-medium text-gray-900">
+                              <p className="text-xs text-muted-foreground mb-1">Scheduled Time</p>
+                              <p className="text-sm font-medium text-foreground">
                                 {new Date(interview.scheduledTime).toLocaleString()}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-600 mb-1">Duration</p>
-                              <p className="text-sm font-medium text-gray-900">
+                              <p className="text-xs text-muted-foreground mb-1">Duration</p>
+                              <p className="text-sm font-medium text-foreground">
                                 {interview.duration} minutes
                               </p>
                             </div>
@@ -462,8 +462,8 @@ Best regards,
                         )}
                         {interview.interviewType && (
                           <div>
-                            <p className="text-xs text-gray-600 mb-1">Interview Type</p>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-xs text-muted-foreground mb-1">Interview Type</p>
+                            <p className="text-sm font-medium text-foreground">
                               {interview.interviewType}
                             </p>
                           </div>
@@ -523,22 +523,22 @@ Best regards,
               exit="hidden"
               className="max-w-4xl mx-auto"
             >
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
+              <div className="bg-card border border-border rounded-2xl p-8">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-6 pb-6 border-b border-gray-200">
+                <div className="flex items-start justify-between mb-6 pb-6 border-b border-border">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white text-2xl font-bold">
                       {selectedInterview.candidateName
                         .split(' ')
                         .map((n) => n[0])
                         .join('')}
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
+                      <h2 className="text-2xl font-bold text-foreground">
                         {selectedInterview.candidateName}
                       </h2>
-                      <p className="text-gray-600">{selectedInterview.position}</p>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-muted-foreground">{selectedInterview.position}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
                         {selectedInterview.candidateEmail}
                       </p>
                     </div>
@@ -552,37 +552,37 @@ Best regards,
 
                 {/* Interview Details */}
                 {selectedInterview.scheduledTime && (
-                  <div className="mb-6 pb-6 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Interview Details</h3>
+                  <div className="mb-6 pb-6 border-b border-border">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">Interview Details</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Scheduled Time</p>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-xs text-muted-foreground mb-1">Scheduled Time</p>
+                        <p className="text-sm font-medium text-foreground">
                           {new Date(selectedInterview.scheduledTime).toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-600 mb-1">Duration</p>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-xs text-muted-foreground mb-1">Duration</p>
+                        <p className="text-sm font-medium text-foreground">
                           {selectedInterview.duration} minutes
                         </p>
                       </div>
                       {selectedInterview.interviewType && (
                         <div>
-                          <p className="text-xs text-gray-600 mb-1">Interview Type</p>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-xs text-muted-foreground mb-1">Interview Type</p>
+                          <p className="text-sm font-medium text-foreground">
                             {selectedInterview.interviewType}
                           </p>
                         </div>
                       )}
                       {selectedInterview.meetingLink && (
                         <div className="col-span-2 md:col-span-3">
-                          <p className="text-xs text-gray-600 mb-1">Meeting Link</p>
+                          <p className="text-xs text-muted-foreground mb-1">Meeting Link</p>
                           <a
                             href={selectedInterview.meetingLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm font-medium text-green-500 hover:opacity-80 transition-opacity"
+                            className="text-sm font-medium text-primary hover:opacity-80 transition-opacity"
                           >
                             {selectedInterview.meetingLink}
                           </a>
@@ -594,7 +594,7 @@ Best regards,
 
                 {/* Workflow Timeline */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Interview Progress</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Interview Progress</h3>
                   <div className="space-y-4">
                     {selectedInterview.workflow?.map((stage, index) => (
                       <div key={index} className="flex gap-4">
@@ -605,15 +605,15 @@ Best regards,
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold text-gray-900">
+                            <h4 className="font-semibold text-foreground">
                               {getStageName(stage.stage)}
                             </h4>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {new Date(stage.timestamp).toLocaleString()}
                             </span>
                           </div>
                           {stage.details && (
-                            <p className="text-sm text-gray-600">{stage.details}</p>
+                            <p className="text-sm text-muted-foreground">{stage.details}</p>
                           )}
                         </div>
                       </div>
@@ -622,7 +622,7 @@ Best regards,
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
+                <div className="flex flex-wrap gap-3 pt-6 border-t border-border">
                   {selectedInterview.status === 'awaiting_response' && (
                     <ButtonGreen
                       variant="primary"
@@ -692,9 +692,9 @@ Best regards,
               exit="hidden"
               className="max-w-3xl mx-auto"
             >
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Availability</h2>
-                <p className="text-gray-600 mb-6">
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Request Availability</h2>
+                <p className="text-muted-foreground mb-6">
                   Send an email to the candidate requesting their available time slots
                 </p>
 
@@ -702,7 +702,7 @@ Best regards,
                   {/* Candidate Information */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Candidate Name *
                       </label>
                       <input
@@ -714,12 +714,12 @@ Best regards,
                             candidateName: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="e.g., John Smith"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Email *
                       </label>
                       <input
@@ -731,14 +731,14 @@ Best regards,
                             candidateEmail: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="candidate@example.com"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Position *
                     </label>
                     <input
@@ -747,13 +747,13 @@ Best regards,
                       onChange={(e) =>
                         setAvailabilityForm({ ...availabilityForm, position: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="e.g., Senior Full Stack Developer"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Google Form Link (Optional)
                     </label>
                     <input
@@ -762,16 +762,16 @@ Best regards,
                       onChange={(e) =>
                         setAvailabilityForm({ ...availabilityForm, googleFormLink: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="https://forms.google.com/..."
                     />
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Will be inserted into email template
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Email Subject
                     </label>
                     <input
@@ -780,13 +780,13 @@ Best regards,
                       onChange={(e) =>
                         setAvailabilityForm({ ...availabilityForm, emailSubject: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="Interview Opportunity - [Position]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Email Content
                     </label>
                     <textarea
@@ -795,17 +795,17 @@ Best regards,
                       onChange={(e) =>
                         setAvailabilityForm({ ...availabilityForm, emailContent: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
+                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
                       placeholder="Custom email content (optional - will use default template if empty)"
                     />
                   </div>
 
                   {/* CV Upload */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Attach CV (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 bg-secondary hover:bg-gray-50 transition-colors">
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 bg-secondary hover:bg-secondary/80 transition-colors">
                       <input
                         type="file"
                         id="cv-upload"
@@ -821,7 +821,7 @@ Best regards,
                         className="flex flex-col items-center cursor-pointer"
                       >
                         <svg
-                          className="w-12 h-12 text-gray-600 mb-3"
+                          className="w-12 h-12 text-muted-foreground mb-3"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -835,10 +835,10 @@ Best regards,
                         </svg>
                         {availabilityForm.cvFile ? (
                           <div className="text-center">
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-foreground">
                               {availabilityForm.cvFile.name}
                             </p>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {(availabilityForm.cvFile.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                             <button
@@ -854,22 +854,22 @@ Best regards,
                           </div>
                         ) : (
                           <div className="text-center">
-                            <p className="text-sm font-medium text-gray-900">Click to upload CV</p>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="text-sm font-medium text-foreground">Click to upload CV</p>
+                            <p className="text-xs text-muted-foreground mt-1">
                               PDF, DOC, or DOCX (Max 10MB)
                             </p>
                           </div>
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Attach the candidate&apos;s CV to the email
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         CC (Optional)
                       </label>
                       <input
@@ -878,13 +878,13 @@ Best regards,
                         onChange={(e) =>
                           setAvailabilityForm({ ...availabilityForm, ccEmails: e.target.value })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="email1@example.com, email2@example.com"
                       />
-                      <p className="text-xs text-gray-600 mt-1">Comma-separated email addresses</p>
+                      <p className="text-xs text-muted-foreground mt-1">Comma-separated email addresses</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         BCC (Optional)
                       </label>
                       <input
@@ -893,14 +893,14 @@ Best regards,
                         onChange={(e) =>
                           setAvailabilityForm({ ...availabilityForm, bccEmails: e.target.value })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="email1@example.com, email2@example.com"
                       />
-                      <p className="text-xs text-gray-600 mt-1">Comma-separated email addresses</p>
+                      <p className="text-xs text-muted-foreground mt-1">Comma-separated email addresses</p>
                     </div>
                   </div>
 
-                  <div className="flex gap-3 pt-6 border-t border-gray-200">
+                  <div className="flex gap-3 pt-6 border-t border-border">
                     <ButtonGreen
                       variant="primary"
                       size="lg"
@@ -928,11 +928,11 @@ Best regards,
               exit="hidden"
               className="max-w-3xl mx-auto"
             >
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Schedule Interview</h2>
-                <p className="text-gray-600 mb-6">
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Schedule Interview</h2>
+                <p className="text-muted-foreground mb-6">
                   Schedule interview for{' '}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-foreground">
                     {selectedInterview.candidateName}
                   </span>{' '}
                   - {selectedInterview.position}
@@ -941,7 +941,7 @@ Best regards,
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Interview Type
                       </label>
                       <select
@@ -949,7 +949,7 @@ Best regards,
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, interviewType: e.target.value })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <option value="technical">Technical</option>
                         <option value="behavioral">Behavioral</option>
@@ -958,7 +958,7 @@ Best regards,
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Duration (minutes)
                       </label>
                       <select
@@ -966,7 +966,7 @@ Best regards,
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, duration: e.target.value })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <option value={30}>30 minutes</option>
                         <option value={45}>45 minutes</option>
@@ -988,9 +988,9 @@ Best regards,
                     />
                   </div>
 
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="bg-primary/10 border border-primary rounded-lg p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                      <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                         <svg
                           className="w-6 h-6 text-white"
                           fill="none"
@@ -1006,8 +1006,8 @@ Best regards,
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">Microsoft Teams</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="font-medium text-foreground">Microsoft Teams</p>
+                        <p className="text-sm text-muted-foreground">
                           Meeting link will be automatically generated
                         </p>
                       </div>
@@ -1015,10 +1015,10 @@ Best regards,
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Attach CV (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 bg-secondary hover:bg-gray-50 transition-colors">
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 bg-secondary hover:bg-secondary/80 transition-colors">
                       <input
                         type="file"
                         id="schedule-cv-upload"
@@ -1034,7 +1034,7 @@ Best regards,
                         className="flex flex-col items-center cursor-pointer"
                       >
                         <svg
-                          className="w-12 h-12 text-gray-600 mb-3"
+                          className="w-12 h-12 text-muted-foreground mb-3"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -1048,10 +1048,10 @@ Best regards,
                         </svg>
                         {scheduleForm.cvFile ? (
                           <div className="text-center">
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-foreground">
                               {scheduleForm.cvFile.name}
                             </p>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {(scheduleForm.cvFile.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                             <button
@@ -1067,35 +1067,35 @@ Best regards,
                           </div>
                         ) : (
                           <div className="text-center">
-                            <p className="text-sm font-medium text-gray-900">Click to upload CV</p>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="text-sm font-medium text-foreground">Click to upload CV</p>
+                            <p className="text-xs text-muted-foreground mt-1">
                               PDF, DOC, or DOCX (Max 10MB)
                             </p>
                           </div>
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Attach the candidate&apos;s CV to the interview confirmation email
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Notes (Optional)
                     </label>
                     <textarea
                       rows={4}
                       value={scheduleForm.notes}
                       onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
-                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       placeholder="Additional notes or preparation instructions for the candidate..."
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         CC (Optional)
                       </label>
                       <input
@@ -1104,12 +1104,12 @@ Best regards,
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, ccEmails: e.target.value })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="email1@example.com, email2@example.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         BCC (Optional)
                       </label>
                       <input
@@ -1118,13 +1118,13 @@ Best regards,
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, bccEmails: e.target.value })
                         }
-                        className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="email1@example.com, email2@example.com"
                       />
                     </div>
                   </div>
 
-                  <div className="flex gap-3 pt-6 border-t border-gray-200">
+                  <div className="flex gap-3 pt-6 border-t border-border">
                     <ButtonGreen
                       variant="primary"
                       size="lg"

@@ -8,6 +8,7 @@ import ButtonGreen from '../../components/ui/ButtonGreen';
 import InputGreen from '../../components/ui/InputGreen';
 import { scaleIn } from '../../lib/motion';
 import ClientOnly from '../../components/shared/ClientOnly';
+import microsoftAuthService from '../../services/microsoftAuthService';
 
 const Login = () => {
   const router = useRouter();
@@ -97,8 +98,17 @@ const Login = () => {
   const handleMicrosoftLogin = async () => {
     setIsMicrosoftLoading(true);
     setError('');
-    toast.info('Microsoft OAuth integration coming soon!');
-    setIsMicrosoftLoading(false);
+
+    try {
+      // Initiate Microsoft OAuth redirect
+      await microsoftAuthService.loginWithRedirect();
+      // User will be redirected to Microsoft login page, then back to /auth/callback
+    } catch (error) {
+      console.error('Microsoft login error:', error);
+      setError(error.message || 'Failed to initiate Microsoft login');
+      toast.error('Failed to connect to Microsoft. Please try again.');
+      setIsMicrosoftLoading(false);
+    }
   };
 
   // Show loading during SSR or while mounting
@@ -291,7 +301,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors pointer-events-auto cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-colors pointer-events-auto cursor-pointer"
                   >
                     {showPassword ? (
                       <svg

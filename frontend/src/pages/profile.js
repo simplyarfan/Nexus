@@ -16,14 +16,14 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
             <a
               href="/dashboard"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -37,8 +37,8 @@ export default function ProfilePage() {
             </a>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+            <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+            <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
           </div>
         </div>
       </div>
@@ -53,14 +53,14 @@ export default function ProfilePage() {
             animate="visible"
             className="lg:col-span-1"
           >
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-card border border-border rounded-2xl p-6">
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'profile'
-                      ? 'bg-green-500 text-white'
-                      : 'text-gray-900 hover:bg-gray-50'
+                      ? 'bg-primary text-white'
+                      : 'text-foreground hover:bg-secondary'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,8 +77,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('security')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'security'
-                      ? 'bg-green-500 text-white'
-                      : 'text-gray-900 hover:bg-gray-50'
+                      ? 'bg-primary text-white'
+                      : 'text-foreground hover:bg-secondary'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,8 +95,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('notifications')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'notifications'
-                      ? 'bg-green-500 text-white'
-                      : 'text-gray-900 hover:bg-gray-50'
+                      ? 'bg-primary text-white'
+                      : 'text-foreground hover:bg-secondary'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,8 +113,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('preferences')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'preferences'
-                      ? 'bg-green-500 text-white'
-                      : 'text-gray-900 hover:bg-gray-50'
+                      ? 'bg-primary text-white'
+                      : 'text-foreground hover:bg-secondary'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,26 +143,26 @@ export default function ProfilePage() {
               variants={fadeIn}
               initial="hidden"
               animate="visible"
-              className="bg-white border border-gray-200 rounded-2xl p-8"
+              className="bg-card border border-border rounded-2xl p-8"
             >
               {/* Profile Tab */}
               {activeTab === 'profile' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Information</h2>
-                    <p className="text-gray-600">Update your account&apos;s profile information</p>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Profile Information</h2>
+                    <p className="text-muted-foreground">Update your account&apos;s profile information</p>
                   </div>
 
                   {/* Avatar */}
                   <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                    <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold">
                       JS
                     </div>
                     <div>
                       <ButtonGreen variant="secondary" size="md">
                         Change Photo
                       </ButtonGreen>
-                      <p className="text-xs text-gray-600 mt-2">JPG, GIF or PNG. Max size 2MB</p>
+                      <p className="text-xs text-muted-foreground mt-2">JPG, GIF or PNG. Max size 2MB</p>
                     </div>
                   </div>
 
@@ -185,11 +185,11 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">Bio</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
                     <textarea
                       rows={4}
                       placeholder="Tell us about yourself..."
-                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
@@ -213,13 +213,13 @@ export default function ProfilePage() {
               {activeTab === 'security' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Security Settings</h2>
-                    <p className="text-gray-600">Manage your account security</p>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Security Settings</h2>
+                    <p className="text-muted-foreground">Manage your account security</p>
                   </div>
 
                   {/* Change Password */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Change Password</h3>
                     <InputGreen
                       label="Current Password"
                       type="password"
@@ -241,14 +241,14 @@ export default function ProfilePage() {
                   </div>
 
                   {/* 2FA */}
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <div className="border-t border-border pt-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
                       Two-Factor Authentication
                     </h3>
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                    <div className="flex items-center gap-3 p-4 bg-primary/10 rounded-lg">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                         <svg
-                          className="w-6 h-6 text-green-600"
+                          className="w-6 h-6 text-primary"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -262,8 +262,8 @@ export default function ProfilePage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">2FA is Enabled</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="font-medium text-foreground">2FA is Enabled</p>
+                        <p className="text-sm text-muted-foreground">
                           Extra security for your account - Required for all users
                         </p>
                       </div>
@@ -287,10 +287,10 @@ export default function ProfilePage() {
               {activeTab === 'notifications' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
                       Notification Preferences
                     </h2>
-                    <p className="text-gray-600">Configure how you receive notifications</p>
+                    <p className="text-muted-foreground">Configure how you receive notifications</p>
                   </div>
 
                   <div className="space-y-4">
@@ -314,11 +314,11 @@ export default function ProfilePage() {
                     ].map((item, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-4 bg-secondary rounded-lg"
                       >
                         <div>
-                          <p className="font-medium text-gray-900">{item.label}</p>
-                          <p className="text-sm text-gray-600">{item.description}</p>
+                          <p className="font-medium text-foreground">{item.label}</p>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -326,7 +326,7 @@ export default function ProfilePage() {
                             className="sr-only peer"
                             defaultChecked={index < 2}
                           />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                          <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                       </div>
                     ))}
@@ -349,16 +349,16 @@ export default function ProfilePage() {
               {activeTab === 'preferences' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">General Preferences</h2>
-                    <p className="text-gray-600">Customize your experience</p>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">General Preferences</h2>
+                    <p className="text-muted-foreground">Customize your experience</p>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Language
                       </label>
-                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                      <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>English (US)</option>
                         <option>English (UK)</option>
                         <option>Spanish</option>
@@ -367,10 +367,10 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Timezone
                       </label>
-                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                      <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>Pacific Time (PT)</option>
                         <option>Mountain Time (MT)</option>
                         <option>Central Time (CT)</option>
@@ -379,10 +379,10 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Date Format
                       </label>
-                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                      <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>MM/DD/YYYY</option>
                         <option>DD/MM/YYYY</option>
                         <option>YYYY-MM-DD</option>

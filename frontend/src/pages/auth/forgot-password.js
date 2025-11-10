@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
               repeat: Infinity,
               ease: 'linear',
             }}
-            className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+            className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl"
           />
         </div>
 
@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
           animate="visible"
           className="relative w-full max-w-md"
         >
-          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+          <div className="bg-card backdrop-blur-xl rounded-2xl shadow-2xl border border-border p-8">
             {/* Icon */}
             <motion.div
               variants={scaleIn}
@@ -89,10 +89,10 @@ export default function ForgotPasswordPage() {
               transition={{ delay: 0.2 }}
               className="text-center mb-8"
             >
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">Check your email</h1>
-              <p className="text-gray-600 mb-4">We&apos;ve sent a password reset link to</p>
-              <p className="text-green-500 font-semibold text-lg mb-4">{email}</p>
-              <p className="text-sm text-gray-600">
+              <h1 className="text-3xl font-bold text-foreground mb-3">Check your email</h1>
+              <p className="text-muted-foreground mb-4">We&apos;ve sent a password reset link to</p>
+              <p className="text-primary font-semibold text-lg mb-4">{email}</p>
+              <p className="text-sm text-muted-foreground">
                 Click the link in the email to reset your password.
               </p>
             </motion.div>
@@ -102,15 +102,15 @@ export default function ForgotPasswordPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-gray-200 rounded-lg p-4 mb-6"
+              className="bg-secondary rounded-lg p-4 mb-6"
             >
-              <p className="text-sm text-gray-900 font-medium mb-2">
+              <p className="text-sm text-foreground font-medium mb-2">
                 Didn&apos;t receive the email?
               </p>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li className="flex items-start gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-4 h-4 text-primary mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-4 h-4 text-primary mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -173,7 +173,7 @@ export default function ForgotPasswordPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="mt-6 text-center text-sm text-gray-600"
+            className="mt-6 text-center text-sm text-muted-foreground"
           >
             <p>© 2025 Nexus. All rights reserved.</p>
           </motion.div>
@@ -183,7 +183,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -196,7 +196,7 @@ export default function ForgotPasswordPage() {
             repeat: Infinity,
             ease: 'linear',
           }}
-          className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl"
         />
       </div>
 
@@ -207,7 +207,7 @@ export default function ForgotPasswordPage() {
         animate="visible"
         className="relative w-full max-w-md"
       >
-        <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+        <div className="bg-card backdrop-blur-xl rounded-2xl shadow-2xl border border-border p-8">
           {/* Icon */}
           <motion.div
             variants={scaleIn}
@@ -216,7 +216,7 @@ export default function ForgotPasswordPage() {
             transition={{ delay: 0.1 }}
             className="flex justify-center mb-6"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl shadow-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-lg">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -240,8 +240,8 @@ export default function ForgotPasswordPage() {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground mb-2">Forgot Password?</h1>
+            <p className="text-muted-foreground">
               No worries! Enter your email and we&apos;ll send you reset instructions.
             </p>
           </motion.div>
@@ -302,10 +302,10 @@ export default function ForgotPasswordPage() {
               Send Reset Link
             </ButtonGreen>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="bg-secondary border border-border rounded-lg p-4">
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
-                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
@@ -313,7 +313,7 @@ export default function ForgotPasswordPage() {
                     />
                   </svg>
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   <p className="font-medium mb-1">Security Reminder</p>
                   <p>The reset link will expire in 1 hour for your security.</p>
                 </div>
@@ -339,7 +339,7 @@ export default function ForgotPasswordPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-6 text-center text-sm text-gray-600"
+          className="mt-6 text-center text-sm text-muted-foreground"
         >
           <p>© 2025 Nexus. All rights reserved.</p>
         </motion.div>

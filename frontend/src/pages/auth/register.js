@@ -7,6 +7,7 @@ import InputGreen from '../../components/ui/InputGreen';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { slideInRight, slideInLeft, scaleIn } from '../../lib/motion';
+import microsoftAuthService from '../../services/microsoftAuthService';
 
 export default function Register() {
   const router = useRouter();
@@ -27,12 +28,32 @@ export default function Register() {
 
   const [errors, setErrors] = useState({});
 
-  // Check for Microsoft redirect message
+  // Check for OAuth data and pre-fill form
   useEffect(() => {
+    const oauthData = localStorage.getItem('oauthData');
+    if (oauthData) {
+      try {
+        const data = JSON.parse(oauthData);
+        setFormData((prev) => ({
+          ...prev,
+          name: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+          email: data.email || '',
+        }));
+        setMicrosoftMessage(
+          `We found your Microsoft account (${data.email}). Please complete your registration below.`
+        );
+        // Clear OAuth data after using it
+        localStorage.removeItem('oauthData');
+        toast.success('Microsoft account detected! Complete your registration.');
+      } catch (error) {
+        console.error('Failed to parse OAuth data:', error);
+      }
+    }
+
+    // Check for Microsoft redirect message (legacy)
     const message = localStorage.getItem('microsoft_signup_message');
     if (message && router.query.source === 'microsoft') {
       setMicrosoftMessage(message);
-      // Clear the message after displaying
       localStorage.removeItem('microsoft_signup_message');
     }
   }, [router.query.source]);
@@ -65,8 +86,13 @@ export default function Register() {
 
     if (currentStep === 1) {
       if (!formData.name.trim()) newErrors.name = 'Name is required';
-      if (!formData.email.trim()) newErrors.email = 'Email is required';
-      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Invalid email format';
+      } else if (!microsoftAuthService.validateEmailDomain(formData.email)) {
+        newErrors.email = 'Please use your @securemaxtech.com email address';
+      }
     }
 
     if (currentStep === 2) {
@@ -292,11 +318,11 @@ export default function Register() {
                   <InputGreen
                     label="Work Email"
                     type="email"
-                    placeholder="john@company.com"
+                    placeholder="john@securemaxtech.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     error={errors.email}
-                    hint="Use your company email address"
+                    hint="Must use @securemaxtech.com email address"
                     fullWidth
                     leftIcon={
                       <svg
@@ -581,7 +607,7 @@ export default function Register() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-6 text-center text-sm text-gray-600"
+          className="mt-6 text-center text-sm text-muted-foreground"
         >
           <p>© 2025 Nexus. All rights reserved.</p>
         </motion.div>

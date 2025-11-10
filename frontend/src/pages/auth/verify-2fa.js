@@ -108,7 +108,7 @@ export default function TwoFAPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -121,7 +121,7 @@ export default function TwoFAPage() {
             repeat: Infinity,
             ease: 'linear',
           }}
-          className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl"
         />
       </div>
 
@@ -132,7 +132,7 @@ export default function TwoFAPage() {
         animate="visible"
         className="relative w-full max-w-md"
       >
-        <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+        <div className="bg-card backdrop-blur-xl rounded-2xl shadow-2xl border border-border p-8">
           {/* Icon */}
           <motion.div
             variants={scaleIn}
@@ -141,7 +141,7 @@ export default function TwoFAPage() {
             transition={{ delay: 0.1 }}
             className="flex justify-center mb-6"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -165,9 +165,9 @@ export default function TwoFAPage() {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Two-Factor Authentication</h1>
-            <p className="text-gray-600 mb-2">Enter the 6-digit code sent to</p>
-            <p className="text-green-500 font-medium">{email}</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Two-Factor Authentication</h1>
+            <p className="text-muted-foreground mb-2">Enter the 6-digit code sent to</p>
+            <p className="text-primary font-medium">{email}</p>
           </motion.div>
 
           {/* Code Input */}
@@ -194,11 +194,11 @@ export default function TwoFAPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3 + index * 0.05 }}
                   className={`
-                    w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 text-gray-900
-                    ${error ? 'border-destructive bg-red-600/10' : 'border-gray-200 focus:border-primary'}
+                    w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 text-foreground
+                    ${error ? 'border-destructive bg-red-600/10' : 'border-border focus:border-primary'}
                     focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
                     transition-all duration-200
-                    ${digit && 'border-primary bg-gray-50'}
+                    ${digit && 'border-primary bg-secondary'}
                   `}
                   disabled={isLoading}
                 />
@@ -243,13 +243,13 @@ export default function TwoFAPage() {
             transition={{ delay: 0.5 }}
             className="text-center mb-6"
           >
-            <p className="text-sm text-gray-600 mb-2">Didn&apos;t receive the code?</p>
+            <p className="text-sm text-muted-foreground mb-2">Didn&apos;t receive the code?</p>
             <button
               onClick={handleResend}
               disabled={!canResend}
               className={`
                 text-sm font-medium transition-colors
-                ${canResend ? 'text-green-500 hover:text-green-500/90' : 'text-gray-600 cursor-not-allowed'}
+                ${canResend ? 'text-primary hover:text-primary/90' : 'text-muted-foreground cursor-not-allowed'}
               `}
             >
               {canResend ? 'Resend code' : `Resend in ${countdown}s`}
@@ -261,11 +261,11 @@ export default function TwoFAPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6"
+            className="bg-secondary border border-border rounded-lg p-4 mb-6"
           >
             <div className="flex gap-3">
               <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
@@ -273,7 +273,7 @@ export default function TwoFAPage() {
                   />
                 </svg>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 <p className="font-medium mb-1">Security Tip</p>
                 <p>
                   Never share your 2FA code with anyone. Nexus staff will never ask for this code.
@@ -301,7 +301,7 @@ export default function TwoFAPage() {
           initial="hidden"
           animate="visible"
           transition={{ delay: 0.8 }}
-          className="mt-6 text-center text-sm text-gray-600"
+          className="mt-6 text-center text-sm text-muted-foreground"
         >
           <p>© 2025 Nexus. All rights reserved.</p>
         </motion.div>

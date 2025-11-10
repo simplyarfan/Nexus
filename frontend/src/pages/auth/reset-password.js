@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -82,7 +82,7 @@ export default function ResetPasswordPage() {
               repeat: Infinity,
               ease: 'linear',
             }}
-            className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+            className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl"
           />
         </div>
 
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
           animate="visible"
           className="relative w-full max-w-md"
         >
-          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+          <div className="bg-card backdrop-blur-xl rounded-2xl shadow-2xl border border-border p-8">
             {/* Icon */}
             <motion.div
               variants={scaleIn}
@@ -126,22 +126,22 @@ export default function ResetPasswordPage() {
               transition={{ delay: 0.2 }}
               className="text-center mb-8"
             >
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">Password Reset Successful!</h1>
-              <p className="text-gray-600 mb-6">
+              <h1 className="text-3xl font-bold text-foreground mb-3">Password Reset Successful!</h1>
+              <p className="text-muted-foreground mb-6">
                 Your password has been successfully reset. You can now sign in with your new
                 password.
               </p>
 
-              <div className="bg-ring/10 border border-ring/50 rounded-lg p-4 mb-6">
+              <div className="bg-primary/10 border border-primary/50 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-3 justify-center">
-                  <svg className="w-5 h-5 text-ring" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                       clipRule="evenodd"
                     />
                   </svg>
-                  <p className="text-sm text-ring font-medium">Your account is now secure</p>
+                  <p className="text-sm text-primary font-medium">Your account is now secure</p>
                 </div>
               </div>
             </motion.div>
@@ -165,7 +165,7 @@ export default function ResetPasswordPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="mt-6 text-center text-sm text-gray-600"
+            className="mt-6 text-center text-sm text-muted-foreground"
           >
             <p>© 2025 Nexus. All rights reserved.</p>
           </motion.div>
@@ -175,7 +175,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -188,7 +188,7 @@ export default function ResetPasswordPage() {
             repeat: Infinity,
             ease: 'linear',
           }}
-          className="absolute -top-1/2 -right-1/2 w-full h-full bg-green-500/5 rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/2 w-full h-full bg-primary/5 rounded-full blur-3xl"
         />
       </div>
 
@@ -199,7 +199,7 @@ export default function ResetPasswordPage() {
         animate="visible"
         className="relative w-full max-w-md"
       >
-        <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 p-8">
+        <div className="bg-card backdrop-blur-xl rounded-2xl shadow-2xl border border-border p-8">
           {/* Icon */}
           <motion.div
             variants={scaleIn}
@@ -208,7 +208,7 @@ export default function ResetPasswordPage() {
             transition={{ delay: 0.1 }}
             className="flex justify-center mb-6"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-2xl shadow-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-lg">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -232,8 +232,8 @@ export default function ResetPasswordPage() {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Reset Your Password</h1>
-            <p className="text-gray-600">Choose a strong password for your account</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Reset Your Password</h1>
+            <p className="text-muted-foreground">Choose a strong password for your account</p>
           </motion.div>
 
           {/* Form */}
@@ -267,7 +267,7 @@ export default function ResetPasswordPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors pointer-events-auto cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-colors pointer-events-auto cursor-pointer"
                   >
                     {showPassword ? (
                       <svg
@@ -316,14 +316,14 @@ export default function ResetPasswordPage() {
                   className="mt-4 space-y-2"
                 >
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Password Strength</span>
+                    <span className="text-muted-foreground">Password Strength</span>
                     <span
-                      className={`font-medium ${passwordStrength.strength > 60 ? 'text-ring' : 'text-ring/60'}`}
+                      className={`font-medium ${passwordStrength.strength > 60 ? 'text-primary' : 'text-primary/60'}`}
                     >
                       {passwordStrength.label}
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${passwordStrength.strength}%` }}
@@ -331,18 +331,18 @@ export default function ResetPasswordPage() {
                       transition={{ duration: 0.3 }}
                     />
                   </div>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li className={password.length >= 8 ? 'text-ring' : ''}>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li className={password.length >= 8 ? 'text-primary' : ''}>
                       • At least 8 characters
                     </li>
                     <li
                       className={
-                        /[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-ring' : ''
+                        /[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-primary' : ''
                       }
                     >
                       • Mix of uppercase & lowercase
                     </li>
-                    <li className={/\d/.test(password) ? 'text-ring' : ''}>
+                    <li className={/\d/.test(password) ? 'text-primary' : ''}>
                       • At least one number
                     </li>
                   </ul>
@@ -372,7 +372,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors pointer-events-auto cursor-pointer"
+                  className="text-muted-foreground hover:text-foreground transition-colors pointer-events-auto cursor-pointer"
                 >
                   {showConfirmPassword ? (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -407,10 +407,10 @@ export default function ResetPasswordPage() {
               Reset Password
             </ButtonGreen>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="bg-secondary border border-border rounded-lg p-4">
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
-                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
@@ -418,7 +418,7 @@ export default function ResetPasswordPage() {
                     />
                   </svg>
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   <p className="font-medium mb-1">Password Requirements</p>
                   <p>Use a strong, unique password that you haven&apos;t used elsewhere.</p>
                 </div>
@@ -444,7 +444,7 @@ export default function ResetPasswordPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-6 text-center text-sm text-gray-600"
+          className="mt-6 text-center text-sm text-muted-foreground"
         >
           <p>© 2025 Nexus. All rights reserved.</p>
         </motion.div>

@@ -5,6 +5,7 @@ import { Mail, MessageSquare, MapPin, Phone } from 'lucide-react';
 import StaticDotGrid from '../components/backgrounds/StaticDotGrid';
 import { StaggeredMenu } from '../components/reactbits/StaggeredMenu';
 import GradientText from '../components/text/GradientText';
+import ClientOnly from '../components/shared/ClientOnly';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -35,30 +36,32 @@ export default function Contact() {
         <StaticDotGrid dotSize={1} dotColor="#f97316" spacing={40} />
 
         {/* StaggeredMenu Navigation */}
-        <StaggeredMenu
-          position="right"
-          colors={['#1a1a1a', '#2d2d2d']}
-          items={[
-            { label: 'Home', link: '/', ariaLabel: 'Go to home page' },
-            { label: 'Features', link: '/features', ariaLabel: 'View features' },
-            { label: 'About', link: '/about', ariaLabel: 'About us' },
-            { label: 'Contact', link: '/contact', ariaLabel: 'Contact us' },
-            { label: 'Login', link: '/auth/login', ariaLabel: 'Login to your account' },
-            { label: 'Sign Up', link: '/auth/register', ariaLabel: 'Create new account' },
-          ]}
-          socialItems={[
-            { label: 'GitHub', link: 'https://github.com/simplyarfan/simpleAI' },
-            { label: 'Twitter', link: 'https://x.com/simplyarfan' },
-            { label: 'LinkedIn', link: 'https://www.linkedin.com/in/syedarfan/' },
-          ]}
-          displaySocials={true}
-          displayItemNumbering={true}
-          menuButtonColor="#fff"
-          openMenuButtonColor="#000"
-          changeMenuColorOnOpen={true}
-          accentColor="#f97316"
-          logoUrl="/images/logo.png"
-        />
+        <ClientOnly>
+          <StaggeredMenu
+            position="right"
+            colors={['#1a1a1a', '#2d2d2d']}
+            items={[
+              { label: 'Home', link: '/', ariaLabel: 'Go to home page' },
+              { label: 'Features', link: '/features', ariaLabel: 'View features' },
+              { label: 'About', link: '/about', ariaLabel: 'About us' },
+              { label: 'Contact', link: '/contact', ariaLabel: 'Contact us' },
+              { label: 'Login', link: '/auth/login', ariaLabel: 'Login to your account' },
+              { label: 'Sign Up', link: '/auth/register', ariaLabel: 'Create new account' },
+            ]}
+            socialItems={[
+              { label: 'GitHub', link: 'https://github.com/simplyarfan/simpleAI' },
+              { label: 'Twitter', link: 'https://x.com/simplyarfan' },
+              { label: 'LinkedIn', link: 'https://www.linkedin.com/in/syedarfan/' },
+            ]}
+            displaySocials={true}
+            displayItemNumbering={true}
+            menuButtonColor="#fff"
+            openMenuButtonColor="#000"
+            changeMenuColorOnOpen={true}
+            accentColor="#f97316"
+            logoUrl="/images/logo.png"
+          />
+        </ClientOnly>
 
         {/* Hero */}
         <section className="pt-32 pb-12">

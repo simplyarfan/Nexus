@@ -26,8 +26,8 @@ import DateTimePicker from '@/components/ui/DateTimePicker';
 };
 
 export default function InterviewsPage() {
-  const [view, setView] = useState<'list' >('list');
-  const [selectedInterview, setSelectedInterview] = useState<Interview >(null);
+  const [view, setView] = useState('list');
+  const [selectedInterview, setSelectedInterview] = useState(null);
 
   // Request Availability Form (Stage 1)
   const [availabilityForm, setAvailabilityForm] = useState({

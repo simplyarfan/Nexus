@@ -14,7 +14,7 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState>({});
 
   const [formData, setFormData] = useState({
     email: '',

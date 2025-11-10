@@ -34,9 +34,9 @@ import ButtonGreen from '../components/ui/ButtonGreen';
 
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
-  const [view, setView] = useState<'batches' >('batches');
-  const [selectedBatch, setSelectedBatch] = useState<Batch >(null);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate >(null);
+  const [view, setView] = useState('batches');
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const batches = [
     {

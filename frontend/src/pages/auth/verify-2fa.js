@@ -13,7 +13,7 @@ export default function TwoFAPage() {
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRefs = useRef([]);
 
   const email = "you@company.com"; // In real app, get from state/URL
 

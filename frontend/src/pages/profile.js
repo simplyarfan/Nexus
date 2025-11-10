@@ -7,7 +7,7 @@ import ButtonGreen from '../components/ui/ButtonGreen';
 import InputGreen from '../components/ui/InputGreen';
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<'profile' >('profile');
+  const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {

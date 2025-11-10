@@ -8,7 +8,7 @@ export default function CreateTicket() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState>({});
   const [formData, setFormData] = useState({
     subject: '',
     description: '',

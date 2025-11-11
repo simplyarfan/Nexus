@@ -33,7 +33,7 @@ export default function CreateTicket() {
         category: 'general',
       });
       setShowSuccess(false);
-      router.push('/'); // Redirect to user dashboard
+      router.push('/dashboard'); // Redirect to user dashboard
     }, 2000);
   };
 

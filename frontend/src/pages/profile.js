@@ -1,171 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
 import InputGreen from '../components/ui/InputGreen';
-import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const { user, loading: authLoading, isAuthenticated, updateUser, getAuthHeaders } = useAuth();
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Profile form state
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
-  const [department, setDepartment] = useState('');
-
-  // Password form state
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  // Load user data
-  useEffect(() => {
-    if (user) {
-      setFirstName(user.first_name || '');
-      setLastName(user.last_name || '');
-      setEmail(user.email || '');
-      setJobTitle(user.job_title || '');
-      setDepartment(user.department || '');
-      setIsLoading(false);
-    }
-  }, [user]);
-
-  const handleSaveProfile = async () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    try {
-      const headers = getAuthHeaders();
-      if (!headers) {
-        toast.error('You must be logged in to update your profile');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/api/profile`, {
-        method: 'PUT',
-        headers: headers,
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          job_title: jobTitle,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Update user in AuthContext immediately
-        updateUser(data.user);
-        toast.success('Profile updated successfully!');
-      } else {
-        toast.error(data.message || 'Failed to update profile');
-      }
-    } catch (error) {
-      console.error('Profile update error:', error);
-      toast.error('An error occurred while updating your profile');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleChangePassword = async () => {
-    setIsSaving(true);
-    try {
-      // Validate passwords
-      if (!currentPassword || !newPassword || !confirmPassword) {
-        toast.error('All password fields are required');
-        setIsSaving(false);
-        return;
-      }
-
-      if (newPassword !== confirmPassword) {
-        toast.error('New passwords do not match');
-        setIsSaving(false);
-        return;
-      }
-
-      if (newPassword.length < 8) {
-        toast.error('Password must be at least 8 characters long');
-        setIsSaving(false);
-        return;
-      }
-
-      const headers = getAuthHeaders();
-      if (!headers) {
-        toast.error('You must be logged in to change your password');
-        setIsSaving(false);
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/api/profile/password`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          confirmPassword,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast.success('Password changed successfully!');
-        // Clear password fields
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      } else {
-        toast.error(data.message || 'Failed to change password');
-      }
-    } catch (error) {
-      console.error('Password change error:', error);
-      toast.error('An error occurred while changing your password');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Show loading state
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground">Loading...</div>
-      </div>
-    );
-  }
-
-  // Get user initials for avatar
-  const getInitials = () => {
-    if (!firstName || !lastName) return 'U';
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsSaving(false);
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <Link
-              href="/"
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            <a
+              href="/dashboard"
+              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -176,13 +34,11 @@ export default function ProfilePage() {
                 />
               </svg>
               Back to Dashboard
-            </Link>
+            </a>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your account settings and preferences
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
           </div>
         </div>
       </div>
@@ -197,14 +53,14 @@ export default function ProfilePage() {
             animate="visible"
             className="lg:col-span-1"
           >
-            <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'profile'
-                      ? 'bg-primary text-white'
-                      : 'text-foreground hover:bg-secondary'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,8 +77,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('security')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'security'
-                      ? 'bg-primary text-white'
-                      : 'text-foreground hover:bg-secondary'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -239,8 +95,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('notifications')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'notifications'
-                      ? 'bg-primary text-white'
-                      : 'text-foreground hover:bg-secondary'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -257,8 +113,8 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('preferences')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === 'preferences'
-                      ? 'bg-primary text-white'
-                      : 'text-foreground hover:bg-secondary'
+                      ? 'bg-green-500 text-white'
+                      : 'text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -287,80 +143,53 @@ export default function ProfilePage() {
               variants={fadeIn}
               initial="hidden"
               animate="visible"
-              className="bg-card border border-border rounded-2xl p-8"
+              className="bg-white border border-gray-200 rounded-2xl p-8"
             >
               {/* Profile Tab */}
               {activeTab === 'profile' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Profile Information</h2>
-                    <p className="text-muted-foreground">
-                      Update your account&apos;s profile information
-                    </p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Information</h2>
+                    <p className="text-gray-600">Update your account&apos;s profile information</p>
                   </div>
 
                   {/* Avatar */}
                   <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                      {getInitials()}
+                    <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                      JS
                     </div>
                     <div>
-                      <ButtonGreen variant="secondary" size="md" disabled>
+                      <ButtonGreen variant="secondary" size="md">
                         Change Photo
                       </ButtonGreen>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Coming soon - Photo upload feature
-                      </p>
+                      <p className="text-xs text-gray-600 mt-2">JPG, GIF or PNG. Max size 2MB</p>
                     </div>
                   </div>
 
                   {/* Form */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InputGreen label="Full Name" type="text" placeholder="John Smith" fullWidth />
                     <InputGreen
-                      label="First Name"
-                      type="text"
-                      placeholder="John"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      label="Email"
+                      type="email"
+                      placeholder="john.smith@company.com"
                       fullWidth
                     />
                     <InputGreen
-                      label="Last Name"
-                      type="text"
-                      placeholder="Smith"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      label="Phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
                       fullWidth
                     />
-                    <div className="cursor-not-allowed">
-                      <InputGreen
-                        label="Email"
-                        type="email"
-                        placeholder="john.smith@company.com"
-                        value={email}
-                        disabled
-                        fullWidth
-                        className="cursor-not-allowed"
-                      />
-                    </div>
-                    <div className="cursor-not-allowed">
-                      <InputGreen
-                        label="Department"
-                        type="text"
-                        placeholder="Human Resources"
-                        value={department}
-                        disabled
-                        fullWidth
-                        className="cursor-not-allowed"
-                      />
-                    </div>
-                    <InputGreen
-                      label="Job Title"
-                      type="text"
-                      placeholder="HR Manager"
-                      value={jobTitle}
-                      onChange={(e) => setJobTitle(e.target.value)}
-                      fullWidth
+                    <InputGreen label="Job Title" type="text" placeholder="HR Manager" fullWidth />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Bio</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Tell us about yourself..."
+                      className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
@@ -369,11 +198,11 @@ export default function ProfilePage() {
                       variant="primary"
                       size="lg"
                       isLoading={isSaving}
-                      onClick={handleSaveProfile}
+                      onClick={handleSave}
                     >
                       Save Changes
                     </ButtonGreen>
-                    <ButtonGreen variant="secondary" size="lg" onClick={() => router.push('/')}>
+                    <ButtonGreen variant="secondary" size="lg">
                       Cancel
                     </ButtonGreen>
                   </div>
@@ -384,51 +213,42 @@ export default function ProfilePage() {
               {activeTab === 'security' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Security Settings</h2>
-                    <p className="text-muted-foreground">Manage your account security</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Security Settings</h2>
+                    <p className="text-gray-600">Manage your account security</p>
                   </div>
 
                   {/* Change Password */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground">Change Password</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
                     <InputGreen
                       label="Current Password"
                       type="password"
                       placeholder="••••••••"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
                       fullWidth
                     />
                     <InputGreen
                       label="New Password"
                       type="password"
                       placeholder="••••••••"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
                       fullWidth
                     />
                     <InputGreen
                       label="Confirm New Password"
                       type="password"
                       placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
                       fullWidth
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Password must be at least 8 characters long
-                    </p>
                   </div>
 
                   {/* 2FA */}
-                  <div className="border-t border-border pt-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                  <div className="border-t border-gray-200 pt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
                       Two-Factor Authentication
                     </h3>
-                    <div className="flex items-center gap-3 p-4 bg-primary/10 rounded-lg">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
                         <svg
-                          className="w-6 h-6 text-primary"
+                          className="w-6 h-6 text-green-600"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -442,13 +262,9 @@ export default function ProfilePage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">
-                          {user?.two_factor_enabled ? '2FA is Enabled' : '2FA is Disabled'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {user?.two_factor_enabled
-                            ? 'Extra security for your account - Required for all users'
-                            : 'Enable 2FA for enhanced security'}
+                        <p className="font-medium text-gray-900">2FA is Enabled</p>
+                        <p className="text-sm text-gray-600">
+                          Extra security for your account - Required for all users
                         </p>
                       </div>
                     </div>
@@ -459,9 +275,9 @@ export default function ProfilePage() {
                       variant="primary"
                       size="lg"
                       isLoading={isSaving}
-                      onClick={handleChangePassword}
+                      onClick={handleSave}
                     >
-                      Change Password
+                      Update Security
                     </ButtonGreen>
                   </div>
                 </div>
@@ -471,10 +287,10 @@ export default function ProfilePage() {
               {activeTab === 'notifications' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
                       Notification Preferences
                     </h2>
-                    <p className="text-muted-foreground">Configure how you receive notifications</p>
+                    <p className="text-gray-600">Configure how you receive notifications</p>
                   </div>
 
                   <div className="space-y-4">
@@ -498,11 +314,11 @@ export default function ProfilePage() {
                     ].map((item, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-4 bg-secondary rounded-lg"
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                       >
                         <div>
-                          <p className="font-medium text-foreground">{item.label}</p>
-                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="font-medium text-gray-900">{item.label}</p>
+                          <p className="text-sm text-gray-600">{item.description}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -510,7 +326,7 @@ export default function ProfilePage() {
                             className="sr-only peer"
                             defaultChecked={index < 2}
                           />
-                          <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                         </label>
                       </div>
                     ))}
@@ -520,8 +336,8 @@ export default function ProfilePage() {
                     <ButtonGreen
                       variant="primary"
                       size="lg"
-                      disabled
-                      onClick={() => toast.info('Notification preferences coming soon')}
+                      isLoading={isSaving}
+                      onClick={handleSave}
                     >
                       Save Preferences
                     </ButtonGreen>
@@ -533,19 +349,16 @@ export default function ProfilePage() {
               {activeTab === 'preferences' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">General Preferences</h2>
-                    <p className="text-muted-foreground">Customize your experience</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">General Preferences</h2>
+                    <p className="text-gray-600">Customize your experience</p>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
                         Language
                       </label>
-                      <select
-                        disabled
-                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring opacity-60 cursor-not-allowed"
-                      >
+                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>English (US)</option>
                         <option>English (UK)</option>
                         <option>Spanish</option>
@@ -554,13 +367,10 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
                         Timezone
                       </label>
-                      <select
-                        disabled
-                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring opacity-60 cursor-not-allowed"
-                      >
+                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>Pacific Time (PT)</option>
                         <option>Mountain Time (MT)</option>
                         <option>Central Time (CT)</option>
@@ -569,13 +379,10 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
                         Date Format
                       </label>
-                      <select
-                        disabled
-                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring opacity-60 cursor-not-allowed"
-                      >
+                      <select className="w-full px-4 py-2 bg-secondary text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>MM/DD/YYYY</option>
                         <option>DD/MM/YYYY</option>
                         <option>YYYY-MM-DD</option>
@@ -587,8 +394,8 @@ export default function ProfilePage() {
                     <ButtonGreen
                       variant="primary"
                       size="lg"
-                      disabled
-                      onClick={() => toast.info('Preferences settings coming soon')}
+                      isLoading={isSaving}
+                      onClick={handleSave}
                     >
                       Save Preferences
                     </ButtonGreen>

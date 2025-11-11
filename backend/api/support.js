@@ -3,118 +3,149 @@
  * Handles support ticket creation, updates, and retrieval
  */
 
-const express = require('express');
-const router = express.Router();
-const { pool } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { withProtectedRoute } = require('../middleware/serverless');
+const prisma = require('../lib/prisma');
 
-/**
- * GET /api/support
- * Get all support tickets for authenticated user
- */
-router.get('/', authenticateToken, async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT id, subject, description, status, priority, created_at, updated_at 
-       FROM support_tickets 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC`,
-      [req.user.id]
-    );
+async function handler(req, res) {
+  const { method } = req;
+  const userId = req.user.userId;
+  const path = req.url.replace('/api/support', '').split('?')[0];
 
-    res.json({
-      success: true,
-      tickets: result.rows
-    });
-  } catch (error) {
-    console.error('Error fetching support tickets:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch support tickets'
-    });
-  }
-});
+  // GET /api/support - Get all tickets
+  if (path === '' && method === 'GET') {
+    try {
+      const tickets = await prisma.supportTicket.findMany({
+        where: { user_id: userId },
+        orderBy: { created_at: 'desc' },
+        select: {
+          id: true,
+          subject: true,
+          description: true,
+          status: true,
+          priority: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
 
-/**
- * POST /api/support
- * Create a new support ticket
- */
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const { subject, description, priority = 'medium' } = req.body;
-
-    if (!subject || !description) {
-      return res.status(400).json({
+      return res.status(200).json({
+        success: true,
+        tickets,
+      });
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Subject and description are required'
+        message: 'Failed to fetch support tickets',
       });
     }
-
-    const result = await pool.query(
-      `INSERT INTO support_tickets (user_id, subject, description, priority, status) 
-       VALUES ($1, $2, $3, $4, 'open') 
-       RETURNING id, subject, description, status, priority, created_at`,
-      [req.user.id, subject, description, priority]
-    );
-
-    res.status(201).json({
-      success: true,
-      ticket: result.rows[0],
-      message: 'Support ticket created successfully'
-    });
-  } catch (error) {
-    console.error('Error creating support ticket:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create support ticket'
-    });
   }
-});
 
-/**
- * PATCH /api/support/:ticketId
- * Update support ticket status
- */
-router.patch('/:ticketId', authenticateToken, async (req, res) => {
-  try {
-    const { ticketId } = req.params;
-    const { status } = req.body;
+  // POST /api/support - Create ticket
+  if (path === '' && method === 'POST') {
+    try {
+      const { subject, description, priority = 'medium' } = req.body;
 
-    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
+      if (!subject || !description) {
+        return res.status(400).json({
+          success: false,
+          message: 'Subject and description are required',
+        });
+      }
+
+      const ticket = await prisma.supportTicket.create({
+        data: {
+          user_id: userId,
+          subject,
+          description,
+          priority,
+          status: 'open',
+        },
+        select: {
+          id: true,
+          subject: true,
+          description: true,
+          status: true,
+          priority: true,
+          created_at: true,
+        },
+      });
+
+      return res.status(201).json({
+        success: true,
+        ticket,
+        message: 'Support ticket created successfully',
+      });
+    } catch (error) {
+      console.error('Error creating support ticket:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Invalid status value'
+        message: 'Failed to create support ticket',
       });
     }
+  }
 
-    const result = await pool.query(
-      `UPDATE support_tickets 
-       SET status = $1, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $2 AND user_id = $3 
-       RETURNING id, subject, status, updated_at`,
-      [status, ticketId, req.user.id]
-    );
+  // PATCH /api/support/:ticketId - Update ticket
+  const ticketIdMatch = path.match(/^\/(\d+)/);
+  if (ticketIdMatch && method === 'PATCH') {
+    try {
+      const ticketId = parseInt(ticketIdMatch[1]);
+      const { status } = req.body;
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
+      const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid status value',
+        });
+      }
+
+      const ticket = await prisma.supportTicket.updateMany({
+        where: {
+          id: ticketId,
+          user_id: userId,
+        },
+        data: {
+          status,
+          updated_at: new Date(),
+        },
+      });
+
+      if (ticket.count === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Ticket not found or unauthorized',
+        });
+      }
+
+      const updatedTicket = await prisma.supportTicket.findUnique({
+        where: { id: ticketId },
+        select: {
+          id: true,
+          subject: true,
+          status: true,
+          updated_at: true,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        ticket: updatedTicket,
+        message: 'Ticket updated successfully',
+      });
+    } catch (error) {
+      console.error('Error updating support ticket:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Ticket not found or unauthorized'
+        message: 'Failed to update support ticket',
       });
     }
-
-    res.json({
-      success: true,
-      ticket: result.rows[0],
-      message: 'Ticket updated successfully'
-    });
-  } catch (error) {
-    console.error('Error updating support ticket:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update support ticket'
-    });
   }
-});
 
-module.exports = router;
+  return res.status(404).json({
+    success: false,
+    message: `Route not found: ${method} ${path}`,
+  });
+}
+
+module.exports = withProtectedRoute(handler);

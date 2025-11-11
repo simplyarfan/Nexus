@@ -130,7 +130,7 @@ export default function InterviewsPage() {
     {
       label: 'Scheduled',
       value: interviews.filter((i) => i.status === 'scheduled').length,
-      color: 'text-primary',
+      color: 'text-ring',
     },
     {
       label: 'Completed',
@@ -142,17 +142,17 @@ export default function InterviewsPage() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'awaiting_response':
-        return 'bg-secondary text-muted-foreground';
+        return 'bg-muted text-muted-foreground';
       case 'scheduled':
-        return 'bg-primary/10 text-primary';
+        return 'bg-accent text-primary';
       case 'completed':
-        return 'bg-primary/10 text-primary';
+        return 'bg-accent text-ring';
       case 'rejected':
-        return 'bg-red-50 text-red-600';
+        return 'bg-accent text-destructive';
       case 'cancelled':
-        return 'bg-red-50 text-red-600';
+        return 'bg-accent text-destructive';
       default:
-        return 'bg-secondary text-foreground';
+        return 'bg-accent text-foreground';
     }
   };
 
@@ -219,17 +219,17 @@ export default function InterviewsPage() {
   const getStageColor = (stage) => {
     switch (stage) {
       case 'initial_email':
-        return 'bg-primary/10 text-primary border-primary';
+        return 'bg-accent text-primary border-primary';
       case 'awaiting_response':
-        return 'bg-secondary text-muted-foreground border-muted-foreground';
+        return 'bg-accent text-muted-foreground border-muted-foreground';
       case 'scheduled':
-        return 'bg-primary/10 text-primary border-ring';
+        return 'bg-accent text-ring border-ring';
       case 'completed':
-        return 'bg-primary/10 text-primary border-ring';
+        return 'bg-accent text-ring border-ring';
       case 'rejected':
-        return 'bg-red-50 text-red-600 border-destructive';
+        return 'bg-accent text-destructive border-destructive';
       default:
-        return 'bg-secondary text-foreground border-border';
+        return 'bg-accent text-foreground border-border';
     }
   };
 
@@ -327,8 +327,8 @@ Best regards,
           <div className="border-b border-border bg-card">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="mb-4">
-                <Link
-                  href="/"
+                <button
+                  onClick={() => router.push('/')}
                   className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <svg
@@ -345,7 +345,7 @@ Best regards,
                     />
                   </svg>
                   Back to Dashboard
-                </Link>
+                </button>
               </div>
               <div className="flex items-center justify-between">
                 <div>

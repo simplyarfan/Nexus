@@ -148,22 +148,56 @@ export default function CVIntelligencePage() {
       <DashboardLayout>
         <div className="min-h-screen bg-background">
           {/* Header */}
-          <div className="border-b border-border bg-card sticky top-0 z-30">
-            <div className="max-w-7xl mx-auto px-8 py-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h1 className="text-4xl font-bold text-foreground mb-2">CV Intelligence</h1>
-                <p className="text-muted-foreground text-lg">
-                  AI-powered CV screening and candidate matching
-                </p>
-              </motion.div>
-
-              <div className="flex gap-3 mt-6">
-                {view === 'candidates' && (
-                  <button onClick={() => setView('batches')} className="btn-ghost">
+          <div className="border-b border-border bg-card">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="mb-4">
+                <button
+                  onClick={() => router.push('/')}
+                  className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  Back to Dashboard
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground">CV Intelligence (HR-01)</h1>
+                  <p className="text-muted-foreground mt-1">
+                    AI-powered CV screening and candidate matching
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  {view === 'candidates' && (
+                    <button onClick={() => setView('batches')} className="btn-ghost btn-lg">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                      Back to Batches
+                    </button>
+                  )}
+                  <button onClick={() => setView('upload')} className="btn-primary btn-lg">
                     <svg
                       className="w-5 h-5 mr-2"
                       fill="none"
@@ -174,34 +208,18 @@ export default function CVIntelligencePage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                       />
                     </svg>
-                    Back to Batches
+                    New Batch
                   </button>
-                )}
-                <button onClick={() => setView('upload')} className="btn-primary">
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  New Batch
-                </button>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="max-w-7xl mx-auto px-8 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <AnimatePresence mode="wait">
               {/* Batches List View */}
               {view === 'batches' && (
@@ -227,14 +245,14 @@ export default function CVIntelligencePage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => batch.status === 'Completed' && handleBatchClick(batch)}
-                        className={`bg-card border-2 border-border rounded-2xl p-6 ${
+                        className={`bg-card border border-border rounded-2xl p-6 ${
                           batch.status === 'Completed'
-                            ? 'cursor-pointer hover:border-primary hover:shadow-xl transition-all'
+                            ? 'cursor-pointer hover:shadow-lg transition-shadow'
                             : 'opacity-60'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-4">
-                          <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                             <svg
                               className="w-6 h-6 text-primary"
                               fill="none"
@@ -252,10 +270,10 @@ export default function CVIntelligencePage() {
                           <span
                             className={`px-3 py-1 text-xs font-medium rounded-full ${
                               batch.status === 'Completed'
-                                ? 'bg-primary/20 text-primary'
+                                ? 'bg-ring/10 text-ring'
                                 : batch.status === 'Processing'
-                                  ? 'bg-ring/20 text-ring'
-                                  : 'bg-destructive/20 text-destructive'
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'bg-destructive/10 text-destructive'
                             }`}
                           >
                             {batch.status}

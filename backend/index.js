@@ -26,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Import route handlers
 const authHandler = require('./api/auth');
+const profileHandler = require('./api/profile');
 const ticketsHandler = require('./api/tickets');
 const adminHandler = require('./api/admin');
 const analyticsHandler = require('./api/analytics');
@@ -36,6 +37,7 @@ const healthHandler = require('./api/health');
 
 // Mount routes - use the handlers directly since they already have middleware
 app.use('/api/auth', authHandler);
+app.use('/api/profile', profileHandler);
 app.use('/api/tickets', ticketsHandler);
 app.use('/api/admin', adminHandler);
 app.use('/api/analytics', analyticsHandler);
@@ -61,6 +63,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: [
       '/api/auth',
+      '/api/profile',
       '/api/tickets',
       '/api/admin',
       '/api/analytics',

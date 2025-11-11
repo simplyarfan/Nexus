@@ -332,22 +332,28 @@ export default function ProfilePage() {
                       onChange={(e) => setLastName(e.target.value)}
                       fullWidth
                     />
-                    <InputGreen
-                      label="Email"
-                      type="email"
-                      placeholder="john.smith@company.com"
-                      value={email}
-                      disabled
-                      fullWidth
-                    />
-                    <InputGreen
-                      label="Department"
-                      type="text"
-                      placeholder="Human Resources"
-                      value={department}
-                      disabled
-                      fullWidth
-                    />
+                    <div className="cursor-not-allowed">
+                      <InputGreen
+                        label="Email"
+                        type="email"
+                        placeholder="john.smith@company.com"
+                        value={email}
+                        disabled
+                        fullWidth
+                        className="cursor-not-allowed"
+                      />
+                    </div>
+                    <div className="cursor-not-allowed">
+                      <InputGreen
+                        label="Department"
+                        type="text"
+                        placeholder="Human Resources"
+                        value={department}
+                        disabled
+                        fullWidth
+                        className="cursor-not-allowed"
+                      />
+                    </div>
                     <InputGreen
                       label="Job Title"
                       type="text"

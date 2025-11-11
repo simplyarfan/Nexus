@@ -48,6 +48,7 @@ const InputGreen = forwardRef(
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
               fullWidth && 'w-full',
+              props.disabled && 'opacity-60 cursor-not-allowed',
               className,
             )}
             {...props}

@@ -33,7 +33,7 @@ const roleNavigation = {
       ),
       label: 'Interview Coordinator',
       description: 'Schedule and manage interviews',
-      href: '/interviews',
+      href: '/interview-coordinator',
     },
   ],
   admin: [

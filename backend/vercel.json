@@ -2,7 +2,35 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/admin.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/analytics.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/auth.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/cv-intelligence.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/health.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/interview-coordinator.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/support.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/tickets.js",
       "use": "@vercel/node"
     }
   ],

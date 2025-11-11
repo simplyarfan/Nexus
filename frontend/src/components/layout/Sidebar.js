@@ -37,7 +37,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         { name: 'Dashboard', href: '/', icon: Home },
         { name: 'CV Intelligence', href: '/cv-intelligence', icon: Brain },
         { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Interviews', href: '/interviews', icon: Calendar },
+        { name: 'Interview Coordinator', href: '/interview-coordinator', icon: Calendar },
         { name: 'Support', href: '/support/my-tickets', icon: MessageSquare },
       ];
 

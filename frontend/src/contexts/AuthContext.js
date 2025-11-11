@@ -46,14 +46,30 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = tokenManager.getAccessToken();
       if (!token) {
+        log('❌ No access token found - user not authenticated');
+        setUser(null);
+        setIsAuthenticated(false);
         setLoading(false);
         return;
       }
 
-      log('🔐 Token exists, verifying with server...');
+      // Check if token is expired before making API call
+      if (tokenManager.isTokenExpired(token)) {
+        log('❌ Access token is expired');
+        tokenManager.clearTokens();
+        setUser(null);
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
+      log('🔐 Token exists and is valid, verifying with server...');
 
       const headers = getAuthHeaders();
       if (!headers) {
+        log('❌ Failed to get auth headers');
+        setUser(null);
+        setIsAuthenticated(false);
         setLoading(false);
         return;
       }
@@ -71,19 +87,21 @@ export const AuthProvider = ({ children }) => {
           log('✅ User verified:', data.user);
         } else {
           // Invalid token, clear it
+          log('❌ Invalid token response from server');
           tokenManager.clearTokens();
           setUser(null);
           setIsAuthenticated(false);
         }
       } else if (response.status === 401) {
         // Only clear tokens on 401 Unauthorized
+        log('❌ 401 Unauthorized - clearing tokens');
         tokenManager.clearTokens();
         setUser(null);
         setIsAuthenticated(false);
       } else {
         // For other errors (500, network issues), keep user logged in
         // The token might still be valid, server might be temporarily down
-        log('⚠️ Auth check failed, but keeping user logged in');
+        log('⚠️ Auth check failed with status:', response.status, '- keeping user logged in');
       }
       log('✅ Auth check completed');
     } catch (error) {

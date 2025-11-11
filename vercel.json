@@ -4,14 +4,14 @@
   "installCommand": "cd backend && npm install",
   "builds": [
     {
-      "src": "backend/index.js",
+      "src": "backend/api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/backend/index.js"
+      "dest": "/backend/api/index.js"
     }
   ]
 }

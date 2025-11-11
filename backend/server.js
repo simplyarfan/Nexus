@@ -127,37 +127,22 @@ app.use(
 // Apply security headers
 app.use(securityHeaders);
 
-// CORS Configuration - Fixed for Vercel deployment
+// CORS Configuration - Environment-driven
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
   // Get allowed origins from environment or use defaults
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-    : [
-        'https://thesimpleai.netlify.app',
-        'https://thesimpleai.vercel.app',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-      ];
+    : ['https://thesimpleai.netlify.app', 'http://localhost:3000', 'http://127.0.0.1:3000'];
 
-  // Debug log
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔐 CORS Allowed Origins:', allowedOrigins);
-    console.log('🔐 Request Origin:', origin);
-  }
-
-  // Allow Netlify preview deployments and main site
+  // Allow Netlify and Vercel preview deployments
   const isNetlifyDomain =
     origin && (origin.includes('thesimpleai.netlify.app') || origin.includes('netlify.app'));
-  const isVercelDomain = origin && origin.includes('thesimpleai.vercel.app');
+  const isVercelDomain = origin && origin.includes('vercel.app');
 
-  // CRITICAL: Always set Access-Control-Allow-Origin header
   if (allowedOrigins.includes(origin) || isNetlifyDomain || isVercelDomain) {
     res.header('Access-Control-Allow-Origin', origin);
-  } else if (!origin) {
-    // For requests without origin (like curl), allow the default
-    res.header('Access-Control-Allow-Origin', 'https://thesimpleai.netlify.app');
   }
 
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -167,11 +152,9 @@ app.use((req, res, next) => {
     'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Admin-Secret,Cache-Control,Pragma',
   );
   res.header('Access-Control-Expose-Headers', 'Content-Length,X-Request-ID');
-  res.header('Access-Control-Max-Age', '86400'); // 24 hours
 
-  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.sendStatus(200);
   }
   next();
 });
@@ -186,11 +169,7 @@ if (!process.env.JWT_SECRET) {
 }
 
 // JWT_REFRESH_SECRET is optional - will use JWT_SECRET as fallback
-// Also check for REFRESH_TOKEN_SECRET (Vercel naming)
-if (!process.env.JWT_REFRESH_SECRET && process.env.REFRESH_TOKEN_SECRET) {
-  process.env.JWT_REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
-  console.log('✅ Using REFRESH_TOKEN_SECRET as JWT_REFRESH_SECRET');
-} else if (!process.env.JWT_REFRESH_SECRET) {
+if (!process.env.JWT_REFRESH_SECRET) {
   console.warn('⚠️ SECURITY WARNING: JWT_REFRESH_SECRET not set, using JWT_SECRET as fallback');
   console.warn('⚠️ For production, set separate JWT_REFRESH_SECRET for better security');
   process.env.JWT_REFRESH_SECRET = process.env.JWT_SECRET;

@@ -23,7 +23,7 @@ export default function InterviewsPage() {
     emailContent: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null as File | null,
+    cvFile: null,
   });
 
   // Schedule Interview Form (Stage 2)
@@ -34,7 +34,7 @@ export default function InterviewsPage() {
     notes: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null as File | null,
+    cvFile: null,
   });
 
   const interviews = [
@@ -448,7 +448,7 @@ Best regards,
                             className="text-sm font-medium text-primary hover:opacity-80 transition-opacity"
                           >
                             {selectedInterview.meetingLink}
-                          </Link>
+                          </a>
                         </div>
                       )}
                     </div>
@@ -645,7 +645,7 @@ Best regards,
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate's CV to the email</p>
+                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate&apos;s CV to the email</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -798,7 +798,7 @@ Best regards,
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate's CV to the interview confirmation email</p>
+                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate&apos;s CV to the interview confirmation email</p>
                   </div>
 
                   <div>

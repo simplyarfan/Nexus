@@ -1,48 +1,43 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required = false }) => {
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState({ hour: '09', minute: '00', period: 'AM' });
+type DateTimePickerProps = {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+  required?: boolean;
+};
+
+export default function DateTimePicker({ value, onChange, label, required }: DateTimePickerProps) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const calendarRef = useRef(null);
-  const timePickerRef = useRef(null);
+  const [selectedTime, setSelectedTime] = useState({
+    hour: value ? new Date(value).getHours() % 12 || 12 : 10,
+    minute: value ? new Date(value).getMinutes() : 0,
+    period: value ? (new Date(value).getHours() >= 12 ? 'PM' : 'AM') : 'AM',
+  });
 
-  // Parse initial value
-  useEffect(() => {
-    if (value) {
-      const date = new Date(value);
-      setSelectedDate(date);
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      setSelectedTime({
-        hour: String(hours % 12 || 12).padStart(2, '0'),
-        minute: String(minutes).padStart(2, '0'),
-        period: hours >= 12 ? 'PM' : 'AM',
-      });
-    }
-  }, [value]);
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-        setShowCalendar(false);
-      }
-      if (timePickerRef.current && !timePickerRef.current.contains(event.target)) {
-        setShowTimePicker(false);
-      }
-    };
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Generate calendar days
-  const getDaysInMonth = (date) => {
+  const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -50,77 +45,88 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
 
-    const days = [];
-    // Add empty slots for days before month starts
+    const days: (number | null)[] = [];
+
+    // Add empty slots for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    // Add days of month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
     }
+
     return days;
   };
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setShowCalendar(false);
-    updateDateTime(date, selectedTime);
+  const handleDateSelect = (day: number) => {
+    const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    setSelectedDate(newDate);
   };
 
-  const handleTimeChange = (field, value) => {
-    const newTime = { ...selectedTime, [field]: value };
-    setSelectedTime(newTime);
+  const handleTimeChange = (type: 'hour' | 'minute' | 'period', value: number | string) => {
+    setSelectedTime((prev) => ({ ...prev, [type]: value }));
+  };
+
+  const handleApply = () => {
     if (selectedDate) {
-      updateDateTime(selectedDate, newTime);
+      const finalDate = new Date(selectedDate);
+      // Convert 12-hour format to 24-hour format
+      let hour24 = selectedTime.hour;
+      if (selectedTime.period === 'AM') {
+        hour24 = selectedTime.hour === 12 ? 0 : selectedTime.hour;
+      } else {
+        hour24 = selectedTime.hour === 12 ? 12 : selectedTime.hour + 12;
+      }
+      finalDate.setHours(hour24, selectedTime.minute, 0, 0);
+
+      // Format as YYYY-MM-DDTHH:mm for datetime-local input
+      const year = finalDate.getFullYear();
+      const month = String(finalDate.getMonth() + 1).padStart(2, '0');
+      const day = String(finalDate.getDate()).padStart(2, '0');
+      const hours = String(finalDate.getHours()).padStart(2, '0');
+      const minutes = String(finalDate.getMinutes()).padStart(2, '0');
+
+      onChange(`${year}-${month}-${day}T${hours}:${minutes}`);
+      setShowPicker(false);
     }
   };
 
-  const updateDateTime = (date, time) => {
-    if (!date) return;
+  const formatDisplayValue = () => {
+    if (!value) return 'Select date & time';
 
-    let hours = parseInt(time.hour);
-    if (time.period === 'PM' && hours !== 12) hours += 12;
-    if (time.period === 'AM' && hours === 12) hours = 0;
-
-    const newDate = new Date(date);
-    newDate.setHours(hours, parseInt(time.minute), 0, 0);
-
-    // Format as datetime-local string
-    const isoString = newDate.toISOString().slice(0, 16);
-    onChange({ target: { value: isoString } });
-  };
-
-  const formatDisplayDate = () => {
-    if (!selectedDate) return 'Select date';
-    return selectedDate.toLocaleDateString('en-US', {
+    const date = new Date(value);
+    const dateStr = date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    return `${dateStr} at ${timeStr}`;
   };
 
-  const formatDisplayTime = () => {
-    return `${selectedTime.hour}:${selectedTime.minute} ${selectedTime.period}`;
-  };
-
-  const isDateDisabled = (date) => {
-    if (!date) return true;
+  const isToday = (day: number) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-    return date < today;
+    return (
+      day === today.getDate() &&
+      currentMonth.getMonth() === today.getMonth() &&
+      currentMonth.getFullYear() === today.getFullYear()
+    );
   };
 
-  const isToday = (date) => {
-    if (!date) return false;
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isSelected = (date) => {
-    if (!date || !selectedDate) return false;
-    return date.toDateString() === selectedDate.toDateString();
+  const isSelected = (day: number) => {
+    if (!selectedDate) return false;
+    return (
+      day === selectedDate.getDate() &&
+      currentMonth.getMonth() === selectedDate.getMonth() &&
+      currentMonth.getFullYear() === selectedDate.getFullYear()
+    );
   };
 
   const goToPreviousMonth = () => {
@@ -131,303 +137,256 @@ const DateTimePicker = ({ value, onChange, minDate = new Date(), label, required
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+  const goToToday = () => {
+    const today = new Date();
+    setCurrentMonth(today);
+    setSelectedDate(today);
+  };
 
   return (
-    <div className="space-y-2">
+    <div className="relative">
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
-          {label} {required && <span className="text-red-500">*</span>}
+        <label className="block text-sm font-medium text-foreground mb-2">
+          {label} {required && <span className="text-destructive">*</span>}
         </label>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* Date Picker Button */}
-        <div className="relative" ref={calendarRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setShowCalendar(!showCalendar);
-              setShowTimePicker(false);
-            }}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-green-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
-          >
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <span className={selectedDate ? 'text-gray-900' : 'text-gray-400'}>
-                {formatDisplayDate()}
-              </span>
-            </div>
-          </button>
+      <button
+        type="button"
+        onClick={() => setShowPicker(!showPicker)}
+        className="w-full px-4 py-2.5 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-left flex items-center justify-between hover:bg-accent transition-colors"
+      >
+        <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
+          {formatDisplayValue()}
+        </span>
+        <svg
+          className="w-5 h-5 text-muted-foreground"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      </button>
 
-          {/* Calendar Dropdown */}
-          <AnimatePresence>
-            {showCalendar && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 w-80"
-              >
-                {/* Month Navigation */}
-                <div className="flex items-center justify-between mb-4">
-                  <button
-                    type="button"
-                    onClick={goToPreviousMonth}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
-                  </button>
-                  <div className="text-base font-semibold text-gray-900">
-                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={goToNextMonth}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
+      <AnimatePresence>
+        {showPicker && (
+          <>
+            {/* Backdrop */}
+            <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
 
-                {/* Weekday Headers */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                    <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
-                      {day}
+            {/* Picker Modal */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute z-50 mt-2 bg-card border border-border rounded-2xl shadow-2xl p-6 w-[700px]"
+            >
+              <div className="flex gap-6">
+                {/* Calendar */}
+                <div className="flex-1">
+                  {/* Month Navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      type="button"
+                      onClick={goToPreviousMonth}
+                      className="p-2 hover:bg-accent rounded-lg transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5 text-foreground"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                      </h3>
                     </div>
-                  ))}
-                </div>
 
-                {/* Calendar Days */}
-                <div className="grid grid-cols-7 gap-1">
-                  {getDaysInMonth(currentMonth).map((date, index) => {
-                    if (!date) {
-                      return <div key={`empty-${index}`} className="aspect-square" />;
-                    }
+                    <button
+                      type="button"
+                      onClick={goToNextMonth}
+                      className="p-2 hover:bg-accent rounded-lg transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5 text-foreground"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
 
-                    const disabled = isDateDisabled(date);
-                    const today = isToday(date);
-                    const selected = isSelected(date);
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 gap-2 mb-2">
+                    {daysOfWeek.map((day) => (
+                      <div
+                        key={day}
+                        className="text-center text-xs font-medium text-muted-foreground py-2"
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
 
-                    return (
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {getDaysInMonth(currentMonth).map((day, index) => (
                       <button
-                        key={date.toISOString()}
+                        key={index}
                         type="button"
-                        onClick={() => !disabled && handleDateSelect(date)}
-                        disabled={disabled}
+                        onClick={() => day && handleDateSelect(day)}
+                        disabled={!day}
                         className={`
                           aspect-square rounded-lg text-sm font-medium transition-all
-                          ${disabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-green-50 text-gray-700'}
-                          ${today && !selected ? 'bg-blue-50 text-blue-600' : ''}
-                          ${selected ? 'bg-green-600 text-white hover:bg-green-700' : ''}
+                          ${!day ? 'invisible' : ''}
+                          ${isSelected(day!) ? 'bg-primary text-primary-foreground shadow-md' : ''}
+                          ${isToday(day!) && !isSelected(day!) ? 'bg-accent text-foreground ring-2 ring-primary' : ''}
+                          ${!isSelected(day!) && !isToday(day!) ? 'text-foreground hover:bg-accent' : ''}
                         `}
                       >
-                        {date.getDate()}
+                        {day}
                       </button>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Quick Actions */}
-                <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between">
+                  {/* Today Button */}
                   <button
                     type="button"
-                    onClick={() => handleDateSelect(new Date())}
-                    className="text-sm text-green-600 hover:text-green-700 font-medium"
+                    onClick={goToToday}
+                    className="w-full mt-4 px-4 py-2 text-sm text-primary hover:bg-accent rounded-lg transition-colors"
                   >
                     Today
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowCalendar(false)}
-                    className="text-sm text-gray-500 hover:text-gray-700"
-                  >
-                    Close
-                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
-        {/* Time Picker Button */}
-        <div className="relative" ref={timePickerRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setShowTimePicker(!showTimePicker);
-              setShowCalendar(false);
-            }}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-green-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
-          >
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-900">{formatDisplayTime()}</span>
-            </div>
-          </button>
+                {/* Time Picker */}
+                <div className="w-64 border-l border-border pl-6">
+                  <h4 className="text-sm font-medium text-foreground mb-4">Select Time</h4>
+                  <div className="flex items-center gap-3 mb-6">
+                    {/* Hour */}
+                    <div className="flex-1">
+                      <label className="block text-xs text-muted-foreground mb-2">Hour</label>
+                      <select
+                        value={selectedTime.hour}
+                        onChange={(e) => handleTimeChange('hour', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const hour = i + 1;
+                          return (
+                            <option key={hour} value={hour}>
+                              {hour}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
 
-          {/* Time Picker Dropdown */}
-          <AnimatePresence>
-            {showTimePicker && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 w-64"
-              >
-                <div className="flex items-center justify-between space-x-2">
-                  {/* Hour */}
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Hour</label>
-                    <select
-                      value={selectedTime.hour}
-                      onChange={(e) => handleTimeChange('hour', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                    >
-                      {hours.map((h) => (
-                        <option key={h} value={h}>
-                          {h}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <div className="text-2xl font-bold text-muted-foreground mt-6">:</div>
 
-                  <div className="text-2xl font-bold text-gray-400 mt-5">:</div>
-
-                  {/* Minute */}
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Minute</label>
-                    <select
-                      value={selectedTime.minute}
-                      onChange={(e) => handleTimeChange('minute', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                    >
-                      {minutes
-                        .filter((m) => parseInt(m) % 5 === 0)
-                        .map((m) => (
-                          <option key={m} value={m}>
-                            {m}
+                    {/* Minute */}
+                    <div className="flex-1">
+                      <label className="block text-xs text-muted-foreground mb-2">Minute</label>
+                      <select
+                        value={selectedTime.minute}
+                        onChange={(e) => handleTimeChange('minute', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        {[0, 15, 30, 45].map((minute) => (
+                          <option key={minute} value={minute}>
+                            {minute.toString().padStart(2, '0')}
                           </option>
                         ))}
-                    </select>
-                  </div>
+                      </select>
+                    </div>
 
-                  {/* Period */}
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Period</label>
-                    <div className="flex rounded-lg border border-gray-300 overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => handleTimeChange('period', 'AM')}
-                        className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                          selectedTime.period === 'AM'
-                            ? 'bg-green-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                        }`}
+                    {/* AM/PM Selector */}
+                    <div className="flex-1">
+                      <label className="block text-xs text-muted-foreground mb-2">Period</label>
+                      <select
+                        value={selectedTime.period}
+                        onChange={(e) => handleTimeChange('period', e.target.value)}
+                        className="w-full px-3 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                       >
-                        AM
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleTimeChange('period', 'PM')}
-                        className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                          selectedTime.period === 'PM'
-                            ? 'bg-green-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        PM
-                      </button>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
                     </div>
                   </div>
-                </div>
 
-                {/* Quick Time Options */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="text-xs font-medium text-gray-600 mb-2">Quick Select</div>
-                  <div className="grid grid-cols-3 gap-2">
+                  {/* Quick Time Presets */}
+                  <div className="space-y-2">
+                    <label className="block text-xs text-muted-foreground mb-2">Quick Select</label>
                     {[
-                      { label: '9:00 AM', hour: '09', minute: '00', period: 'AM' },
-                      { label: '12:00 PM', hour: '12', minute: '00', period: 'PM' },
-                      { label: '3:00 PM', hour: '03', minute: '00', period: 'PM' },
-                    ].map((time) => (
+                      { label: '9:00 AM', hour: 9, minute: 0, period: 'AM' },
+                      { label: '12:00 PM', hour: 12, minute: 0, period: 'PM' },
+                      { label: '2:00 PM', hour: 2, minute: 0, period: 'PM' },
+                      { label: '5:00 PM', hour: 5, minute: 0, period: 'PM' },
+                    ].map((preset) => (
                       <button
-                        key={time.label}
+                        key={preset.label}
                         type="button"
-                        onClick={() => {
+                        onClick={() =>
                           setSelectedTime({
-                            hour: time.hour,
-                            minute: time.minute,
-                            period: time.period,
-                          });
-                          if (selectedDate) {
-                            updateDateTime(selectedDate, {
-                              hour: time.hour,
-                              minute: time.minute,
-                              period: time.period,
-                            });
-                          }
-                        }}
-                        className="px-2 py-1.5 text-xs bg-gray-50 hover:bg-green-50 border border-gray-200 rounded-lg transition-colors"
+                            hour: preset.hour,
+                            minute: preset.minute,
+                            period: preset.period,
+                          })
+                        }
+                        className="w-full px-3 py-2 text-sm text-foreground hover:bg-accent border border-border rounded-lg transition-colors"
                       >
-                        {time.label}
+                        {preset.label}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setShowTimePicker(false)}
-                    className="text-sm text-green-600 hover:text-green-700 font-medium"
-                  >
-                    Done
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {/* Selected DateTime Display */}
-      {selectedDate && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs font-medium text-green-600 mb-1">Scheduled for</div>
-              <div className="text-sm font-semibold text-gray-900">
-                {selectedDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}{' '}
-                at {formatDisplayTime()}
               </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedDate(null);
-                onChange({ target: { value: '' } });
-              }}
-              className="text-green-600 hover:text-green-700 text-xs font-medium"
-            >
-              Clear
-            </button>
-          </div>
-        </motion.div>
-      )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-6 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowPicker(false)}
+                  className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApply}
+                  disabled={!selectedDate}
+                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
-};
-
-export default DateTimePicker;
+}

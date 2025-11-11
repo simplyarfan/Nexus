@@ -44,6 +44,15 @@ app.use('/api/interview-coordinator', interviewCoordinatorHandler);
 app.use('/api/support', supportHandler);
 app.use('/api/health', healthHandler);
 
+// Favicon handler (prevent 500 errors)
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
+app.get('/favicon.png', (req, res) => {
+  res.status(204).end();
+});
+
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({

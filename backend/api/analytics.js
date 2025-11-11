@@ -10,7 +10,6 @@
  */
 
 const { withProtectedRoute } = require('../middleware/serverless');
-const { pool } = require('../config/database');
 const prisma = require('../lib/prisma');
 
 async function handler(req, res) {
@@ -62,18 +61,15 @@ async function handler(req, res) {
   // GET /api/analytics/overview - High-level overview stats
   if (path === '/overview' && method === 'GET') {
     try {
-      const overviewResult = await pool.query(
-        `SELECT
-           (SELECT COUNT(*) FROM api_logs WHERE user_id = $1) as total_api_calls,
-           (SELECT COUNT(*) FROM projects WHERE user_id = $1) as total_projects,
-           (SELECT COUNT(*) FROM workflows WHERE user_id = $1) as total_workflows,
-           (SELECT created_at FROM users WHERE id = $1) as member_since`,
-        [userId]
-      );
-
+      // TODO: Implement overview stats when analytics tables are set up
       return res.status(200).json({
         success: true,
-        overview: overviewResult.rows[0],
+        overview: {
+          total_api_calls: 0,
+          total_projects: 0,
+          total_workflows: 0,
+          member_since: new Date(),
+        },
       });
     } catch (error) {
       console.error('Error fetching overview:', error);
@@ -96,11 +92,8 @@ async function handler(req, res) {
         });
       }
 
-      await pool.query(
-        `INSERT INTO analytics_events (user_id, event, metadata)
-         VALUES ($1, $2, $3)`,
-        [userId, event, JSON.stringify(metadata)]
-      );
+      // TODO: Implement event tracking when analytics tables are set up
+      console.log('Analytics event:', { userId, event, metadata });
 
       return res.status(200).json({
         success: true,
@@ -120,60 +113,19 @@ async function handler(req, res) {
     try {
       const { timeRange = '7d' } = req.query;
 
-      // Calculate date range
-      const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
-      const days = daysMap[timeRange] || 7;
-
-      // Get API usage stats
-      const apiUsageResult = await pool.query(
-        `SELECT
-           DATE(created_at) as date,
-           COUNT(*) as requests,
-           COUNT(CASE WHEN status = 'success' THEN 1 END) as successful,
-           COUNT(CASE WHEN status = 'error' THEN 1 END) as failed
-         FROM api_logs
-         WHERE user_id = $1
-           AND created_at >= CURRENT_DATE - INTERVAL '${days} days'
-         GROUP BY DATE(created_at)
-         ORDER BY date DESC`,
-        [userId]
-      );
-
-      // Get total usage summary
-      const summaryResult = await pool.query(
-        `SELECT
-           COUNT(*) as total_requests,
-           COUNT(CASE WHEN status = 'success' THEN 1 END) as total_successful,
-           COUNT(CASE WHEN status = 'error' THEN 1 END) as total_failed,
-           AVG(response_time) as avg_response_time
-         FROM api_logs
-         WHERE user_id = $1
-           AND created_at >= CURRENT_DATE - INTERVAL '${days} days'`,
-        [userId]
-      );
-
-      // Get endpoint breakdown
-      const endpointsResult = await pool.query(
-        `SELECT
-           endpoint,
-           COUNT(*) as count,
-           AVG(response_time) as avg_response_time
-         FROM api_logs
-         WHERE user_id = $1
-           AND created_at >= CURRENT_DATE - INTERVAL '${days} days'
-         GROUP BY endpoint
-         ORDER BY count DESC
-         LIMIT 10`,
-        [userId]
-      );
-
+      // TODO: Implement analytics when api_logs table is set up
       return res.status(200).json({
         success: true,
         analytics: {
           timeRange,
-          summary: summaryResult.rows[0] || {},
-          dailyUsage: apiUsageResult.rows,
-          topEndpoints: endpointsResult.rows,
+          summary: {
+            total_requests: 0,
+            total_successful: 0,
+            total_failed: 0,
+            avg_response_time: 0,
+          },
+          dailyUsage: [],
+          topEndpoints: [],
         },
       });
     } catch (error) {

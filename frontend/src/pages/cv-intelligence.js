@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { fadeIn } from '../lib/motion';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function CVIntelligencePage() {
   const router = useRouter();
@@ -10,8 +13,42 @@ export default function CVIntelligencePage() {
   const [view, setView] = useState('batches');
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const batches = [
+  // Fetch batches from API
+  useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+
+        const response = await axios.get(`${API_BASE_URL}/api/cv-intelligence/batches`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.success) {
+          setBatches(response.data.data || []);
+        } else {
+          setError('Failed to load batches');
+        }
+      } catch (err) {
+        console.error('Error fetching batches:', err);
+        setError(err.response?.data?.message || 'Failed to load batches');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBatches();
+  }, []);
+
+  // Remove all fake data - replaced with real API data above
+  /*
+  const OLD_FAKE_batches = [
     {
       id: 'BATCH-001',
       name: 'Senior Full Stack Developers - December 2024',
@@ -108,6 +145,7 @@ export default function CVIntelligencePage() {
       candidates: [],
     },
   ];
+  */
 
   const handleDragOver = (e) => {
     e.preventDefault();

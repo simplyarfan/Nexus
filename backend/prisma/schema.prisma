@@ -42,6 +42,8 @@ model User {
   outlook_pkce_verifier       String?
 
   sessions                    UserSession[]
+  cvBatches                   CvBatch[]
+  interviews                  Interview[]
 
   @@map("users")
 }
@@ -59,4 +61,71 @@ model UserSession {
   user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("user_sessions")
+}
+
+// CV Intelligence Models
+model CvBatch {
+  id              String      @id @default(uuid())
+  userId          Int
+  batchName       String
+  position        String
+  jobDescription  String?     @db.Text
+  status          String      @default("processing")  // processing, completed, failed
+  cvCount         Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  candidates      Candidate[]
+
+  @@map("cv_batches")
+}
+
+model Candidate {
+  id                      String      @id @default(uuid())
+  batchId                 String
+  name                    String
+  email                   String
+  phone                   String?
+  location                String?
+  overallScore            Int
+  experience              String?
+  education               String?
+  salary                  String?
+  matchedSkills           String[]    // Array of matched skills
+  missingSkills           String[]    // Array of missing skills
+  additionalSkills        String[]    // Array of additional skills
+  experienceTimeline      Json?       // JSON array of {company, role, period}
+  certifications          String[]    // Array of certifications
+  professionalAssessment  String?     @db.Text
+  cvFileUrl               String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  batch                   CvBatch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@map("candidates")
+}
+
+// Interview Coordinator Models
+model Interview {
+  id                String      @id @default(uuid())
+  userId            Int
+  candidateName     String
+  candidateEmail    String
+  position          String
+  status            String      // awaiting_response, scheduled, completed, cancelled, rejected
+  interviewType     String?     // technical, behavioral, cultural, final
+  scheduledTime     DateTime?
+  duration          Int?        // in minutes
+  meetingLink       String?
+  notes             String?     @db.Text
+  rejectionReason   String?     @db.Text
+  workflow          Json?       // JSON array of workflow stages
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("interviews")
 }

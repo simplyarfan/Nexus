@@ -1,86 +1,45 @@
-// Prisma Schema for Ticketing System Migration
-// This coexists with the existing database.js connection system
-
+// Prisma Schema - Matches Production Database
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL_NON_POOLING")
+  url      = env("DATABASE_URL")
 }
 
-// ============================================
-// EXISTING USERS TABLE (READ-ONLY ACCESS)
-// ============================================
 model User {
-  id                Int      @id @default(autoincrement())
-  email             String   @unique
-  first_name        String?
-  last_name         String?
-  role              String
-  password_hash     String?
-  verification_token String?
-  reset_token       String?
-  reset_token_expiry DateTime?
-  email_verified    Boolean  @default(false)
-  is_2fa_enabled    Boolean  @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  // Relations to ticketing system
-  created_tickets   SupportTicket[] @relation("TicketCreator")
-  ticket_comments   TicketComment[]
+  id                          Int       @id @default(autoincrement())
+  email                       String    @unique
+  password_hash               String
+  first_name                  String
+  last_name                   String
+  role                        String
+  department                  String?
+  job_title                   String?
+  is_active                   Boolean   @default(true)
+  is_verified                 Boolean   @default(false)
+  verification_token          String?
+  verification_expiry         DateTime?
+  reset_token                 String?
+  reset_token_expiry          DateTime?
+  last_login                  DateTime?
+  created_at                  DateTime  @default(now())
+  updated_at                  DateTime  @updatedAt
+  failed_login_attempts       Int       @default(0)
+  account_locked_until        DateTime?
+  outlook_access_token        String?
+  outlook_refresh_token       String?
+  outlook_token_expires_at    DateTime?
+  outlook_email               String?
+  two_factor_enabled          Boolean   @default(false)
+  two_factor_secret           String?
+  two_factor_code             String?
+  two_factor_code_expires_at  DateTime?
+  google_access_token         String?
+  google_refresh_token        String?
+  google_token_expires_at     DateTime?
+  outlook_pkce_verifier       String?
 
   @@map("users")
-}
-
-// ============================================
-// SUPPORT TICKETS TABLE
-// ============================================
-model SupportTicket {
-  id          Int       @id @default(autoincrement())
-  user_id     Int
-  subject     String
-  description String    @db.Text
-  status      String    @default("open")
-  priority    String    @default("medium")
-  category    String?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-
-  // Relations
-  user        User              @relation("TicketCreator", fields: [user_id], references: [id], onDelete: Cascade)
-  comments    TicketComment[]
-
-  // Indexes for performance
-  @@index([user_id])
-  @@index([status])
-  @@index([priority])
-  @@index([created_at])
-
-  @@map("support_tickets")
-}
-
-// ============================================
-// TICKET COMMENTS TABLE
-// ============================================
-model TicketComment {
-  id          Int       @id @default(autoincrement())
-  ticket_id   Int
-  user_id     Int
-  comment     String    @db.Text
-  is_internal Boolean   @default(false)
-  created_at  DateTime  @default(now())
-
-  // Relations
-  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
-  user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  // Indexes for performance
-  @@index([ticket_id])
-  @@index([user_id])
-  @@index([created_at])
-
-  @@map("ticket_comments")
 }

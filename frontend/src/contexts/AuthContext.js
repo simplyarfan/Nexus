@@ -75,16 +75,21 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           setIsAuthenticated(false);
         }
-      } else {
-        // Token invalid, clear it
+      } else if (response.status === 401) {
+        // Only clear tokens on 401 Unauthorized
         tokenManager.clearTokens();
         setUser(null);
         setIsAuthenticated(false);
+      } else {
+        // For other errors (500, network issues), keep user logged in
+        // The token might still be valid, server might be temporarily down
+        log('⚠️ Auth check failed, but keeping user logged in');
       }
-      log('✅ Auth check successful');
+      log('✅ Auth check completed');
     } catch (error) {
-      if (isDev) console.error('❌ Auth check failed:', error);
-      tokenManager.clearTokens();
+      // Network error - don't log user out, keep existing session
+      if (isDev) console.error('❌ Auth check network error (keeping session):', error);
+      // Don't clear tokens on network errors - user stays logged in
     } finally {
       setLoading(false);
     }

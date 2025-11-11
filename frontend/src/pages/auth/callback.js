@@ -78,7 +78,7 @@ export default function AuthCallback() {
           } else if (user.role === 'superadmin') {
             router.push('/admin');
           } else {
-            router.push('/dashboard');
+            router.push('/');
           }
         }, 1500);
       } else {

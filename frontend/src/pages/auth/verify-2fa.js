@@ -88,7 +88,7 @@ export default function TwoFAPage() {
 
     if (success) {
       // Redirect to dashboard
-      router.push('/dashboard');
+      router.push('/');
     } else {
       setError('Invalid code. Please try again.');
       setCode(['', '', '', '', '', '']);

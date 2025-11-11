@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }) {
         <div className="p-6 border-b border-border">
           <div
             className="flex items-center gap-3 cursor-pointer"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/')}
           >
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <svg

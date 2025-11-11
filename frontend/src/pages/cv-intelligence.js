@@ -431,8 +431,24 @@ export default function CVIntelligencePage() {
                           accept=".pdf,.doc,.docx"
                           className="hidden"
                         />
-                        <label htmlFor="cv-files">
-                          <button className="btn-primary">Select CV Files</button>
+                        <label
+                          htmlFor="cv-files"
+                          className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                        >
+                          <svg
+                            className="w-5 h-5 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
+                          </svg>
+                          Select CV Files
                         </label>
                       </div>
                     </div>
@@ -472,8 +488,24 @@ export default function CVIntelligencePage() {
                           accept=".pdf,.doc,.docx,.txt"
                           className="hidden"
                         />
-                        <label htmlFor="jd-file">
-                          <button className="btn-secondary">Select JD File</button>
+                        <label
+                          htmlFor="jd-file"
+                          className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-foreground bg-secondary border-2 border-border rounded-xl hover:bg-accent hover:border-primary transition-all cursor-pointer"
+                        >
+                          <svg
+                            className="w-5 h-5 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
+                          </svg>
+                          Select JD File
                         </label>
                       </div>
                     </div>

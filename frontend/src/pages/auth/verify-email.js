@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import ButtonGreen from '../../components/ui/ButtonGreen';
+import Button from '@/components/ui/Button';
 import { fadeIn, scaleIn } from '../../lib/motion';
 
 export default function VerifyEmailPage() {
@@ -184,7 +184,7 @@ export default function VerifyEmailPage() {
 
           {/* Resend Button */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-            <ButtonGreen
+            <Button
               variant="primary"
               size="lg"
               fullWidth
@@ -193,7 +193,7 @@ export default function VerifyEmailPage() {
               onClick={handleResend}
             >
               {canResend ? 'Resend verification email' : `Resend in ${countdown}s`}
-            </ButtonGreen>
+            </Button>
           </motion.div>
 
           {/* Back to Login */}

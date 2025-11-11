@@ -4,8 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import ButtonGreen from '../../components/ui/ButtonGreen';
-import InputGreen from '../../components/ui/InputGreen';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import { scaleIn } from '../../lib/motion';
 import ClientOnly from '../../components/shared/ClientOnly';
 import microsoftAuthService from '../../services/microsoftAuthService';
@@ -215,7 +215,7 @@ const Login = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <ButtonGreen
+            <Button
               type="button"
               variant="primary"
               size="lg"
@@ -232,7 +232,7 @@ const Login = () => {
               }
             >
               Continue with Microsoft
-            </ButtonGreen>
+            </Button>
           </motion.div>
 
           {/* Divider */}
@@ -258,7 +258,7 @@ const Login = () => {
             onSubmit={handleSubmit}
             className="space-y-6"
           >
-            <InputGreen
+            <Input
               label="Email address"
               type="email"
               placeholder="you@company.com"
@@ -279,7 +279,7 @@ const Login = () => {
             />
 
             <div>
-              <InputGreen
+              <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
@@ -362,7 +362,7 @@ const Login = () => {
               </Link>
             </div>
 
-            <ButtonGreen
+            <Button
               type="submit"
               variant="secondary"
               size="lg"
@@ -370,7 +370,7 @@ const Login = () => {
               isLoading={isLoading}
             >
               Sign in
-            </ButtonGreen>
+            </Button>
           </motion.form>
 
           {/* Sign up link */}

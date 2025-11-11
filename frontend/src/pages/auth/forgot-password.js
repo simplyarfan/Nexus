@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import ButtonGreen from '../../components/ui/ButtonGreen';
-import InputGreen from '../../components/ui/InputGreen';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import { scaleIn } from '../../lib/motion';
 
 export default function ForgotPasswordPage() {
@@ -145,14 +145,14 @@ export default function ForgotPasswordPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <ButtonGreen
+              <Button
                 variant="primary"
                 size="lg"
                 fullWidth
                 onClick={() => setIsSubmitted(false)}
               >
                 Try another email
-              </ButtonGreen>
+              </Button>
             </motion.div>
 
             {/* Back to Login */}
@@ -278,7 +278,7 @@ export default function ForgotPasswordPage() {
             onSubmit={handleSubmit}
             className="space-y-6"
           >
-            <InputGreen
+            <Input
               label="Email address"
               type="email"
               placeholder="you@company.com"
@@ -298,9 +298,9 @@ export default function ForgotPasswordPage() {
               }
             />
 
-            <ButtonGreen type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
+            <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
               Send Reset Link
-            </ButtonGreen>
+            </Button>
 
             <div className="bg-secondary border border-border rounded-lg p-4">
               <div className="flex gap-3">

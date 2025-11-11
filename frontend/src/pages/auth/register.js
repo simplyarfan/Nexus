@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ButtonGreen from '../../components/ui/ButtonGreen';
-import InputGreen from '../../components/ui/InputGreen';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { slideInRight, slideInLeft, scaleIn } from '../../lib/motion';
@@ -290,7 +290,7 @@ export default function Register() {
                   exit="exit"
                   className="space-y-4"
                 >
-                  <InputGreen
+                  <Input
                     label="Full Name"
                     type="text"
                     placeholder="John Doe"
@@ -315,7 +315,7 @@ export default function Register() {
                     }
                   />
 
-                  <InputGreen
+                  <Input
                     label="Work Email"
                     type="email"
                     placeholder="john@securemaxtech.com"
@@ -341,7 +341,7 @@ export default function Register() {
                     }
                   />
 
-                  <ButtonGreen
+                  <Button
                     type="button"
                     variant="primary"
                     size="lg"
@@ -349,7 +349,7 @@ export default function Register() {
                     onClick={handleNext}
                   >
                     Continue
-                  </ButtonGreen>
+                  </Button>
                 </motion.div>
               )}
 
@@ -363,7 +363,7 @@ export default function Register() {
                   exit="exit"
                   className="space-y-4"
                 >
-                  <InputGreen
+                  <Input
                     label="Password"
                     type="password"
                     placeholder="••••••••"
@@ -431,7 +431,7 @@ export default function Register() {
                     </motion.div>
                   )}
 
-                  <InputGreen
+                  <Input
                     label="Confirm Password"
                     type="password"
                     placeholder="••••••••"
@@ -457,7 +457,7 @@ export default function Register() {
                   />
 
                   <div className="flex gap-3">
-                    <ButtonGreen
+                    <Button
                       type="button"
                       variant="secondary"
                       size="lg"
@@ -465,8 +465,8 @@ export default function Register() {
                       onClick={handleBack}
                     >
                       Back
-                    </ButtonGreen>
-                    <ButtonGreen
+                    </Button>
+                    <Button
                       type="button"
                       variant="primary"
                       size="lg"
@@ -474,7 +474,7 @@ export default function Register() {
                       onClick={handleNext}
                     >
                       Continue
-                    </ButtonGreen>
+                    </Button>
                   </div>
                 </motion.div>
               )}
@@ -489,7 +489,7 @@ export default function Register() {
                   exit="exit"
                   className="space-y-4"
                 >
-                  <InputGreen
+                  <Input
                     label="Department"
                     type="text"
                     placeholder="e.g., Human Resources"
@@ -514,7 +514,7 @@ export default function Register() {
                     }
                   />
 
-                  <InputGreen
+                  <Input
                     label="Job Title"
                     type="text"
                     placeholder="e.g., HR Manager"
@@ -562,7 +562,7 @@ export default function Register() {
                   </div>
 
                   <div className="flex gap-3">
-                    <ButtonGreen
+                    <Button
                       type="button"
                       variant="secondary"
                       size="lg"
@@ -570,8 +570,8 @@ export default function Register() {
                       onClick={handleBack}
                     >
                       Back
-                    </ButtonGreen>
-                    <ButtonGreen
+                    </Button>
+                    <Button
                       type="submit"
                       variant="primary"
                       size="lg"
@@ -579,7 +579,7 @@ export default function Register() {
                       isLoading={isLoading}
                     >
                       Create Account
-                    </ButtonGreen>
+                    </Button>
                   </div>
                 </motion.div>
               )}

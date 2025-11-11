@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import ButtonGreen from '../../components/ui/ButtonGreen';
-import InputGreen from '../../components/ui/InputGreen';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import { scaleIn } from '../../lib/motion';
 
 export default function ResetPasswordPage() {
@@ -155,9 +155,9 @@ export default function ResetPasswordPage() {
               transition={{ delay: 0.3 }}
             >
               <Link href="/auth/login">
-                <ButtonGreen variant="primary" size="lg" fullWidth>
+                <Button variant="primary" size="lg" fullWidth>
                   Continue to Login
-                </ButtonGreen>
+                </Button>
               </Link>
             </motion.div>
           </div>
@@ -247,7 +247,7 @@ export default function ResetPasswordPage() {
             className="space-y-6"
           >
             <div>
-              <InputGreen
+              <Input
                 label="New Password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
@@ -352,7 +352,7 @@ export default function ResetPasswordPage() {
               )}
             </div>
 
-            <InputGreen
+            <Input
               label="Confirm New Password"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="••••••••"
@@ -405,9 +405,9 @@ export default function ResetPasswordPage() {
               }
             />
 
-            <ButtonGreen type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
+            <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
               Reset Password
-            </ButtonGreen>
+            </Button>
 
             <div className="bg-secondary border border-border rounded-lg p-4">
               <div className="flex gap-3">

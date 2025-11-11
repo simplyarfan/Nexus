@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ButtonGreen from '../../components/ui/ButtonGreen';
+import Button from '@/components/ui/Button';
 import { fadeIn, scaleIn } from '../../lib/motion';
 
 export default function TwoFAPage() {
@@ -224,7 +224,7 @@ export default function TwoFAPage() {
             transition={{ delay: 0.4 }}
             className="mb-6"
           >
-            <ButtonGreen
+            <Button
               variant="primary"
               size="lg"
               fullWidth
@@ -233,7 +233,7 @@ export default function TwoFAPage() {
               disabled={code.some((digit) => !digit)}
             >
               Verify Code
-            </ButtonGreen>
+            </Button>
           </motion.div>
 
           {/* Resend Code */}

@@ -1,20 +1,72 @@
 
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Profile form state
+  const [profileData, setProfileData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    job_title: '',
+    bio: '',
+  });
+
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        job_title: user.job_title || user.department || '',
+        bio: user.bio || '',
+      });
+      setLoading(false);
+    }
+  }, [user]);
+
+  const handleChange = (field, value) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert('Profile updated successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Error updating profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -122,55 +174,94 @@ export default function ProfilePage() {
                     <p className="text-muted-foreground">Update your account&apos;s profile information</p>
                   </div>
 
-                  {/* Avatar */}
-                  <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-3xl font-bold">
-                      JS
+                  {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
-                    <div>
-                      <Button variant="secondary" size="md">
-                        Change Photo
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2">JPG, GIF or PNG. Max size 2MB</p>
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      {/* Avatar */}
+                      <div className="flex items-center gap-6">
+                        <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-3xl font-bold">
+                          {profileData.first_name?.charAt(0) || user?.name?.charAt(0) || 'U'}
+                          {profileData.last_name?.charAt(0) || user?.name?.split(' ')[1]?.charAt(0) || ''}
+                        </div>
+                        <div>
+                          <Button variant="secondary" size="md">
+                            Change Photo
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-2">JPG, GIF or PNG. Max size 2MB</p>
+                        </div>
+                      </div>
 
-                  {/* Form */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Full Name"
-                      type="text"
-                      placeholder="John Smith"
-                      fullWidth
-                    />
-                    <Input
-                      label="Email"
-                      type="email"
-                      placeholder="john.smith@company.com"
-                      fullWidth
-                    />
-                    <Input
-                      label="Phone"
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                      fullWidth
-                    />
-                    <Input
-                      label="Job Title"
-                      type="text"
-                      placeholder="HR Manager"
-                      fullWidth
-                    />
-                  </div>
+                      {/* Form */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">First Name</label>
+                          <input
+                            type="text"
+                            value={profileData.first_name}
+                            onChange={(e) => handleChange('first_name', e.target.value)}
+                            placeholder="John"
+                            className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">Last Name</label>
+                          <input
+                            type="text"
+                            value={profileData.last_name}
+                            onChange={(e) => handleChange('last_name', e.target.value)}
+                            placeholder="Smith"
+                            className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">Email</label>
+                          <input
+                            type="email"
+                            value={profileData.email}
+                            onChange={(e) => handleChange('email', e.target.value)}
+                            placeholder="john.smith@company.com"
+                            className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                            disabled
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">Phone</label>
+                          <input
+                            type="tel"
+                            value={profileData.phone}
+                            onChange={(e) => handleChange('phone', e.target.value)}
+                            placeholder="+1 (555) 123-4567"
+                            className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-foreground mb-2">Job Title</label>
+                          <input
+                            type="text"
+                            value={profileData.job_title}
+                            onChange={(e) => handleChange('job_title', e.target.value)}
+                            placeholder="HR Manager"
+                            className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Tell us about yourself..."
-                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
+                        <textarea
+                          rows={4}
+                          value={profileData.bio}
+                          onChange={(e) => handleChange('bio', e.target.value)}
+                          placeholder="Tell us about yourself..."
+                          className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <div className="flex gap-3">
                     <Button variant="primary" size="lg" isLoading={isSaving} onClick={handleSave}>

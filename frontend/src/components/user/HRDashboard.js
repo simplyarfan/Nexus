@@ -1,14 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { tokenManager } from '../../utils/api';
 
 export default function HRDashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState({
+    activeBatches: 0,
+    totalCandidates: 0,
+    scheduledInterviews: 0,
+    openPositions: 0,
+  });
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { user, logout } = useAuth();
+
+  // Fetch dashboard stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const token = tokenManager.getAccessToken();
+
+        if (!token) {
+          console.error('No authentication token found');
+          setLoading(false);
+          return;
+        }
+
+        // Fetch CV batches
+        const batchesResponse = await fetch('http://localhost:5000/api/cv-intelligence/batches', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        // Fetch interviews
+        const interviewsResponse = await fetch('http://localhost:5000/api/interview-coordinator/interviews', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        let activeBatches = 0;
+        let totalCandidates = 0;
+        let scheduledInterviews = 0;
+
+        if (batchesResponse.ok) {
+          const batchesResult = await batchesResponse.json();
+          const batches = batchesResult.data || [];
+          activeBatches = batches.filter(b => b.status !== 'completed').length;
+          totalCandidates = batches.reduce((sum, batch) => sum + (batch.candidate_count || 0), 0);
+        }
+
+        if (interviewsResponse.ok) {
+          const interviewsResult = await interviewsResponse.json();
+          const interviews = interviewsResult.data || [];
+          scheduledInterviews = interviews.filter(i => i.status === 'scheduled').length;
+        }
+
+        setStats({
+          activeBatches,
+          totalCandidates,
+          scheduledInterviews,
+          openPositions: 0, // This would come from a jobs/positions API endpoint if you have one
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -53,7 +123,7 @@ export default function HRDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Backdrop for mobile */}
       {sidebarOpen && (
         <div
@@ -64,24 +134,24 @@ export default function HRDashboard() {
 
       {/* Sidebar - Fixed */}
       <div
-        className={`w-64 bg-white border-r border-gray-200 flex flex-col fixed h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform z-50`}
+        className={`w-64 bg-sidebar border-r border-sidebar-border flex flex-col fixed h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform z-50`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-primary-foreground" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-gray-900">Nexus</span>
+            <span className="text-xl font-bold text-foreground">Nexus</span>
           </div>
         </div>
 
         {/* AI Agents Section */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-sidebar-foreground uppercase tracking-wider mb-3">
               AI AGENTS
             </p>
             <div className="space-y-2">
@@ -89,12 +159,12 @@ export default function HRDashboard() {
                 <button
                   key={item.href}
                   onClick={() => router.push(item.href)}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-gray-900 hover:bg-gray-100 group"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-sidebar-foreground hover:bg-sidebar-accent group"
                 >
                   <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900">{item.title}</p>
-                    <p className="text-xs text-gray-600">{item.description}</p>
+                    <p className="text-sm font-medium text-foreground">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                   <svg
                     className="w-4 h-4 flex-shrink-0 mt-1"
@@ -116,14 +186,14 @@ export default function HRDashboard() {
         </div>
 
         {/* User Menu */}
-        <div className="p-4 border-t border-gray-200 relative">
+        <div className="p-4 border-t border-sidebar-border relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-sidebar-accent transition-colors"
           >
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
               <svg
-                className="w-6 h-6 text-gray-600"
+                className="w-6 h-6 text-muted-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -137,11 +207,11 @@ export default function HRDashboard() {
               </svg>
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-gray-900">HR Test</p>
-              <p className="text-xs text-gray-600">HR Department</p>
+              <p className="text-sm font-medium text-foreground">HR Test</p>
+              <p className="text-xs text-muted-foreground">HR Department</p>
             </div>
             <svg
-              className="w-4 h-4 text-gray-600"
+              className="w-4 h-4 text-sidebar-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -163,14 +233,14 @@ export default function HRDashboard() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute bottom-full left-4 right-4 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50"
+                  className="absolute bottom-full left-4 right-4 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
                 >
                   <button
                     onClick={() => router.push('/support')}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center gap-3"
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                   >
                     <svg
-                      className="w-5 h-5 text-gray-600"
+                      className="w-5 h-5 text-muted-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -182,14 +252,14 @@ export default function HRDashboard() {
                         d="M12 4v16m8-8H4"
                       />
                     </svg>
-                    <span className="text-sm text-gray-900">Create Ticket</span>
+                    <span className="text-sm text-foreground">Create Ticket</span>
                   </button>
                   <button
                     onClick={() => router.push('/support')}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center gap-3"
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                   >
                     <svg
-                      className="w-5 h-5 text-gray-600"
+                      className="w-5 h-5 text-muted-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -201,14 +271,14 @@ export default function HRDashboard() {
                         d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                       />
                     </svg>
-                    <span className="text-sm text-gray-900">My Tickets</span>
+                    <span className="text-sm text-foreground">My Tickets</span>
                   </button>
                   <button
                     onClick={() => router.push('/profile')}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center gap-3"
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                   >
                     <svg
-                      className="w-5 h-5 text-gray-600"
+                      className="w-5 h-5 text-muted-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -220,15 +290,15 @@ export default function HRDashboard() {
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
-                    <span className="text-sm text-gray-900">Profile Settings</span>
+                    <span className="text-sm text-foreground">Profile Settings</span>
                   </button>
-                  <div className="border-t border-gray-200" />
+                  <div className="border-t border-border" />
                   <button
                     onClick={handleLogout}
-                    className="w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center gap-3"
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                   >
                     <svg
-                      className="w-5 h-5 text-red-600"
+                      className="w-5 h-5 text-destructive"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -240,7 +310,7 @@ export default function HRDashboard() {
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    <span className="text-sm text-red-600">Logout</span>
+                    <span className="text-sm text-destructive">Logout</span>
                   </button>
                 </motion.div>
               </>
@@ -251,15 +321,15 @@ export default function HRDashboard() {
 
       {/* Main Content - Add left margin to account for fixed sidebar */}
       <div className="flex-1 lg:ml-64 overflow-auto">
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
           {/* Clean Header with Notifications */}
-          <div className="border-b border-gray-200 bg-white sticky top-0 z-30">
+          <div className="border-b border-border bg-card sticky top-0 z-30">
             <div className="max-w-7xl mx-auto px-8 py-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
                   <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+                    className="lg:hidden p-2 hover:bg-muted rounded-lg"
                     aria-label="Toggle sidebar"
                   >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -276,8 +346,8 @@ export default function HRDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">HR Dashboard</h1>
-                    <p className="text-gray-600 text-lg">
+                    <h1 className="text-4xl font-bold text-foreground mb-2">HR Dashboard</h1>
+                    <p className="text-muted-foreground text-lg">
                       Welcome back! Manage your AI-powered recruitment tools
                     </p>
                   </motion.div>
@@ -287,10 +357,10 @@ export default function HRDashboard() {
                 <div className="relative">
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="relative p-3 rounded-lg hover:bg-muted transition-colors"
                   >
                     <svg
-                      className="w-6 h-6 text-gray-900"
+                      className="w-6 h-6 text-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -317,10 +387,10 @@ export default function HRDashboard() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
-                          className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50"
+                          className="absolute right-0 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
                         >
-                          <div className="p-4 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900">Notifications</h3>
+                          <div className="p-4 border-b border-border">
+                            <h3 className="font-semibold text-foreground">Notifications</h3>
                           </div>
                           <div className="max-h-96 overflow-y-auto">
                             {[
@@ -342,18 +412,18 @@ export default function HRDashboard() {
                             ].map((notification, index) => (
                               <div
                                 key={index}
-                                className="p-4 hover:bg-gray-100 transition-colors border-b border-gray-200 last:border-0"
+                                className="p-4 hover:bg-muted transition-colors border-b border-border last:border-0"
                               >
-                                <p className="font-medium text-gray-900 text-sm">
+                                <p className="font-medium text-foreground text-sm">
                                   {notification.title}
                                 </p>
-                                <p className="text-xs text-gray-600 mt-1">{notification.detail}</p>
-                                <p className="text-xs text-gray-600 mt-2">{notification.time}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{notification.detail}</p>
+                                <p className="text-xs text-muted-foreground mt-2">{notification.time}</p>
                               </div>
                             ))}
                           </div>
-                          <div className="p-3 border-t border-gray-200 text-center">
-                            <button className="text-sm text-green-500 hover:opacity-80">
+                          <div className="p-3 border-t border-border text-center">
+                            <button className="text-sm text-primary hover:opacity-80">
                               View all notifications
                             </button>
                           </div>
@@ -372,7 +442,7 @@ export default function HRDashboard() {
               {[
                 {
                   label: 'Active Batches',
-                  value: '12',
+                  value: loading ? '...' : stats.activeBatches,
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -383,11 +453,11 @@ export default function HRDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/10 text-green-500',
+                  color: 'bg-primary/10 text-primary',
                 },
                 {
                   label: 'Total Candidates',
-                  value: '847',
+                  value: loading ? '...' : stats.totalCandidates,
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -398,11 +468,11 @@ export default function HRDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/20 text-green-500',
+                  color: 'bg-primary/20 text-primary',
                 },
                 {
                   label: 'Scheduled Interviews',
-                  value: '23',
+                  value: loading ? '...' : stats.scheduledInterviews,
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -413,11 +483,11 @@ export default function HRDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/10 text-green-500',
+                  color: 'bg-primary/10 text-primary',
                 },
                 {
                   label: 'Open Positions',
-                  value: '8',
+                  value: loading ? '...' : stats.openPositions,
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -428,7 +498,7 @@ export default function HRDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/10 text-green-500',
+                  color: 'bg-primary/10 text-primary',
                 },
               ].map((stat, index) => (
                 <motion.div
@@ -436,23 +506,23 @@ export default function HRDashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
-                  className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+                  className="bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow"
                 >
                   <div
                     className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center mb-3`}
                   >
                     {stat.icon}
                   </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div className="text-3xl font-bold text-foreground mb-1">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
 
             {/* AI Agents Section */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">AI-Powered Tools</h2>
-              <p className="text-gray-600">
+              <h2 className="text-2xl font-bold text-foreground mb-2">AI-Powered Tools</h2>
+              <p className="text-muted-foreground">
                 Launch intelligent agents to automate your recruitment workflow
               </p>
             </div>
@@ -465,26 +535,26 @@ export default function HRDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
                   onClick={() => router.push(agent.href)}
-                  className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-green-500 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
+                  className="bg-card border-2 border-border rounded-2xl p-8 hover:border-primary hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
                 >
                   {/* Subtle gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                   <div className="relative z-10">
                     <div className="flex items-start gap-6 mb-6">
-                      <div className="w-16 h-16 rounded-2xl bg-green-500 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
+                      <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg">
                         {agent.icon}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-green-500 transition-colors">
+                        <h3 className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                           {agent.title}
                         </h3>
-                        <p className="text-gray-600">{agent.description}</p>
+                        <p className="text-muted-foreground">{agent.description}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <div className="inline-flex items-center gap-2 text-green-500 font-medium group-hover:gap-3 transition-all">
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div className="inline-flex items-center gap-2 text-primary font-medium group-hover:gap-3 transition-all">
                         <span>Launch Agent</span>
                         <svg
                           className="w-5 h-5"
@@ -500,7 +570,7 @@ export default function HRDashboard() {
                           />
                         </svg>
                       </div>
-                      <div className="text-xs text-gray-600 bg-gray-200 px-3 py-1 rounded-full">
+                      <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
                         AI Powered
                       </div>
                     </div>

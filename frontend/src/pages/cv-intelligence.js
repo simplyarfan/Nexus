@@ -1,136 +1,70 @@
 import Link from 'next/link';
-
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
-
-
+import { tokenManager } from '../utils/api';
+import { debugCookies, checkTokenValidity } from '../utils/debug-cookies';
 
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [view, setView] = useState('batches');
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const batches = [
-    {
-      id: 'BATCH-001',
-      name: 'Senior Full Stack Developers - December 2024',
-      position: 'Senior Full Stack Developer',
-      cvCount: 12,
-      dateCreated: '2024-12-05',
-      status: 'Completed',
-      candidates: [
-        {
-          id: 1,
-          name: 'John Smith',
-          position: 'Senior Full Stack Developer',
-          score: 95,
-          email: 'john.smith@email.com',
-          phone: '+1 (555) 123-4567',
-          location: 'San Francisco, CA',
-          experience: '8 years',
-          education: 'MS Computer Science - Stanford University',
-          salary: '$150k - $180k',
-          matchedSkills: ['React', 'Node.js', 'TypeScript', 'AWS', 'PostgreSQL', 'Docker'],
-          missingSkills: ['Kubernetes', 'GraphQL'],
-          additionalSkills: ['Python', 'Machine Learning', 'Redis'],
-          experienceTimeline: [
-            { company: 'Tech Giants Inc', role: 'Senior Developer', period: '2020 - Present' },
-            { company: 'Startup XYZ', role: 'Full Stack Developer', period: '2017 - 2020' },
-            { company: 'Digital Agency', role: 'Junior Developer', period: '2016 - 2017' },
-          ],
-          certifications: ['AWS Certified Solutions Architect', 'React Advanced Certification'],
-          professionalAssessment: 'Exceptional candidate with strong full-stack experience. Demonstrated leadership in architecting scalable solutions. Advanced knowledge in React and Node.js ecosystems. Strong communication skills and proven track record of delivering complex projects.',
-        },
-        {
-          id: 2,
-          name: 'Sarah Johnson',
-          position: 'Senior Full Stack Developer',
-          score: 88,
-          email: 'sarah.j@email.com',
-          phone: '+1 (555) 234-5678',
-          location: 'Austin, TX',
-          experience: '6 years',
-          education: 'BS Software Engineering - MIT',
-          salary: '$130k - $160k',
-          matchedSkills: ['React', 'Node.js', 'JavaScript', 'MongoDB', 'Express'],
-          missingSkills: ['TypeScript', 'AWS', 'Docker'],
-          additionalSkills: ['Vue.js', 'Firebase', 'Git'],
-          experienceTimeline: [
-            { company: 'Cloud Services Co', role: 'Full Stack Engineer', period: '2019 - Present' },
-            { company: 'Web Dev Studio', role: 'Frontend Developer', period: '2018 - 2019' },
-          ],
-          certifications: ['MongoDB Developer Certification'],
-          professionalAssessment: 'Strong technical skills with solid experience in modern web development. Good problem-solving abilities. Would benefit from exposure to TypeScript and cloud infrastructure.',
-        },
-        {
-          id: 3,
-          name: 'Michael Chen',
-          position: 'Senior Full Stack Developer',
-          score: 82,
-          email: 'm.chen@email.com',
-          phone: '+1 (555) 345-6789',
-          location: 'Seattle, WA',
-          experience: '7 years',
-          education: 'BS Computer Science - UC Berkeley',
-          salary: '$140k - $170k',
-          matchedSkills: ['React', 'Node.js', 'AWS', 'Docker'],
-          missingSkills: ['TypeScript', 'PostgreSQL', 'Kubernetes'],
-          additionalSkills: ['Angular', 'Java', 'Spring Boot'],
-          experienceTimeline: [
-            { company: 'Enterprise Solutions', role: 'Senior Developer', period: '2021 - Present' },
-            { company: 'Financial Tech Inc', role: 'Software Engineer', period: '2018 - 2021' },
-          ],
-          certifications: ['AWS Certified Developer'],
-          professionalAssessment: 'Solid background with enterprise-level applications. Strong foundation in React and Node.js. Experience with cloud deployment and containerization is a plus.',
-        },
-      ],
-    },
-    {
-      id: 'BATCH-002',
-      name: 'Product Managers - December 2024',
-      position: 'Senior Product Manager',
-      cvCount: 8,
-      dateCreated: '2024-12-04',
-      status: 'Completed',
-      candidates: [
-        {
-          id: 4,
-          name: 'Emily Davis',
-          position: 'Senior Product Manager',
-          score: 92,
-          email: 'emily.davis@email.com',
-          phone: '+1 (555) 456-7890',
-          location: 'New York, NY',
-          experience: '9 years',
-          education: 'MBA - Harvard Business School',
-          salary: '$160k - $190k',
-          matchedSkills: ['Product Strategy', 'Agile', 'User Research', 'Data Analysis', 'Roadmapping'],
-          missingSkills: ['SQL', 'A/B Testing'],
-          additionalSkills: ['Stakeholder Management', 'Go-to-Market Strategy', 'Team Leadership'],
-          experienceTimeline: [
-            { company: 'SaaS Platform Inc', role: 'Senior PM', period: '2020 - Present' },
-            { company: 'E-commerce Giant', role: 'Product Manager', period: '2017 - 2020' },
-            { company: 'Consulting Firm', role: 'Business Analyst', period: '2015 - 2017' },
-          ],
-          certifications: ['Certified Scrum Product Owner', 'Product Management Certificate'],
-          professionalAssessment: 'Outstanding product leadership with proven track record of launching successful products. Strong strategic thinking and cross-functional collaboration skills. Excellent at balancing user needs with business objectives.',
-        },
-      ],
-    },
-    {
-      id: 'BATCH-003',
-      name: 'UX Designers - November 2024',
-      position: 'Senior UX Designer',
-      cvCount: 15,
-      dateCreated: '2024-11-28',
-      status: 'Processing',
-      candidates: [],
-    },
-  ];
+  // Fetch CV batches from API
+  useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        setLoading(true);
+        const token = tokenManager.getAccessToken();
+        debugCookies();
+        checkTokenValidity(token);
+
+        console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
+
+        if (!token) {
+          console.error('No authentication token found');
+          setBatches([]);
+          setLoading(false);
+          return;
+        }
+
+        console.log('📡 Fetching batches with headers:', {
+          'Authorization': `Bearer ${token.substring(0, 20)}...`,
+          'Content-Type': 'application/json',
+        });
+
+        const response = await fetch('http://localhost:5000/api/cv-intelligence/batches', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('📥 Response status:', response.status, response.statusText);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('CV Batches response:', result);
+          setBatches(result.data || []);
+        } else {
+          const errorText = await response.text();
+          console.error('Failed to fetch CV batches:', response.status, response.statusText, errorText);
+          setBatches([]);
+        }
+      } catch (error) {
+        console.error('Error fetching CV batches:', error);
+        setBatches([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBatches();
+  }, []);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -217,8 +151,27 @@ export default function CVIntelligencePage() {
                 <p className="text-muted-foreground">View and manage your CV screening batches</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {batches.map((batch, index) => (
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : batches.length === 0 ? (
+                <div className="bg-card border border-border rounded-2xl p-12 text-center">
+                  <svg className="w-16 h-16 text-muted-foreground mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">No CV batches yet</h3>
+                  <p className="text-muted-foreground mb-6">Upload CVs to start screening candidates with AI</p>
+                  <Button variant="primary" size="lg">
+                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Upload CVs
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {batches.map((batch, index) => (
                   <motion.div
                     key={batch.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -281,8 +234,9 @@ export default function CVIntelligencePage() {
                       </div>
                     )}
                   </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -422,8 +376,17 @@ export default function CVIntelligencePage() {
                 <p className="text-muted-foreground">Candidates ranked by match score</p>
               </div>
 
-              <div className="space-y-4">
-                {selectedBatch.candidates.map((candidate, index) => (
+              {selectedBatch?.candidates?.length === 0 ? (
+                <div className="bg-card border border-border rounded-2xl p-12 text-center">
+                  <svg className="w-16 h-16 text-muted-foreground mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">No candidates processed yet</h3>
+                  <p className="text-muted-foreground">Candidates will appear here once CV processing is complete</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {selectedBatch?.candidates?.map((candidate, index) => (
                   <motion.div
                     key={candidate.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -493,8 +456,9 @@ export default function CVIntelligencePage() {
                       </Button>
                     </div>
                   </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

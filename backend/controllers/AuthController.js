@@ -14,6 +14,9 @@ const generateTokens = (userId, email, role, rememberMe = false) => {
     throw new Error('JWT_SECRET environment variable is required');
   }
 
+  // Debug logging
+  console.log('🔑 [TOKEN] Generating token with JWT_SECRET:', process.env.JWT_SECRET.substring(0, 20) + '...');
+
   // Use JWT_SECRET as fallback for refresh token if not set
   const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
 
@@ -490,26 +493,27 @@ const getProfile = async (req, res) => {
 // Update user profile
 const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, department, jobTitle } = req.body;
+    const { first_name, last_name, phone, job_title, bio } = req.body;
     const userId = req.user.id;
 
     await database.connect();
 
     await database.run(
       `
-      UPDATE users SET 
+      UPDATE users SET
         first_name = $1,
         last_name = $2,
-        department = $3,
+        phone = $3,
         job_title = $4,
+        bio = $5,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $5
+      WHERE id = $6
     `,
-      [firstName, lastName, department, jobTitle, userId],
+      [first_name, last_name, phone, job_title, bio, userId],
     );
 
     const updatedUser = await database.get(
-      'SELECT id, email, first_name, last_name, role, department, job_title, is_active FROM users WHERE id = $1',
+      'SELECT id, email, first_name, last_name, role, department, job_title, phone, bio, is_active FROM users WHERE id = $1',
       [userId],
     );
 

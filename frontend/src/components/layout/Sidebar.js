@@ -37,7 +37,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         { name: 'Dashboard', href: '/', icon: Home },
         { name: 'CV Intelligence', href: '/cv-intelligence', icon: Brain },
         { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Interview Coordinator', href: '/interview-coordinator', icon: Calendar },
+        { name: 'Interview Coordinator', href: '/interviews', icon: Calendar },
         { name: 'Support', href: '/support/my-tickets', icon: MessageSquare },
       ];
 
@@ -49,12 +49,12 @@ export default function Sidebar({ collapsed, onToggle }) {
   return (
     <div
       className={cn(
-        'h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 flex-shrink-0',
+        'h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 flex-shrink-0',
         collapsed ? 'w-16' : 'w-64',
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
           {!collapsed && (
             <motion.div
@@ -63,19 +63,19 @@ export default function Sidebar({ collapsed, onToggle }) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-                <div className="w-5 h-5 bg-white dark:bg-black rounded-sm"></div>
+              <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
+                <div className="w-5 h-5 bg-sidebar-primary-foreground rounded-sm"></div>
               </div>
-              <span className="text-lg font-semibold text-gray-900 dark:text-white">SimpleAI</span>
+              <span className="text-lg font-semibold text-foreground">SimpleAI</span>
             </motion.div>
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
           >
             <ChevronLeft
               className={cn(
-                'w-4 h-4 text-gray-500 transition-transform duration-200',
+                'w-4 h-4 text-sidebar-foreground transition-transform duration-200',
                 collapsed && 'rotate-180',
               )}
             />
@@ -93,8 +93,8 @@ export default function Sidebar({ collapsed, onToggle }) {
                 className={cn(
                   'flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer',
                   isActive
-                    ? 'bg-black dark:bg-white text-white dark:text-black'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white',
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                 )}
                 onHoverStart={() => setHoveredItem(item.name)}
                 onHoverEnd={() => setHoveredItem(null)}
@@ -116,7 +116,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 {/* Tooltip for collapsed state */}
                 {collapsed && hoveredItem === item.name && (
                   <motion.div
-                    className="absolute left-16 bg-black dark:bg-white text-white dark:text-black px-2 py-1 rounded-md text-sm font-medium z-50"
+                    className="absolute left-16 bg-popover text-popover-foreground px-2 py-1 rounded-md text-sm font-medium z-50 shadow-lg"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
@@ -131,10 +131,10 @@ export default function Sidebar({ collapsed, onToggle }) {
       </nav>
 
       {/* User Profile & Logout */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-sidebar-border">
         {!collapsed && (
           <motion.div
-            className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            className="mb-4 p-3 bg-muted rounded-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -146,12 +146,12 @@ export default function Sidebar({ collapsed, onToggle }) {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {user?.first_name && user?.last_name
                     ? `${user.first_name} ${user.last_name}`
                     : user?.name || 'User'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {user?.department || user?.email || 'user@example.com'}
                 </p>
               </div>
@@ -162,7 +162,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         <button
           onClick={handleLogout}
           className={cn(
-            'flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 w-full',
+            'flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 text-sidebar-foreground hover:bg-destructive hover:text-destructive-foreground w-full',
             collapsed && 'justify-center',
           )}
         >

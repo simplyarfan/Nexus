@@ -5,7 +5,7 @@
 
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const googleCalendarService = require('./googleCalendarService');
+// const googleCalendarService = require('./googleCalendarService'); // Temporarily disabled - file doesn't exist
 
 class InterviewCoordinatorService {
   constructor() {
@@ -117,6 +117,8 @@ Make questions specific to the candidate's background and job requirements.`;
     };
 
     // Try to create Google Calendar event if user has connected their calendar
+    // Temporarily disabled - Google Calendar service not available
+    /*
     if (interviewDetails.userId && interviewDetails.useGoogleCalendar) {
       try {
         const isConnected = await googleCalendarService.isUserConnected(interviewDetails.userId);
@@ -152,6 +154,7 @@ Make questions specific to the candidate's background and job requirements.`;
         // Continue without Google Calendar integration
       }
     }
+    */
 
     return schedule;
   }
@@ -371,6 +374,8 @@ Make questions specific to the candidate's background and job requirements.`;
     const conflicts = [];
 
     // If user has Google Calendar connected, check for real conflicts
+    // Temporarily disabled - Google Calendar service not available
+    /*
     if (userId) {
       try {
         const isConnected = await googleCalendarService.isUserConnected(userId);
@@ -383,6 +388,7 @@ Make questions specific to the candidate's background and job requirements.`;
         console.error('⚠️  Could not check Google Calendar conflicts:', error.message);
       }
     }
+    */
 
     const conflictCheck = {
       has_conflicts: false,

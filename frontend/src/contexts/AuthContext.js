@@ -166,6 +166,9 @@ export const AuthProvider = ({ children }) => {
 
           if (accessToken && userData) {
             tokenManager.setTokens(accessToken, refreshToken);
+            console.log('🍪 [LOGIN] Tokens set in cookies');
+            console.log('🔑 [LOGIN] Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'MISSING');
+            console.log('🔄 [LOGIN] Refresh Token:', refreshToken ? refreshToken.substring(0, 30) + '...' : 'MISSING');
             setUser(userData);
             setIsAuthenticated(true);
             toast.success(data.message || 'Registration successful! You are now logged in.');
@@ -261,6 +264,9 @@ export const AuthProvider = ({ children }) => {
           const refreshToken = data.refreshToken;
           if (accessToken) {
             tokenManager.setTokens(accessToken, refreshToken);
+            console.log('🍪 [LOGIN] Tokens set in cookies');
+            console.log('🔑 [LOGIN] Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'MISSING');
+            console.log('🔄 [LOGIN] Refresh Token:', refreshToken ? refreshToken.substring(0, 30) + '...' : 'MISSING');
           }
 
           // Update state with user data

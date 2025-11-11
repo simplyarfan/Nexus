@@ -7,7 +7,11 @@ const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'] || req.headers['Authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+    console.log(`🔐 [AUTH] ${req.method} ${req.path}`);
+    console.log(`🔐 [AUTH] Authorization header:`, authHeader ? `${authHeader.substring(0, 30)}...` : 'missing');
+
     if (!token) {
+      console.error('❌ [AUTH] No token provided');
       return res.status(401).json({
         success: false,
         message: 'Access token required',
@@ -20,8 +24,12 @@ const authenticateToken = async (req, res, next) => {
       if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET environment variable is required');
       }
+      console.log('🔑 [AUTH] Verifying token with JWT_SECRET:', process.env.JWT_SECRET.substring(0, 20) + '...');
       decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ [AUTH] Token verified for user ID:', decoded.userId);
     } catch (jwtError) {
+      console.error('❌ [AUTH] Token verification failed:', jwtError.message);
+      console.error('🔑 [AUTH] JWT_SECRET used for verification:', process.env.JWT_SECRET.substring(0, 20) + '...');
       return res.status(401).json({
         success: false,
         message: 'Invalid or expired token',

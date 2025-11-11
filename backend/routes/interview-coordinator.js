@@ -37,7 +37,7 @@ const upload = multer({
 // Load Interview Coordinator Service
 let InterviewCoordinatorService = null;
 try {
-  const InterviewCoordinatorServiceClass = require('../services/interviewCoordinatorService');
+  const InterviewCoordinatorServiceClass = require('../services/interview-coordinator.service');
   InterviewCoordinatorService = new InterviewCoordinatorServiceClass();
   console.log('✅ Interview Coordinator Service loaded successfully');
 } catch (error) {

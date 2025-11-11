@@ -6,26 +6,9 @@ import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 
-type WorkflowStage = {
-  stage: 'initial_email' | 'awaiting_response' | 'scheduled' | 'completed' | 'rejected';
-  timestamp: string;
-  details?: string;
-};
 
-type Interview = {
-  id: string;
-  candidateName: string;
-  candidateEmail: string;
-  position: string;
-  status: 'awaiting_response' | 'scheduled' | 'completed' | 'cancelled' | 'rejected';
-  createdDate: string;
-  scheduledTime?: string;
-  duration?: number;
-  meetingLink?: string;
-  interviewType?: string;
-  workflow?: WorkflowStage[];
-  rejectionReason?: string;
-};
+
+// 
 
 export default function InterviewsPage() {
   const [view, setView] = useState<'list' | 'request-availability' | 'schedule' | 'details'>('list');

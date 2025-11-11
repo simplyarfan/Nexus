@@ -5,35 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 
-type Candidate = {
-  id: number;
-  name: string;
-  position: string;
-  score: number;
-  email: string;
-  phone: string;
-  location: string;
-  experience: string;
-  education: string;
-  salary: string;
-  matchedSkills: string[];
-  missingSkills: string[];
-  additionalSkills: string[];
-  experienceTimeline: { company: string; role: string; period: string }[];
-  certifications: string[];
-  professionalAssessment: string;
-};
-
-type Batch = {
-  id: string;
-  name: string;
-  position: string;
-  cvCount: number;
-  dateCreated: string;
-  status: 'Completed' | 'Processing' | 'Failed';
-  candidates: Candidate[];
-};
-
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [view, setView] = useState<'batches' | 'upload' | 'candidates'>('batches');

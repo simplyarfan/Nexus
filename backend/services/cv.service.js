@@ -1246,7 +1246,13 @@ const getUserBatches = async (userId) => {
   });
 
   return batches.map((batch) => ({
-    ...batch,
+    id: batch.id,
+    name: batch.batchName, // Correct field name from schema
+    position: batch.position,
+    status: batch.status,
+    cvCount: batch.cvCount,
+    dateCreated: batch.createdAt,
+    candidates: batch.candidates,
     candidate_count: batch.candidates.length,
   }));
 };
@@ -1259,7 +1265,7 @@ const getBatchById = async (batchId, userId) => {
     where: { id: batchId, userId },
     include: {
       candidates: {
-        orderBy: { overallScore: 'asc' },
+        orderBy: { overallScore: 'desc' }, // Changed to desc for highest scores first
       },
     },
   });
@@ -1268,41 +1274,43 @@ const getBatchById = async (batchId, userId) => {
     throw { statusCode: 404, message: 'Batch not found' };
   }
 
-  // Parse JD requirements
-  const jdRequirements = batch.jdRequirements
-    ? JSON.parse(batch.jdRequirements)
-    : { skills: [], experience: [], education: [], mustHave: [] };
-
-  // Format batch data
+  // Format batch data using correct schema fields
   const batchWithCount = {
-    ...batch,
-    cv_count: batch.totalResumes || batch.candidates.length,
-    jd_requirements: jdRequirements,
+    id: batch.id,
+    name: batch.batchName,
+    position: batch.position,
+    jobDescription: batch.jobDescription,
+    status: batch.status,
+    cvCount: batch.cvCount,
+    createdAt: batch.createdAt,
+    updatedAt: batch.updatedAt,
+    cv_count: batch.cvCount,
   };
 
-  // Parse and rank candidates
-  const rankedCandidates = batch.candidates.map((candidate) => {
-    const profileData = candidate.profileJson ? JSON.parse(candidate.profileJson) : {};
-
-    const rank = profileData.rank || candidate.overallScore || 999;
-    const rankingReason = profileData.rankingReason || 'Ranking analysis pending';
-    const assessment = profileData.assessment || {};
-    const recommendationLevel =
-      profileData.recommendationLevel || assessment.recommendation || 'Maybe';
-
-    return {
-      ...candidate,
-      rank,
-      rankingReason,
-      recommendationLevel,
-      assessment,
-      profile_json: profileData,
-    };
-  });
+  // Format candidates with correct schema fields
+  const formattedCandidates = batch.candidates.map((candidate) => ({
+    id: candidate.id,
+    name: candidate.name,
+    email: candidate.email,
+    phone: candidate.phone,
+    location: candidate.location,
+    overallScore: candidate.overallScore,
+    experience: candidate.experience,
+    education: candidate.education,
+    salary: candidate.salary,
+    matchedSkills: candidate.matchedSkills,
+    missingSkills: candidate.missingSkills,
+    additionalSkills: candidate.additionalSkills,
+    experienceTimeline: candidate.experienceTimeline,
+    certifications: candidate.certifications,
+    professionalAssessment: candidate.professionalAssessment,
+    cvFileUrl: candidate.cvFileUrl,
+    createdAt: candidate.createdAt,
+  }));
 
   return {
     batch: batchWithCount,
-    candidates: rankedCandidates,
+    candidates: formattedCandidates,
   };
 };
 
@@ -1318,9 +1326,27 @@ const getCandidateById = async (candidateId) => {
     throw { statusCode: 404, message: 'Candidate not found' };
   }
 
+  // Return candidate with properly formatted fields
   return {
-    ...candidate,
-    profile_json: candidate.profileJson ? JSON.parse(candidate.profileJson) : {},
+    id: candidate.id,
+    batchId: candidate.batchId,
+    name: candidate.name,
+    email: candidate.email,
+    phone: candidate.phone,
+    location: candidate.location,
+    overallScore: candidate.overallScore,
+    experience: candidate.experience,
+    education: candidate.education,
+    salary: candidate.salary,
+    matchedSkills: candidate.matchedSkills,
+    missingSkills: candidate.missingSkills,
+    additionalSkills: candidate.additionalSkills,
+    experienceTimeline: candidate.experienceTimeline,
+    certifications: candidate.certifications,
+    professionalAssessment: candidate.professionalAssessment,
+    cvFileUrl: candidate.cvFileUrl,
+    createdAt: candidate.createdAt,
+    updatedAt: candidate.updatedAt,
   };
 };
 
@@ -1349,7 +1375,7 @@ const deleteBatch = async (batchId, userId) => {
 
   return {
     batchId,
-    batchName: batch.name,
+    batchName: batch.batchName, // Correct field name from schema
   };
 };
 

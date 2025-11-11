@@ -1,3 +1,4 @@
+import Link from 'next/link';
 
 
 import { useState } from 'react';
@@ -5,13 +6,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 
+type Candidate = {
+  id: number;
+  name: string;
+  position: string;
+  score: number;
+  email: string;
+  phone: string;
+  location: string;
+  experience: string;
+  education: string;
+  salary: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  additionalSkills: string[];
+  experienceTimeline: { company: string; role: string; period: string }[];
+  certifications: string[];
+  professionalAssessment: string;
+};
+
+
+
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [view, setView] = useState('batches');
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  const $1 = [
+  const batches = [
     {
       id: 'BATCH-001',
       name: 'Senior Full Stack Developers - December 2024',
@@ -129,7 +151,7 @@ export default function CVIntelligencePage() {
     },
   ];
 
-  const handleDragOver = ($1) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
@@ -138,23 +160,23 @@ export default function CVIntelligencePage() {
     setIsDragging(false);
   };
 
-  const handleDrop = ($1) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     // Simulate file upload
     setView('batches');
   };
 
-  const handleBatchClick = ($1) => {
+  const handleBatchClick = (batch: Batch) => {
     setSelectedBatch(batch);
     setView('candidates');
   };
 
-  const handleCandidateClick = ($1) => {
+  const handleCandidateClick = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
   };
 
-  const calculateSkillsGap = ($1) => {
+  const calculateSkillsGap = (candidate: Candidate) => {
     const totalRequired = candidate.matchedSkills.length + candidate.missingSkills.length;
     return Math.round((candidate.matchedSkills.length / totalRequired) * 100);
   };
@@ -165,12 +187,12 @@ export default function CVIntelligencePage() {
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Dashboard
-            </a>
+            </Link>
           </div>
           <div className="flex items-center justify-between">
             <div>

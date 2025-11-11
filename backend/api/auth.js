@@ -32,7 +32,7 @@ const {
   resetPassword,
   changePassword,
 } = require('../services/auth.service');
-const prisma = require('../lib/prisma');
+const { prisma } = require('../lib/prisma');
 
 // Main router handler
 async function handler(req, res) {

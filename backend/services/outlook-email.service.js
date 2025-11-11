@@ -5,7 +5,7 @@
  */
 
 const axios = require('axios');
-const prisma = require('../lib/prisma');
+const { prisma } = require('../lib/prisma');
 
 class OutlookEmailService {
   constructor() {

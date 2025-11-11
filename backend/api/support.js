@@ -4,7 +4,7 @@
  */
 
 const { withProtectedRoute } = require('../middleware/serverless');
-const prisma = require('../lib/prisma');
+const { prisma } = require('../lib/prisma');
 
 async function handler(req, res) {
   const { method } = req;

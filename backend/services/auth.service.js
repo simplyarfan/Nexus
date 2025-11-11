@@ -4,7 +4,7 @@
  */
 
 const bcrypt = require('bcryptjs');
-const prisma = require('../lib/prisma');
+const { prisma } = require('../lib/prisma');
 const { generateTokens } = require('../lib/auth');
 const { generate2FACode } = require('../utils/twoFactorAuth');
 const emailService = require('./email.service');

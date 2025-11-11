@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { fadeIn } from '../lib/motion';
-import axios from 'axios';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { cvAPI } from '../utils/api';
 
 export default function CVIntelligencePage() {
   const router = useRouter();
@@ -17,18 +15,14 @@ export default function CVIntelligencePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch batches from API
+  // Fetch batches from API using cvAPI utility
   useEffect(() => {
     const fetchBatches = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        setError(null);
 
-        const response = await axios.get(`${API_BASE_URL}/api/cv-intelligence/batches`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await cvAPI.getBatches();
 
         if (response.data.success) {
           setBatches(response.data.data || []);

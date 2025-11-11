@@ -98,3 +98,5 @@ secrets/
 private-keys/
 .env.backup
 .env.production.backup
+# Local Netlify folder
+.netlify

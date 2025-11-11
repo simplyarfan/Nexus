@@ -269,14 +269,14 @@ async function handler(req, res) {
 
       const user = await prisma.user.findUnique({
         where: { email },
-        select: { id: true, email: true, email_verified: true },
+        select: { id: true, email: true, is_verified: true },
       });
 
       return res.status(200).json({
         success: true,
         data: {
           exists: !!user,
-          emailVerified: user?.email_verified || false,
+          emailVerified: user?.is_verified || false,
         },
       });
     } catch (error) {
@@ -337,7 +337,7 @@ async function handler(req, res) {
             department: true,
             job_title: true,
             is_active: true,
-            email_verified: true,
+            is_verified: true,
             is_2fa_enabled: true,
             created_at: true,
           },
@@ -363,7 +363,7 @@ async function handler(req, res) {
               department: user.department,
               jobTitle: user.job_title,
               isActive: user.is_active,
-              emailVerified: user.email_verified,
+              emailVerified: user.is_verified,
               is2FAEnabled: user.is_2fa_enabled,
               createdAt: user.created_at,
             },

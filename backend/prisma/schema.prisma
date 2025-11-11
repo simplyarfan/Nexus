@@ -1,6 +1,3 @@
-// Prisma Schema for Nexus Backend
-// Production-ready schema with full authentication and ticketing system
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,123 +7,296 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// USERS TABLE - Complete Authentication System
-// ============================================
-model User {
-  id                          Int       @id @default(autoincrement())
-  email                       String    @unique
-  first_name                  String?
-  last_name                   String?
-  role                        String    @default("user")
-  password_hash               String
-  department                  String?
-  job_title                   String?
-  
-  // Email Verification
-  email_verified              Boolean   @default(false)
-  verification_token          String?
-  verification_token_expires  DateTime?
-  
-  // Password Reset
-  reset_token                 String?
-  reset_token_expires         DateTime?
-  
-  // Two-Factor Authentication
-  is_2fa_enabled              Boolean   @default(false)
-  two_factor_code             String?
-  two_factor_code_expires     DateTime?
-  
-  // Security & Account Management
-  is_active                   Boolean   @default(true)
-  failed_login_attempts       Int       @default(0)
-  account_locked_until        DateTime?
-  last_login                  DateTime?
-  
-  // Timestamps
-  created_at                  DateTime  @default(now())
-  updated_at                  DateTime  @updatedAt
-  
-  // Relations
-  created_tickets             SupportTicket[]   @relation("TicketCreator")
-  ticket_comments             TicketComment[]
-  sessions                    UserSession[]
+model agent_usage_stats {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  agent_id         String    @db.VarChar(100)
+  usage_count      Int?      @default(0)
+  total_time_spent Int?      @default(0)
+  date             DateTime  @db.Date
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  // Indexes for performance
-  @@index([email])
-  @@index([role])
-  @@index([is_active])
-  @@map("users")
+  @@unique([user_id, agent_id, date])
+  @@index([agent_id, date(sort: Desc)], map: "idx_analytics_agent_date")
 }
 
-// ============================================
-// USER SESSIONS TABLE - JWT Session Management
-// ============================================
-model UserSession {
-  id             Int       @id @default(autoincrement())
-  user_id        Int
-  session_token  String    @unique
-  refresh_token  String    @unique
-  ip_address     String?
-  user_agent     String?
-  expires_at     DateTime
-  created_at     DateTime  @default(now())
-  
-  // Relations
-  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  // Indexes for performance
-  @@index([user_id])
-  @@index([session_token])
-  @@index([refresh_token])
-  @@index([expires_at])
-  @@map("user_sessions")
+model candidates {
+  id            String    @id @db.VarChar(255)
+  batch_id      String    @db.VarChar(255)
+  name          String?   @db.VarChar(255)
+  email         String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(50)
+  location      String?   @db.VarChar(255)
+  profile_json  String?
+  overall_score Int?      @default(0)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([batch_id], map: "idx_candidates_batch_id")
+  @@index([batch_id, overall_score(sort: Desc)], map: "idx_candidates_batch_score")
+  @@index([email], map: "idx_candidates_email")
+  @@index([overall_score], map: "idx_candidates_overall_score")
 }
 
-// ============================================
-// SUPPORT TICKETS TABLE
-// ============================================
-model SupportTicket {
+model cv_batches {
+  id                String    @id @db.VarChar(255)
+  user_id           Int
+  name              String    @db.VarChar(255)
+  status            String?   @default("processing") @db.VarChar(50)
+  total_resumes     Int?      @default(0)
+  processed_resumes Int?      @default(0)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  jd_requirements   String?
+
+  @@index([user_id, status, created_at(sort: Desc)], map: "idx_batches_user_status")
+  @@index([created_at], map: "idx_cv_batches_created_at")
+  @@index([status], map: "idx_cv_batches_status")
+  @@index([user_id], map: "idx_cv_batches_user_id")
+}
+
+model interview_reminders {
+  id              String     @id @db.VarChar(255)
+  interview_id    String     @db.VarChar(255)
+  reminder_type   String     @db.VarChar(50)
+  recipient_email String     @db.VarChar(255)
+  message         String
+  send_at         DateTime   @db.Timestamp(6)
+  sent            Boolean?   @default(false)
+  sent_at         DateTime?  @db.Timestamp(6)
+  created_at      DateTime?  @default(now()) @db.Timestamp(6)
+  interviews      interviews @relation(fields: [interview_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([interview_id], map: "idx_interview_reminders_interview_id")
+  @@index([send_at], map: "idx_interview_reminders_send_at")
+  @@index([sent], map: "idx_interview_reminders_sent")
+  @@index([send_at, sent], map: "idx_reminders_send_at_sent")
+}
+
+model interviews {
+  id                  String                @id @db.VarChar(255)
+  candidate_id        String                @db.VarChar(255)
+  candidate_name      String                @db.VarChar(255)
+  candidate_email     String                @db.VarChar(255)
+  job_title           String                @db.VarChar(255)
+  interview_type      String?               @default("technical") @db.VarChar(50)
+  status              String?               @default("scheduled") @db.VarChar(50)
+  scheduled_time      DateTime?             @db.Timestamp(6)
+  duration            Int?                  @default(60)
+  location            String?               @default("Video Call") @db.VarChar(255)
+  meeting_link        String?
+  calendly_link       String?
+  google_form_link    String?
+  panel_members       String?
+  generated_questions String?
+  notes               String?
+  scheduled_by        Int
+  created_at          DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?             @default(now()) @db.Timestamp(6)
+  platform            String?               @db.VarChar(100)
+  outcome             String?               @db.VarChar(50)
+  scheduled_at        DateTime?             @db.Timestamp(6)
+  cv_file_path        String?
+  google_event_id     String?               @db.VarChar(255)
+  teams_meeting_id    String?               @db.VarChar(255)
+  interview_reminders interview_reminders[]
+
+  @@index([candidate_email], map: "idx_interviews_candidate_email")
+  @@index([scheduled_by], map: "idx_interviews_scheduled_by")
+  @@index([scheduled_time], map: "idx_interviews_scheduled_time")
+  @@index([scheduled_time, status], map: "idx_interviews_scheduled_time_status")
+  @@index([status], map: "idx_interviews_status")
+}
+
+model jobs {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           Int
+  title             String    @db.VarChar(255)
+  description       String
+  requirements_json Json
+  embedding         String?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  users             users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model notifications {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  type       String    @db.VarChar(50)
+  title      String    @db.VarChar(255)
+  message    String
+  metadata   Json?     @db.Json
+  is_read    Boolean?  @default(false)
+  read_at    DateTime? @db.Timestamp(6)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model resume_entities {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resume_id        String      @db.Uuid
+  entity_type      String      @db.VarChar(50)
+  entity_value     String
+  confidence_score Float?      @default(0.0)
+  start_offset     Int?
+  end_offset       Int?
+  spacy_label      String?     @db.VarChar(50)
+  context_window   String?
+  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+  resumes_raw      resumes_raw @relation(fields: [resume_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model resumes_raw {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           Int
+  filename          String            @db.VarChar(255)
+  file_url          String
+  file_size         Int?
+  file_type         String?           @db.VarChar(50)
+  upload_timestamp  DateTime?         @default(now()) @db.Timestamp(6)
+  raw_text          String?
+  processing_status String?           @default("pending") @db.VarChar(50)
+  resume_entities   resume_entities[]
+  users             users             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model support_tickets {
+  id                                       Int               @id @default(autoincrement())
+  user_id                                  Int
+  subject                                  String            @db.VarChar(255)
+  description                              String
+  status                                   String?           @default("open") @db.VarChar(50)
+  priority                                 String?           @default("medium") @db.VarChar(20)
+  category                                 String?           @default("general") @db.VarChar(50)
+  assigned_to                              Int?
+  resolution                               String?
+  resolved_at                              DateTime?         @db.Timestamp(6)
+  created_at                               DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime?         @default(now()) @db.Timestamp(6)
+  users_support_tickets_assigned_toTousers users?            @relation("support_tickets_assigned_toTousers", fields: [assigned_to], references: [id], onUpdate: NoAction)
+  users_support_tickets_user_idTousers     users             @relation("support_tickets_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ticket_comments                          ticket_comments[]
+
+  @@index([created_at], map: "idx_support_tickets_created_at")
+  @@index([priority], map: "idx_support_tickets_priority")
+  @@index([status], map: "idx_support_tickets_status")
+  @@index([user_id], map: "idx_support_tickets_user_id")
+  @@index([priority, status], map: "idx_tickets_priority_status")
+  @@index([status, created_at(sort: Desc)], map: "idx_tickets_status_created")
+  @@index([user_id, status], map: "idx_tickets_user_status")
+}
+
+model system_settings {
   id          Int       @id @default(autoincrement())
-  user_id     Int
-  subject     String
-  description String    @db.Text
-  status      String    @default("open")
-  priority    String    @default("medium")
-  category    String?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-
-  // Relations
-  user        User              @relation("TicketCreator", fields: [user_id], references: [id], onDelete: Cascade)
-  comments    TicketComment[]
-
-  // Indexes for performance
-  @@index([user_id])
-  @@index([status])
-  @@index([priority])
-  @@index([created_at])
-  @@map("support_tickets")
+  key         String    @unique @db.VarChar(100)
+  value       String
+  description String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
 }
 
-// ============================================
-// TICKET COMMENTS TABLE
-// ============================================
-model TicketComment {
-  id          Int       @id @default(autoincrement())
-  ticket_id   Int
-  user_id     Int
-  comment     String    @db.Text
-  is_internal Boolean   @default(false)
-  created_at  DateTime  @default(now())
+model ticket_comments {
+  id              Int             @id @default(autoincrement())
+  ticket_id       Int
+  user_id         Int
+  comment         String
+  is_internal     Boolean?        @default(false)
+  created_at      DateTime?       @default(now()) @db.Timestamp(6)
+  support_tickets support_tickets @relation(fields: [ticket_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  // Relations
-  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
-  user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  @@index([ticket_id, created_at], map: "idx_comments_ticket_created")
+}
 
-  // Indexes for performance
-  @@index([ticket_id])
-  @@index([user_id])
-  @@index([created_at])
-  @@map("ticket_comments")
+model user_analytics {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  action     String    @db.VarChar(100)
+  agent_id   String?   @db.VarChar(100)
+  metadata   Json?
+  ip_address String?   @db.VarChar(45)
+  user_agent String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  users      users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@index([user_id, action, created_at(sort: Desc)], map: "idx_analytics_user_action_date")
+}
+
+model user_preferences {
+  id                    Int       @id @default(autoincrement())
+  user_id               Int       @unique
+  theme                 String?   @default("light") @db.VarChar(20)
+  notifications_email   Boolean?  @default(true)
+  notifications_browser Boolean?  @default(true)
+  language              String?   @default("en") @db.VarChar(10)
+  timezone              String?   @default("UTC") @db.VarChar(50)
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  updated_at            DateTime? @default(now()) @db.Timestamp(6)
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_sessions {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  session_token String    @unique @db.VarChar(255)
+  refresh_token String    @unique @db.VarChar(255)
+  expires_at    DateTime  @db.Timestamp(6)
+  ip_address    String?   @db.VarChar(45)
+  user_agent    String?
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_user_sessions_expires_at")
+  @@index([session_token], map: "idx_user_sessions_session_token")
+  @@index([user_id], map: "idx_user_sessions_user_id")
+}
+
+model users {
+  id                                                 Int                 @id @default(autoincrement())
+  email                                              String              @unique(map: "idx_users_email") @db.VarChar(255)
+  password_hash                                      String              @db.VarChar(255)
+  first_name                                         String              @db.VarChar(100)
+  last_name                                          String              @db.VarChar(100)
+  role                                               String?             @default("user") @db.VarChar(50)
+  department                                         String?             @db.VarChar(100)
+  job_title                                          String?             @db.VarChar(100)
+  is_active                                          Boolean?            @default(true)
+  is_verified                                        Boolean?            @default(false)
+  verification_token                                 String?             @db.VarChar(255)
+  verification_expiry                                DateTime?           @db.Timestamp(6)
+  reset_token                                        String?             @db.VarChar(255)
+  reset_token_expiry                                 DateTime?           @db.Timestamp(6)
+  last_login                                         DateTime?           @db.Timestamp(6)
+  created_at                                         DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at                                         DateTime?           @default(now()) @db.Timestamp(6)
+  failed_login_attempts                              Int?                @default(0)
+  account_locked_until                               DateTime?           @db.Timestamp(6)
+  outlook_access_token                               String?
+  outlook_refresh_token                              String?
+  outlook_token_expires_at                           DateTime?           @db.Timestamp(6)
+  outlook_email                                      String?             @db.VarChar(255)
+  two_factor_enabled                                 Boolean?            @default(false)
+  two_factor_secret                                  String?             @db.VarChar(255)
+  two_factor_code                                    String?             @db.VarChar(10)
+  two_factor_code_expires_at                         DateTime?           @db.Timestamp(6)
+  google_access_token                                String?
+  google_refresh_token                               String?
+  google_token_expires_at                            DateTime?           @db.Timestamp(6)
+  outlook_pkce_verifier                              String?
+  agent_usage_stats                                  agent_usage_stats[]
+  jobs                                               jobs[]
+  notifications                                      notifications[]
+  resumes_raw                                        resumes_raw[]
+  support_tickets_support_tickets_assigned_toTousers support_tickets[]   @relation("support_tickets_assigned_toTousers")
+  support_tickets_support_tickets_user_idTousers     support_tickets[]   @relation("support_tickets_user_idTousers")
+  ticket_comments                                    ticket_comments[]
+  user_analytics                                     user_analytics[]
+  user_preferences                                   user_preferences?
+  user_sessions                                      user_sessions[]
+
+  @@index([created_at], map: "idx_users_created_at")
+  @@index([department], map: "idx_users_department")
+  @@index([is_active], map: "idx_users_is_active")
+  @@index([role], map: "idx_users_role")
 }

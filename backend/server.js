@@ -141,6 +141,12 @@ app.use((req, res, next) => {
         'http://127.0.0.1:3000',
       ];
 
+  // Debug log
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔐 CORS Allowed Origins:', allowedOrigins);
+    console.log('🔐 Request Origin:', origin);
+  }
+
   // Allow Netlify preview deployments and main site
   const isNetlifyDomain =
     origin && (origin.includes('thesimpleai.netlify.app') || origin.includes('netlify.app'));

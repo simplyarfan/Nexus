@@ -73,6 +73,10 @@ export default function ProfilePage() {
         // Update user in AuthContext
         updateUser(data.user);
         toast.success('Profile updated successfully!');
+        // Force a small delay to ensure state updates, then reload to refresh all components
+        setTimeout(() => {
+          router.reload();
+        }, 1000);
       } else {
         toast.error(data.message || 'Failed to update profile');
       }

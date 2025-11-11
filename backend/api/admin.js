@@ -35,7 +35,7 @@ async function handler(req, res) {
       }
 
       const [users, total] = await prisma.$transaction([
-        prisma.user.findMany({
+        prisma.users.findMany({
           where,
           select: {
             id: true,
@@ -53,7 +53,7 @@ async function handler(req, res) {
           skip,
           take: parseInt(limit),
         }),
-        prisma.user.count({ where }),
+        prisma.users.count({ where }),
       ]);
 
       return res.status(200).json({
@@ -90,7 +90,7 @@ async function handler(req, res) {
     // GET /api/admin/users/[id]
     if (path === `/users/${userId}` && method === 'GET') {
       try {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.users.findUnique({
           where: { id: userId },
           select: {
             id: true,
@@ -133,7 +133,7 @@ async function handler(req, res) {
       try {
         const { role, is_active, department, job_title } = req.body;
 
-        const updatedUser = await prisma.user.update({
+        const updatedUser = await prisma.users.update({
           where: { id: userId },
           data: {
             ...(role && { role }),
@@ -169,7 +169,7 @@ async function handler(req, res) {
     // DELETE /api/admin/users/[id]
     if (path === `/users/${userId}` && method === 'DELETE') {
       try {
-        await prisma.user.update({
+        await prisma.users.update({
           where: { id: userId },
           data: { is_active: false },
         });

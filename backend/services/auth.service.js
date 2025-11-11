@@ -19,7 +19,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
   }
 
   // Check if user exists
-  const existingUser = await prisma.user.findUnique({
+  const existingUser = await prisma.users.findUnique({
     where: { email: email.toLowerCase() },
     select: { id: true, is_verified: true },
   });
@@ -31,7 +31,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
 
     // Resend verification
     const { code, hashedCode, expiresAt } = generate2FACode();
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: existingUser.id },
       data: {
         verification_token: hashedCode,
@@ -57,7 +57,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
   const { code, hashedCode, expiresAt } = generate2FACode();
 
   // Create user
-  const newUser = await prisma.user.create({
+  const newUser = await prisma.users.create({
     data: {
       email: email.toLowerCase(),
       password_hash: hashedPassword,
@@ -85,7 +85,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
     await emailService.sendVerificationEmail(newUser.email, code, newUser.first_name);
   } catch (emailError) {
     // Rollback user creation
-    await prisma.user.delete({ where: { id: newUser.id } });
+    await prisma.users.delete({ where: { id: newUser.id } });
     throw {
       statusCode: 500,
       message: 'Failed to send verification email. Please try again.',
@@ -108,7 +108,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
     throw { statusCode: 400, message: 'Email and password are required' };
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { email: email.toLowerCase() },
     select: {
       id: true,
@@ -143,7 +143,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
       lockUntil = new Date(Date.now() + 15 * 60 * 1000);
     }
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         failed_login_attempts: newFailedAttempts,
@@ -188,7 +188,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
   if (user.is_2fa_enabled) {
     const { code, hashedCode, expiresAt } = generate2FACode();
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: user.id },
       data: {
         two_factor_code: hashedCode,
@@ -209,7 +209,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
   }
 
   // Reset failed attempts
-  await prisma.user.update({
+  await prisma.users.update({
     where: { id: user.id },
     data: {
       failed_login_attempts: 0,
@@ -260,7 +260,7 @@ const verifyEmail = async (userId, code) => {
     throw { statusCode: 400, message: 'User ID and verification code are required' };
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { id: parseInt(userId) },
     select: {
       id: true,
@@ -297,7 +297,7 @@ const verifyEmail = async (userId, code) => {
   }
 
   // Mark as verified
-  await prisma.user.update({
+  await prisma.users.update({
     where: { id: user.id },
     data: {
       is_verified: true,
@@ -321,7 +321,7 @@ const resendVerificationCode = async (userId) => {
     throw { statusCode: 400, message: 'User ID is required' };
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { id: parseInt(userId) },
     select: {
       id: true,
@@ -357,7 +357,7 @@ const resendVerificationCode = async (userId) => {
   // Generate new code
   const { code, hashedCode, expiresAt } = generate2FACode();
 
-  await prisma.user.update({
+  await prisma.users.update({
     where: { id: user.id },
     data: {
       verification_token: hashedCode,
@@ -391,7 +391,7 @@ const checkUserExists = async (email) => {
     };
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { email: email.toLowerCase() },
     select: {
       id: true,

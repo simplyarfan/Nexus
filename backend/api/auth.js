@@ -267,7 +267,7 @@ async function handler(req, res) {
         });
       }
 
-      const user = await prisma.user.findUnique({
+      const user = await prisma.users.findUnique({
         where: { email },
         select: { id: true, email: true, is_verified: true },
       });
@@ -326,7 +326,7 @@ async function handler(req, res) {
     // GET profile
     if (method === 'GET') {
       try {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.users.findUnique({
           where: { id: userId },
           select: {
             id: true,
@@ -390,7 +390,7 @@ async function handler(req, res) {
           });
         }
 
-        const updatedUser = await prisma.user.update({
+        const updatedUser = await prisma.users.update({
           where: { id: userId },
           data: {
             first_name: firstName,

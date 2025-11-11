@@ -19,7 +19,7 @@ class OutlookEmailService {
    */
   async getUserAccessToken(userId) {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await prisma.users.findUnique({
         where: { id: userId },
         select: {
           outlook_access_token: true,
@@ -93,7 +93,7 @@ class OutlookEmailService {
       const expiresAt = new Date(Date.now() + expires_in * 1000);
 
       // Update tokens in database
-      await prisma.user.update({
+      await prisma.users.update({
         where: { id: userId },
         data: {
           outlook_access_token: access_token,

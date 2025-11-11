@@ -24,19 +24,19 @@ const InputGreen = forwardRef(
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
     return (
-      <div className={cn('form-group', fullWidth && 'w-full')}>
+      
         {label && (
-          <label htmlFor={inputId} className="form-label">
+          
             {label}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
-          </label>
+            {props.required && *}
+          
         )}
 
-        <div className="relative">
+        
           {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            
               {leftIcon}
-            </div>
+            
           )}
 
           <input
@@ -55,11 +55,11 @@ const InputGreen = forwardRef(
           />
 
           {rightIcon && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            
               {rightIcon}
-            </div>
+            
           )}
-        </div>
+        
 
         {error && (
           <motion.p
@@ -68,11 +68,11 @@ const InputGreen = forwardRef(
             className="form-error"
           >
             {error}
-          </motion.p>
+          
         )}
 
-        {hint && !error && <p className="form-hint">{hint}</p>}
-      </div>
+        {hint && !error && {hint}}
+      
     );
   },
 );

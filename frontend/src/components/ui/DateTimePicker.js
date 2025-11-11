@@ -1,4 +1,4 @@
-'use client';
+
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +12,7 @@ type DateTimePickerProps = {
 
 export default function DateTimePicker({ value, onChange, label, required }: DateTimePickerProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
+  const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState({
     hour: value ? new Date(value).getHours() % 12 || 12 : 10,
@@ -21,18 +21,8 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
   });
 
   const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -66,7 +56,7 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
   };
 
   const handleTimeChange = (type: 'hour' | 'minute' | 'period', value: number | string) => {
-    setSelectedTime((prev) => ({ ...prev, [type]: value }));
+    setSelectedTime(prev => ({ ...prev, [type]: value }));
   };
 
   const handleApply = () => {
@@ -100,12 +90,12 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
     const dateStr = date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
+      year: 'numeric'
     });
     const timeStr = date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true,
+      hour12: true
     });
 
     return `${dateStr} at ${timeStr}`;
@@ -113,20 +103,16 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
 
   const isToday = (day: number) => {
     const today = new Date();
-    return (
-      day === today.getDate() &&
-      currentMonth.getMonth() === today.getMonth() &&
-      currentMonth.getFullYear() === today.getFullYear()
-    );
+    return day === today.getDate() &&
+           currentMonth.getMonth() === today.getMonth() &&
+           currentMonth.getFullYear() === today.getFullYear();
   };
 
   const isSelected = (day: number) => {
     if (!selectedDate) return false;
-    return (
-      day === selectedDate.getDate() &&
-      currentMonth.getMonth() === selectedDate.getMonth() &&
-      currentMonth.getFullYear() === selectedDate.getFullYear()
-    );
+    return day === selectedDate.getDate() &&
+           currentMonth.getMonth() === selectedDate.getMonth() &&
+           currentMonth.getFullYear() === selectedDate.getFullYear();
   };
 
   const goToPreviousMonth = () => {
@@ -159,18 +145,8 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
         <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
           {formatDisplayValue()}
         </span>
-        <svg
-          className="w-5 h-5 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
+        <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </button>
 
@@ -178,7 +154,10 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
         {showPicker && (
           <>
             {/* Backdrop */}
-            <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setShowPicker(false)}
+            />
 
             {/* Picker Modal */}
             <motion.div
@@ -197,18 +176,8 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
                       onClick={goToPreviousMonth}
                       className="p-2 hover:bg-accent rounded-lg transition-colors"
                     >
-                      <svg
-                        className="w-5 h-5 text-foreground"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 19l-7-7 7-7"
-                        />
+                      <svg className="w-5 h-5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                     </button>
 
@@ -223,29 +192,16 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
                       onClick={goToNextMonth}
                       className="p-2 hover:bg-accent rounded-lg transition-colors"
                     >
-                      <svg
-                        className="w-5 h-5 text-foreground"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
+                      <svg className="w-5 h-5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
                   </div>
 
                   {/* Day Headers */}
                   <div className="grid grid-cols-7 gap-2 mb-2">
-                    {daysOfWeek.map((day) => (
-                      <div
-                        key={day}
-                        className="text-center text-xs font-medium text-muted-foreground py-2"
-                      >
+                    {daysOfWeek.map(day => (
+                      <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
                         {day}
                       </div>
                     ))}
@@ -349,13 +305,7 @@ export default function DateTimePicker({ value, onChange, label, required }: Dat
                       <button
                         key={preset.label}
                         type="button"
-                        onClick={() =>
-                          setSelectedTime({
-                            hour: preset.hour,
-                            minute: preset.minute,
-                            period: preset.period,
-                          })
-                        }
+                        onClick={() => setSelectedTime({ hour: preset.hour, minute: preset.minute, period: preset.period })}
                         className="w-full px-3 py-2 text-sm text-foreground hover:bg-accent border border-border rounded-lg transition-colors"
                       >
                         {preset.label}

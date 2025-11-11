@@ -5,11 +5,6 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { cardHover } from '@/lib/motion';
 
-export interface CardProps extends HTMLMotionProps<'div'> {
-  hover?: boolean;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
-}
 
 export default function Card({
   hover = false,
@@ -36,7 +31,7 @@ export default function Card({
       {...props}
     >
       {children}
-    </motion.div>
+    
   );
 }
 
@@ -46,7 +41,7 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ children, className }: CardHeaderProps) {
-  return <div className={cn('mb-4', className)}>{children}</div>;
+  return {children};
 }
 
 interface CardTitleProps {
@@ -55,7 +50,7 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className }: CardTitleProps) {
-  return <h3 className={cn('text-lg font-semibold text-gray-900', className)}>{children}</h3>;
+  return {children};
 }
 
 interface CardDescriptionProps {
@@ -64,7 +59,7 @@ interface CardDescriptionProps {
 }
 
 export function CardDescription({ children, className }: CardDescriptionProps) {
-  return <p className={cn('text-sm text-gray-500 mt-1', className)}>{children}</p>;
+  return {children};
 }
 
 interface CardContentProps {
@@ -73,7 +68,7 @@ interface CardContentProps {
 }
 
 export function CardContent({ children, className }: CardContentProps) {
-  return <div className={cn(className)}>{children}</div>;
+  return {children};
 }
 
 interface CardFooterProps {
@@ -82,5 +77,5 @@ interface CardFooterProps {
 }
 
 export function CardFooter({ children, className }: CardFooterProps) {
-  return <div className={cn('mt-4 pt-4 border-t border-gray-200', className)}>{children}</div>;
+  return {children};
 }

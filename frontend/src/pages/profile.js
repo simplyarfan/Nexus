@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 
 import { useState } from 'react';
@@ -24,12 +23,12 @@ export default function ProfilePage() {
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Dashboard
-            </Link>
+            </a>
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Settings</h1>
@@ -120,7 +119,7 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold text-foreground mb-2">Profile Information</h2>
-                    <p className="text-muted-foreground">Update your account&apos;s profile information</p>
+                    <p className="text-muted-foreground">Update your account's profile information</p>
                   </div>
 
                   {/* Avatar */}

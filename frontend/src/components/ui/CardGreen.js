@@ -38,7 +38,7 @@ export default function CardGreen({
       {...props}
     >
       {children}
-    </motion.div>
+    
   );
 }
 
@@ -50,7 +50,7 @@ export default function CardGreen({
  * @param {string} props.className - Additional classes
  */
 export function CardHeader({ children, className }) {
-  return <div className={cn('mb-4', className)}>{children}</div>;
+  return {children};
 }
 
 /**
@@ -61,7 +61,7 @@ export function CardHeader({ children, className }) {
  * @param {string} props.className - Additional classes
  */
 export function CardTitle({ children, className }) {
-  return <h3 className={cn('text-lg font-semibold text-gray-900', className)}>{children}</h3>;
+  return {children};
 }
 
 /**
@@ -72,7 +72,7 @@ export function CardTitle({ children, className }) {
  * @param {string} props.className - Additional classes
  */
 export function CardDescription({ children, className }) {
-  return <p className={cn('text-sm text-gray-500 mt-1', className)}>{children}</p>;
+  return {children};
 }
 
 /**
@@ -83,7 +83,7 @@ export function CardDescription({ children, className }) {
  * @param {string} props.className - Additional classes
  */
 export function CardContent({ children, className }) {
-  return <div className={cn(className)}>{children}</div>;
+  return {children};
 }
 
 /**
@@ -94,5 +94,5 @@ export function CardContent({ children, className }) {
  * @param {string} props.className - Additional classes
  */
 export function CardFooter({ children, className }) {
-  return <div className={cn('mt-4 pt-4 border-t border-gray-200', className)}>{children}</div>;
+  return {children};
 }

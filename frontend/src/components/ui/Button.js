@@ -1,11 +1,11 @@
-'use client';
 
-import React, { forwardRef } from 'react';
+
 import { motion, HTMLMotionProps } from 'framer-motion';
+import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { buttonTap } from '@/lib/motion';
 
-export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'size'> {
+export interface ButtonProps extends Omit<HTMLMotionProps<"button">, 'size'> {
   variant?: 'primary' | 'secondary' | 'success' | 'error' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
@@ -28,7 +28,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       ...props
     },
-    ref,
+    ref
   ) => {
     const variants = {
       primary: 'btn-primary',
@@ -54,7 +54,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           sizes[size],
           fullWidth && 'w-full',
           (disabled || isLoading) && 'opacity-50 cursor-not-allowed',
-          className,
+          className
         )}
         disabled={disabled || isLoading}
         {...props}
@@ -92,7 +92,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </motion.button>
     );
-  },
+  }
 );
 
 Button.displayName = 'Button';

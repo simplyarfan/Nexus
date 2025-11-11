@@ -140,33 +140,33 @@ const AddToCalendarDropdown = ({ interview }) => {
   ];
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-4 py-3 bg-white border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 text-gray-700 rounded-lg transition-all flex items-center justify-between font-medium group"
       >
-        <span className="flex items-center">
-          <Calendar className="w-5 h-5 mr-2 group-hover:text-green-600" />
+        
+          
           Add to Calendar
-        </span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
+        
+        
+      
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+        
           {calendarOptions.map((option) => (
             <button
               key={option.id}
               onClick={option.action}
               className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3 border-b border-gray-100 last:border-b-0"
             >
-              <span className="text-xl">{option.icon}</span>
-              <span className="font-medium text-gray-700">{option.name}</span>
-            </button>
+              {option.icon}
+              {option.name}
+            
           ))}
-        </div>
+        
       )}
-    </div>
+    
   );
 };
 

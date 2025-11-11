@@ -56,9 +56,9 @@ export default function ModalGreen({
   }, [isOpen, onClose]);
 
   return (
-    <AnimatePresence>
+    
       {isOpen && (
-        <>
+        
           {/* Backdrop */}
           <motion.div
             variants={backdropVariants}
@@ -70,7 +70,7 @@ export default function ModalGreen({
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          
             <motion.div
               variants={modalVariants}
               initial="hidden"
@@ -84,18 +84,18 @@ export default function ModalGreen({
             >
               {/* Header */}
               {(title || description || showClose) && (
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      {title && <h2 className="text-xl font-semibold text-gray-900">{title}</h2>}
-                      {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
-                    </div>
+                
+                  
+                    
+                      {title && {title}}
+                      {description && {description}}
+                    
                     {showClose && (
                       <button
                         onClick={onClose}
                         className="ml-4 text-gray-400 hover:text-gray-500 transition-colors"
                       >
-                        <span className="sr-only">Close</span>
+                        Close
                         <svg
                           className="h-6 w-6"
                           fill="none"
@@ -108,20 +108,20 @@ export default function ModalGreen({
                             strokeWidth={2}
                             d="M6 18L18 6M6 6l12 12"
                           />
-                        </svg>
-                      </button>
+                        
+                      
                     )}
-                  </div>
-                </div>
+                  
+                
               )}
 
               {/* Content */}
-              <div className="px-6 py-4">{children}</div>
-            </motion.div>
-          </div>
-        </>
+              {children}
+            
+          
+        
       )}
-    </AnimatePresence>
+    
   );
 }
 
@@ -141,6 +141,6 @@ export function ModalFooter({ children, className }) {
       )}
     >
       {children}
-    </div>
+    
   );
 }

@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 
 import { useState } from 'react';
@@ -6,7 +5,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 
+type Candidate = {
+  id: number;
+  name: string;
+  position: string;
+  score: number;
+  email: string;
+  phone: string;
+  location: string;
+  experience: string;
+  education: string;
+  salary: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  additionalSkills: string[];
+  experienceTimeline: { company: string; role: string; period: string }[];
+  certifications: string[];
+  professionalAssessment: string;
+};
 
+type Batch = {
+  id: string;
+  name: string;
+  position: string;
+  cvCount: number;
+  dateCreated: string;
+  status: 'Completed' | 'Processing' | 'Failed';
+  candidates: Candidate[];
+};
 
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
@@ -14,7 +40,7 @@ export default function CVIntelligencePage() {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  const batches = [
+  const batches: Batch[] = [
     {
       id: 'BATCH-001',
       name: 'Senior Full Stack Developers - December 2024',
@@ -132,7 +158,7 @@ export default function CVIntelligencePage() {
     },
   ];
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
@@ -141,23 +167,23 @@ export default function CVIntelligencePage() {
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     // Simulate file upload
     setView('batches');
   };
 
-  const handleBatchClick = (batch) => {
+  const handleBatchClick = (batch: Batch) => {
     setSelectedBatch(batch);
     setView('candidates');
   };
 
-  const handleCandidateClick = (candidate) => {
+  const handleCandidateClick = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
   };
 
-  const calculateSkillsGap = (candidate) => {
+  const calculateSkillsGap = (candidate: Candidate) => {
     const totalRequired = candidate.matchedSkills.length + candidate.missingSkills.length;
     return Math.round((candidate.matchedSkills.length / totalRequired) * 100);
   };
@@ -168,12 +194,12 @@ export default function CVIntelligencePage() {
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Dashboard
-            </Link>
+            </a>
           </div>
           <div className="flex items-center justify-between">
             <div>
@@ -310,7 +336,7 @@ export default function CVIntelligencePage() {
                       placeholder="e.g., Sr. AI Developer - December 2024"
                       className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     />
-                    <p className="text-xs text-muted-foreground mt-2">The batch name should describe the role you&apos;re hiring for</p>
+                    <p className="text-xs text-muted-foreground mt-2">The batch name should describe the role you're hiring for</p>
                   </div>
 
                   {/* 2. CV Upload Area */}

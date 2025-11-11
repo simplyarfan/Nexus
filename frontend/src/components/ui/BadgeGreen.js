@@ -55,6 +55,6 @@ export default function BadgeGreen({
         />
       )}
       {children}
-    </motion.span>
+    
   );
 }

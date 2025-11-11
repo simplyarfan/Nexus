@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 
 import { useState } from 'react';
@@ -7,7 +6,26 @@ import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 
+type WorkflowStage = {
+  stage: 'initial_email' | 'awaiting_response' | 'scheduled' | 'completed' | 'rejected';
+  timestamp: string;
+  details?: string;
+};
 
+type Interview = {
+  id: string;
+  candidateName: string;
+  candidateEmail: string;
+  position: string;
+  status: 'awaiting_response' | 'scheduled' | 'completed' | 'cancelled' | 'rejected';
+  createdDate: string;
+  scheduledTime?: string;
+  duration?: number;
+  meetingLink?: string;
+  interviewType?: string;
+  workflow?: WorkflowStage[];
+  rejectionReason?: string;
+};
 
 export default function InterviewsPage() {
   const [view, setView] = useState('list');
@@ -23,7 +41,7 @@ export default function InterviewsPage() {
     emailContent: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null,
+    cvFile: null as File | null,
   });
 
   // Schedule Interview Form (Stage 2)
@@ -34,10 +52,10 @@ export default function InterviewsPage() {
     notes: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null,
+    cvFile: null as File | null,
   });
 
-  const interviews = [
+  const interviews: Interview[] = [
     {
       id: 'INT-001',
       candidateName: 'John Smith',
@@ -93,7 +111,7 @@ export default function InterviewsPage() {
     { label: 'Completed', value: interviews.filter(i => i.status === 'completed').length, color: 'text-primary' },
   ];
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: Interview['status']) => {
     switch (status) {
       case 'awaiting_response':
         return 'bg-muted text-muted-foreground';
@@ -110,7 +128,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageIcon = (stage) => {
+  const getStageIcon = (stage: WorkflowStage['stage']) => {
     switch (stage) {
       case 'initial_email':
         return (
@@ -145,7 +163,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageColor = (stage) => {
+  const getStageColor = (stage: WorkflowStage['stage']) => {
     switch (stage) {
       case 'initial_email':
         return 'bg-accent text-primary border-primary';
@@ -162,7 +180,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageName = (stage) => {
+  const getStageName = (stage: WorkflowStage['stage']) => {
     switch (stage) {
       case 'initial_email':
         return 'Initial Email Sent';
@@ -203,12 +221,12 @@ Best regards,
     }));
   };
 
-  const handleScheduleInterview = (interview) => {
+  const handleScheduleInterview = (interview: Interview) => {
     setSelectedInterview(interview);
     setView('schedule');
   };
 
-  const handleViewDetails = (interview) => {
+  const handleViewDetails = (interview: Interview) => {
     setSelectedInterview(interview);
     setView('details');
   };
@@ -250,12 +268,12 @@ Best regards,
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Dashboard
-            </Link>
+            </a>
           </div>
           <div className="flex items-center justify-between">
             <div>
@@ -645,7 +663,7 @@ Best regards,
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate&apos;s CV to the email</p>
+                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate's CV to the email</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -798,7 +816,7 @@ Best regards,
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate&apos;s CV to the interview confirmation email</p>
+                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate's CV to the interview confirmation email</p>
                   </div>
 
                   <div>

@@ -10,17 +10,17 @@ export const Logo = ({ size = 'md', showText = true, className }) => {
   };
 
   return (
-    <div className={cn('flex items-center space-x-3', className)}>
+    
       <div
         className={cn(
           'bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center',
           sizes[size].container,
         )}
       >
-        <div className={cn('bg-white rounded-sm transform rotate-45', sizes[size].diamond)}></div>
-      </div>
-      {showText && <span className={cn('font-bold text-gray-900', sizes[size].text)}>Nexus</span>}
-    </div>
+        
+      
+      {showText && Nexus}
+    
   );
 };
 

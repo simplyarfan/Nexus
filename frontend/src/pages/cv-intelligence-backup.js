@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
@@ -173,7 +174,7 @@ export default function CVIntelligencePage() {
       <div className="border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a
+            <Link
               href="/dashboard"
               className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
@@ -186,7 +187,7 @@ export default function CVIntelligencePage() {
                 />
               </svg>
               Back to Dashboard
-            </a>
+            </Link>
           </div>
           <div className="flex items-center justify-between">
             <div>

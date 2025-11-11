@@ -11,8 +11,8 @@ import DateTimePicker from '@/components/ui/DateTimePicker';
 // 
 
 export default function InterviewsPage() {
-  const [view, setView] = useState<'list' | 'request-availability' | 'schedule' | 'details'>('list');
-  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
+  const [view, setView] = useState('list');
+  const [selectedInterview, setSelectedInterview] = useState(null);
 
   // Request Availability Form (Stage 1)
   const [availabilityForm, setAvailabilityForm] = useState({
@@ -24,7 +24,7 @@ export default function InterviewsPage() {
     emailContent: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null as File | null,
+    cvFile: null,
   });
 
   // Schedule Interview Form (Stage 2)
@@ -35,10 +35,10 @@ export default function InterviewsPage() {
     notes: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null as File | null,
+    cvFile: null,
   });
 
-  const interviews: Interview[] = [
+  const $1 = [
     {
       id: 'INT-001',
       candidateName: 'John Smith',
@@ -94,7 +94,7 @@ export default function InterviewsPage() {
     { label: 'Completed', value: interviews.filter(i => i.status === 'completed').length, color: 'text-primary' },
   ];
 
-  const getStatusColor = (status: Interview['status']) => {
+  const getStatusColor = status => {
     switch (status) {
       case 'awaiting_response':
         return 'bg-muted text-muted-foreground';
@@ -111,7 +111,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageIcon = (stage: WorkflowStage['stage']) => {
+  const getStageIcon = ($1) => {
     switch (stage) {
       case 'initial_email':
         return (
@@ -146,7 +146,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageColor = (stage: WorkflowStage['stage']) => {
+  const getStageColor = ($1) => {
     switch (stage) {
       case 'initial_email':
         return 'bg-accent text-primary border-primary';
@@ -163,7 +163,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageName = (stage: WorkflowStage['stage']) => {
+  const getStageName = ($1) => {
     switch (stage) {
       case 'initial_email':
         return 'Initial Email Sent';
@@ -204,12 +204,12 @@ Best regards,
     }));
   };
 
-  const handleScheduleInterview = (interview: Interview) => {
+  const handleScheduleInterview = ($1) => {
     setSelectedInterview(interview);
     setView('schedule');
   };
 
-  const handleViewDetails = (interview: Interview) => {
+  const handleViewDetails = ($1) => {
     setSelectedInterview(interview);
     setView('details');
   };
@@ -496,17 +496,17 @@ Best regards,
                       <Button variant="secondary" size="lg" onClick={() => alert('Reschedule functionality coming soon')}>
                         Reschedule
                       </Button>
-                      <Button variant="secondary" size="lg" onClick={() => alert('Interview marked as completed')}>
+                      <Button variant="secondary" size="lg" onClick={() => alert('Interview marked}>
                         Mark as Completed
                       </Button>
                     </>
                   )}
                   {selectedInterview.status === 'completed' && (
                     <>
-                      <Button variant="primary" size="lg" onClick={() => alert('Candidate marked as selected')}>
+                      <Button variant="primary" size="lg" onClick={() => alert('Candidate marked}>
                         Mark as Selected
                       </Button>
-                      <Button variant="ghost" size="lg" onClick={() => alert('Candidate marked as rejected')}>
+                      <Button variant="ghost" size="lg" onClick={() => alert('Candidate marked}>
                         Mark as Rejected
                       </Button>
                     </>

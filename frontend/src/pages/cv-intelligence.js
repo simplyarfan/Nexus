@@ -7,11 +7,11 @@ import Button from '@/components/ui/Button';
 
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
-  const [view, setView] = useState<'batches' | 'upload' | 'candidates'>('batches');
-  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [view, setView] = useState('batches');
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  const batches: Batch[] = [
+  const $1 = [
     {
       id: 'BATCH-001',
       name: 'Senior Full Stack Developers - December 2024',
@@ -129,7 +129,7 @@ export default function CVIntelligencePage() {
     },
   ];
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = ($1) => {
     e.preventDefault();
     setIsDragging(true);
   };
@@ -138,23 +138,23 @@ export default function CVIntelligencePage() {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = ($1) => {
     e.preventDefault();
     setIsDragging(false);
     // Simulate file upload
     setView('batches');
   };
 
-  const handleBatchClick = (batch: Batch) => {
+  const handleBatchClick = ($1) => {
     setSelectedBatch(batch);
     setView('candidates');
   };
 
-  const handleCandidateClick = (candidate: Candidate) => {
+  const handleCandidateClick = ($1) => {
     setSelectedCandidate(candidate);
   };
 
-  const calculateSkillsGap = (candidate: Candidate) => {
+  const calculateSkillsGap = ($1) => {
     const totalRequired = candidate.matchedSkills.length + candidate.missingSkills.length;
     return Math.round((candidate.matchedSkills.length / totalRequired) * 100);
   };

@@ -39,7 +39,7 @@ router.post('/test-email', async (req, res) => {
   }
 
   try {
-    const emailService = require('../services/emailService');
+    const emailService = require('../services/email.service.js');
     const { email } = req.body;
 
     if (!email) {

@@ -213,7 +213,7 @@ app.get('/health', (req, res) => {
 });
 
 // Cache management endpoints (admin only)
-const cacheService = require('./services/cacheService');
+const cacheService = require('./services/cache.service.js');
 const { requireSuperAdmin, authenticateToken } = require('./middleware/auth');
 
 app.get('/api/cache/stats', authenticateToken, requireSuperAdmin, async (req, res) => {

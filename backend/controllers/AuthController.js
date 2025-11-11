@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const database = require('../models/database');
 const { validationResult } = require('express-validator');
 const { generate2FACode, verify2FACode } = require('../utils/twoFactorAuth');
-const emailService = require('../services/emailService');
+const emailService = require('../services/email.service.js');
 
 // Helper function to generate secure JWT tokens
 const generateTokens = (userId, email, role, rememberMe = false) => {

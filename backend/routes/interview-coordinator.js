@@ -47,7 +47,7 @@ try {
 // Load Outlook Email Service
 let OutlookEmailService = null;
 try {
-  const OutlookEmailServiceClass = require('../services/outlookEmailService');
+  const OutlookEmailServiceClass = require('../services/outlook-email.service.js');
   OutlookEmailService = new OutlookEmailServiceClass();
   console.log('✅ Outlook Email Service loaded successfully');
 } catch (error) {

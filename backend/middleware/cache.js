@@ -1,4 +1,4 @@
-const cacheService = require('../services/cacheService');
+const cacheService = require('../services/cache.service.js');
 
 /**
  * Redis Cache Middleware for API responses

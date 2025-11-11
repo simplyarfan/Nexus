@@ -1,10 +1,10 @@
-'use client';
+
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 
-export default function SuperAdminDashboard() {
+export default function AdminDashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,8 +18,8 @@ export default function SuperAdminDashboard() {
         </svg>
       ),
       title: 'User Management',
-      description: 'Manage users, roles, and permissions',
-      href: '/superadmin/users',
+      description: 'Manage users and permissions',
+      href: '/admin/users',
     },
     {
       icon: (
@@ -27,9 +27,9 @@ export default function SuperAdminDashboard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       ),
-      title: 'Support Management',
-      description: 'Handle support tickets and requests',
-      href: '/superadmin/tickets',
+      title: 'Support Tickets',
+      description: 'View and manage support requests',
+      href: '/admin/tickets',
     },
     {
       icon: (
@@ -37,19 +37,9 @@ export default function SuperAdminDashboard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      title: 'Analytics Dashboard',
-      description: 'View system analytics and insights',
-      href: '/superadmin/analytics',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-        </svg>
-      ),
-      title: 'System Health',
-      description: 'Monitor system performance and status',
-      href: '/superadmin/system',
+      title: 'Analytics',
+      description: 'View reports and insights',
+      href: '/admin/analytics',
     },
   ];
 
@@ -116,7 +106,7 @@ export default function SuperAdminDashboard() {
               </svg>
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-foreground">Super Admin</p>
+              <p className="text-sm font-medium text-foreground">Admin User</p>
               <p className="text-xs text-muted-foreground">admin@nexus.com</p>
             </div>
             <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,9 +193,9 @@ export default function SuperAdminDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <h1 className="text-4xl font-bold text-foreground mb-2">SuperAdmin Dashboard</h1>
+                    <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
                     <p className="text-muted-foreground text-lg">
-                      Welcome back, Admin!
+                      Manage your platform
                     </p>
                   </motion.div>
                 </div>
@@ -241,9 +231,9 @@ export default function SuperAdminDashboard() {
                           </div>
                           <div className="max-h-96 overflow-y-auto">
                             {[
-                              { title: 'New user registration', detail: 'john@example.com - Pending approval', time: '5 min ago' },
-                              { title: 'System backup completed', detail: 'All data backed up successfully', time: '1 hour ago' },
-                              { title: 'New support ticket', detail: 'Ticket #1234 - High Priority', time: '2 hours ago' },
+                              { title: 'New support ticket', detail: 'Ticket #1235 - User login issue', time: '10 min ago' },
+                              { title: 'Password reset request', detail: 'User requested password reset', time: '1 hour ago' },
+                              { title: 'Ticket resolved', detail: 'Ticket #1220 marked as resolved', time: '3 hours ago' },
                             ].map((notification, index) => (
                               <div key={index} className="p-4 hover:bg-accent transition-colors border-b border-border last:border-0">
                                 <p className="font-medium text-foreground text-sm">{notification.title}</p>
@@ -266,11 +256,11 @@ export default function SuperAdminDashboard() {
 
           {/* Stats Overview */}
           <div className="max-w-7xl mx-auto px-8 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               {[
                 {
                   label: 'Total Users',
-                  value: '847',
+                  value: '542',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -279,8 +269,8 @@ export default function SuperAdminDashboard() {
                   color: 'bg-primary/10 text-primary'
                 },
                 {
-                  label: 'Active Tickets',
-                  value: '23',
+                  label: 'Open Tickets',
+                  value: '18',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -289,24 +279,14 @@ export default function SuperAdminDashboard() {
                   color: 'bg-primary/20 text-primary'
                 },
                 {
-                  label: 'System Uptime',
-                  value: '99.9%',
+                  label: 'Resolved Today',
+                  value: '12',
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   ),
                   color: 'bg-primary/10 text-primary'
-                },
-                {
-                  label: 'System Health',
-                  value: 'Good',
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-                    </svg>
-                  ),
-                  color: 'bg-accent text-accent-foreground'
                 },
               ].map((stat, index) => (
                 <motion.div
@@ -325,13 +305,13 @@ export default function SuperAdminDashboard() {
               ))}
             </div>
 
-            {/* Admin Tools Section */}
+            {/* Management Tools Section */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-foreground mb-2">Admin Tools</h2>
-              <p className="text-muted-foreground">Manage your platform with full administrative access</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Management Tools</h2>
+              <p className="text-muted-foreground">Access administrative tools and manage platform resources</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {agents.map((agent, index) => (
                 <motion.div
                   key={agent.title}
@@ -357,7 +337,7 @@ export default function SuperAdminDashboard() {
 
                     <div className="flex items-center justify-center pt-4 border-t border-border">
                       <div className="inline-flex items-center gap-2 text-primary font-medium group-hover:gap-3 transition-all">
-                        <span>Access Tool</span>
+                        <span>Open Tool</span>
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>

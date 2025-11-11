@@ -1,19 +1,160 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { fadeIn, scaleIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
 import InputGreen from '../components/ui/InputGreen';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const { user, loading: authLoading, isAuthenticated, updateUser, getAuthHeaders } = useAuth();
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSave = async () => {
+  // Profile form state
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [department, setDepartment] = useState('');
+
+  // Password form state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name || '');
+      setLastName(user.last_name || '');
+      setEmail(user.email || '');
+      setJobTitle(user.job_title || '');
+      setDepartment(user.department || '');
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSaving(false);
+    try {
+      const headers = getAuthHeaders();
+      if (!headers) {
+        toast.error('You must be logged in to update your profile');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          job_title: jobTitle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update user in AuthContext
+        updateUser(data.user);
+        toast.success('Profile updated successfully!');
+      } else {
+        toast.error(data.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('An error occurred while updating your profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setIsSaving(true);
+    try {
+      // Validate passwords
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        toast.error('All password fields are required');
+        setIsSaving(false);
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        toast.error('New passwords do not match');
+        setIsSaving(false);
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        toast.error('Password must be at least 8 characters long');
+        setIsSaving(false);
+        return;
+      }
+
+      const headers = getAuthHeaders();
+      if (!headers) {
+        toast.error('You must be logged in to change your password');
+        setIsSaving(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/profile/password`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.success('Password changed successfully!');
+        // Clear password fields
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        toast.error(data.message || 'Failed to change password');
+      }
+    } catch (error) {
+      console.error('Password change error:', error);
+      toast.error('An error occurred while changing your password');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Show loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!firstName || !lastName) return 'U';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   return (
@@ -161,42 +302,59 @@ export default function ProfilePage() {
                   {/* Avatar */}
                   <div className="flex items-center gap-6">
                     <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                      JS
+                      {getInitials()}
                     </div>
                     <div>
-                      <ButtonGreen variant="secondary" size="md">
+                      <ButtonGreen variant="secondary" size="md" disabled>
                         Change Photo
                       </ButtonGreen>
                       <p className="text-xs text-muted-foreground mt-2">
-                        JPG, GIF or PNG. Max size 2MB
+                        Coming soon - Photo upload feature
                       </p>
                     </div>
                   </div>
 
                   {/* Form */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputGreen label="Full Name" type="text" placeholder="John Smith" fullWidth />
+                    <InputGreen
+                      label="First Name"
+                      type="text"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      fullWidth
+                    />
+                    <InputGreen
+                      label="Last Name"
+                      type="text"
+                      placeholder="Smith"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      fullWidth
+                    />
                     <InputGreen
                       label="Email"
                       type="email"
                       placeholder="john.smith@company.com"
+                      value={email}
+                      disabled
                       fullWidth
                     />
                     <InputGreen
-                      label="Phone"
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
+                      label="Department"
+                      type="text"
+                      placeholder="Human Resources"
+                      value={department}
+                      disabled
                       fullWidth
                     />
-                    <InputGreen label="Job Title" type="text" placeholder="HR Manager" fullWidth />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Tell us about yourself..."
-                      className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                    <InputGreen
+                      label="Job Title"
+                      type="text"
+                      placeholder="HR Manager"
+                      value={jobTitle}
+                      onChange={(e) => setJobTitle(e.target.value)}
+                      fullWidth
                     />
                   </div>
 
@@ -205,11 +363,15 @@ export default function ProfilePage() {
                       variant="primary"
                       size="lg"
                       isLoading={isSaving}
-                      onClick={handleSave}
+                      onClick={handleSaveProfile}
                     >
                       Save Changes
                     </ButtonGreen>
-                    <ButtonGreen variant="secondary" size="lg">
+                    <ButtonGreen
+                      variant="secondary"
+                      size="lg"
+                      onClick={() => router.push('/')}
+                    >
                       Cancel
                     </ButtonGreen>
                   </div>
@@ -231,20 +393,29 @@ export default function ProfilePage() {
                       label="Current Password"
                       type="password"
                       placeholder="••••••••"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
                       fullWidth
                     />
                     <InputGreen
                       label="New Password"
                       type="password"
                       placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       fullWidth
                     />
                     <InputGreen
                       label="Confirm New Password"
                       type="password"
                       placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       fullWidth
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Password must be at least 8 characters long
+                    </p>
                   </div>
 
                   {/* 2FA */}
@@ -269,9 +440,13 @@ export default function ProfilePage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">2FA is Enabled</p>
+                        <p className="font-medium text-foreground">
+                          {user?.two_factor_enabled ? '2FA is Enabled' : '2FA is Disabled'}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          Extra security for your account - Required for all users
+                          {user?.two_factor_enabled
+                            ? 'Extra security for your account - Required for all users'
+                            : 'Enable 2FA for enhanced security'}
                         </p>
                       </div>
                     </div>
@@ -282,9 +457,9 @@ export default function ProfilePage() {
                       variant="primary"
                       size="lg"
                       isLoading={isSaving}
-                      onClick={handleSave}
+                      onClick={handleChangePassword}
                     >
-                      Update Security
+                      Change Password
                     </ButtonGreen>
                   </div>
                 </div>

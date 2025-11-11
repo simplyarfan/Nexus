@@ -180,7 +180,11 @@ if (!process.env.JWT_SECRET) {
 }
 
 // JWT_REFRESH_SECRET is optional - will use JWT_SECRET as fallback
-if (!process.env.JWT_REFRESH_SECRET) {
+// Also check for REFRESH_TOKEN_SECRET (Vercel naming)
+if (!process.env.JWT_REFRESH_SECRET && process.env.REFRESH_TOKEN_SECRET) {
+  process.env.JWT_REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
+  console.log('✅ Using REFRESH_TOKEN_SECRET as JWT_REFRESH_SECRET');
+} else if (!process.env.JWT_REFRESH_SECRET) {
   console.warn('⚠️ SECURITY WARNING: JWT_REFRESH_SECRET not set, using JWT_SECRET as fallback');
   console.warn('⚠️ For production, set separate JWT_REFRESH_SECRET for better security');
   process.env.JWT_REFRESH_SECRET = process.env.JWT_SECRET;

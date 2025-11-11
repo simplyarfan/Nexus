@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
 import DateTimePicker from '../components/ui/DateTimePicker';
-import DashboardLayout from '../components/layout/DashboardLayout';
 
 export default function InterviewsPage() {
   const router = useRouter();
@@ -324,8 +323,7 @@ Best regards,
         <title>Interview Coordinator | Nexus</title>
         <meta name="description" content="Schedule and manage interviews efficiently" />
       </Head>
-      <DashboardLayout>
-        <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
           {/* Header */}
           <div className="border-b border-border bg-card">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -1202,7 +1200,6 @@ Best regards,
             </AnimatePresence>
           </div>
         </div>
-      </DashboardLayout>
     </>
   );
 }

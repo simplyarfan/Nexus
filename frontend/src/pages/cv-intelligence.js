@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { fadeIn } from '../lib/motion';
 
 export default function CVIntelligencePage() {
@@ -145,8 +144,7 @@ export default function CVIntelligencePage() {
         <title>CV Intelligence - Nexus AI Hub</title>
       </Head>
 
-      <DashboardLayout>
-        <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
           {/* Header */}
           <div className="border-b border-border bg-card">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -591,7 +589,6 @@ export default function CVIntelligencePage() {
             </AnimatePresence>
           </div>
         </div>
-      </DashboardLayout>
     </>
   );
 }

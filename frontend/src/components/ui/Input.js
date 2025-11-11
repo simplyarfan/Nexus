@@ -16,15 +16,15 @@ const Input = forwardRef(({
   return (
     <div className={cn('w-full', fullWidth && 'w-full')}>
       {label && (
-        <label className=\"block text-sm font-medium text-foreground mb-2\">
+        <label className='block text-sm font-medium text-foreground mb-2'>
           {label}
-          {required && <span className=\"text-destructive ml-1\">*</span>}
+          {required && <span className='text-destructive ml-1'>*</span>}
         </label>
       )}
       
-      <div className=\"relative\">
+      <div className='relative'>
         {leftIcon && (
-          <div className=\"absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground\">
+          <div className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground'>
             {leftIcon}
           </div>
         )}
@@ -48,18 +48,18 @@ const Input = forwardRef(({
         />
         
         {rightIcon && (
-          <div className=\"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground\">
+          <div className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground'>
             {rightIcon}
           </div>
         )}
       </div>
       
       {error && (
-        <p className=\"text-sm text-destructive mt-1\">{error}</p>
+        <p className='text-sm text-destructive mt-1'>{error}</p>
       )}
       
       {hint && !error && (
-        <p className=\"text-sm text-muted-foreground mt-1\">{hint}</p>
+        <p className='text-sm text-muted-foreground mt-1'>{hint}</p>
       )}
     </div>
   );

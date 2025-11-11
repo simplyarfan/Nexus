@@ -6,26 +6,7 @@ import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 
-type WorkflowStage = {
-  stage: 'initial_email' | 'awaiting_response' | 'scheduled' | 'completed' | 'rejected';
-  timestamp: string;
-  details?: string;
-};
 
-type Interview = {
-  id: string;
-  candidateName: string;
-  candidateEmail: string;
-  position: string;
-  status: 'awaiting_response' | 'scheduled' | 'completed' | 'cancelled' | 'rejected';
-  createdDate: string;
-  scheduledTime?: string;
-  duration?: number;
-  meetingLink?: string;
-  interviewType?: string;
-  workflow?: WorkflowStage[];
-  rejectionReason?: string;
-};
 
 export default function InterviewsPage() {
   const [view, setView] = useState('list');
@@ -41,7 +22,7 @@ export default function InterviewsPage() {
     emailContent: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null as File | null,
+    cvFile: null,
   });
 
   // Schedule Interview Form (Stage 2)
@@ -52,10 +33,10 @@ export default function InterviewsPage() {
     notes: '',
     ccEmails: '',
     bccEmails: '',
-    cvFile: null as File | null,
+    cvFile: null,
   });
 
-  const interviews: Interview[] = [
+  const interviews = [
     {
       id: 'INT-001',
       candidateName: 'John Smith',
@@ -111,7 +92,7 @@ export default function InterviewsPage() {
     { label: 'Completed', value: interviews.filter(i => i.status === 'completed').length, color: 'text-primary' },
   ];
 
-  const getStatusColor = (status: Interview['status']) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'awaiting_response':
         return 'bg-muted text-muted-foreground';
@@ -128,7 +109,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageIcon = (stage: WorkflowStage['stage']) => {
+  const getStageIcon = (stage) => {
     switch (stage) {
       case 'initial_email':
         return (
@@ -163,7 +144,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageColor = (stage: WorkflowStage['stage']) => {
+  const getStageColor = (stage) => {
     switch (stage) {
       case 'initial_email':
         return 'bg-accent text-primary border-primary';
@@ -180,7 +161,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageName = (stage: WorkflowStage['stage']) => {
+  const getStageName = (stage) => {
     switch (stage) {
       case 'initial_email':
         return 'Initial Email Sent';
@@ -221,12 +202,12 @@ Best regards,
     }));
   };
 
-  const handleScheduleInterview = (interview: Interview) => {
+  const handleScheduleInterview = (interview) => {
     setSelectedInterview(interview);
     setView('schedule');
   };
 
-  const handleViewDetails = (interview: Interview) => {
+  const handleViewDetails = (interview) => {
     setSelectedInterview(interview);
     setView('details');
   };
@@ -513,18 +494,18 @@ Best regards,
                       <Button variant="secondary" size="lg" onClick={() => alert('Reschedule functionality coming soon')}>
                         Reschedule
                       </Button>
-                      <Button variant="secondary" size="lg" onClick={() => alert('Interview marked as completed')}>
-                        Mark as Completed
+                      <Button variant="secondary" size="lg" onClick={() => alert('Interview marked')}>
+                        Mark
                       </Button>
                     </>
                   )}
                   {selectedInterview.status === 'completed' && (
                     <>
-                      <Button variant="primary" size="lg" onClick={() => alert('Candidate marked as selected')}>
-                        Mark as Selected
+                      <Button variant="primary" size="lg" onClick={() => alert('Candidate marked')}>
+                        Mark
                       </Button>
-                      <Button variant="ghost" size="lg" onClick={() => alert('Candidate marked as rejected')}>
-                        Mark as Rejected
+                      <Button variant="ghost" size="lg" onClick={() => alert('Candidate marked')}>
+                        Mark
                       </Button>
                     </>
                   )}
@@ -663,7 +644,7 @@ Best regards,
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate's CV to the email</p>
+                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate&apos;s CV to the email</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -816,7 +797,7 @@ Best regards,
                         )}
                       </label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate's CV to the interview confirmation email</p>
+                    <p className="text-xs text-muted-foreground mt-1">Attach the candidate&apos;s CV to the interview confirmation email</p>
                   </div>
 
                   <div>

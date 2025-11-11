@@ -18,7 +18,7 @@ const getCorsHeaders = (origin) => {
 
   const isAllowed =
     allowedOrigins.includes(origin) ||
-    (origin && origin.includes('netlify.app'));
+    (origin && (origin.includes('netlify.app') || origin.includes('vercel.app')));
 
   return {
     'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],

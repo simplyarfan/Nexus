@@ -2,10 +2,10 @@
   "name": "ai-platform-backend",
   "version": "1.0.1",
   "description": "Production-ready backend API for Enterprise AI Hub",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "build": "npx prisma generate",
     "postinstall": "npx prisma generate",
     "init-db": "node scripts/init-database.js",

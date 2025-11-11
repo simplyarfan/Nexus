@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fadeIn, scaleIn } from '../lib/motion';
+import { fadeIn } from '../lib/motion';
 import ButtonGreen from '../components/ui/ButtonGreen';
 import DateTimePicker from '../components/ui/DateTimePicker';
 import DashboardLayout from '../components/layout/DashboardLayout';
 
 export default function InterviewsPage() {
+  const router = useRouter();
   const [view, setView] = useState('list');
   const [selectedInterview, setSelectedInterview] = useState(null);
 
@@ -285,6 +286,7 @@ Best regards,
   };
 
   const handleSubmitAvailabilityRequest = () => {
+    // eslint-disable-next-line no-console
     console.log('Sending availability request:', availabilityForm);
     // Here you would make API call to send email with CV attachment
     setView('list');
@@ -302,6 +304,7 @@ Best regards,
   };
 
   const handleSubmitSchedule = () => {
+    // eslint-disable-next-line no-console
     console.log('Scheduling interview:', scheduleForm);
     // Here you would make API call to schedule interview + create Teams meeting
     setView('list');

@@ -367,11 +367,7 @@ export default function ProfilePage() {
                     >
                       Save Changes
                     </ButtonGreen>
-                    <ButtonGreen
-                      variant="secondary"
-                      size="lg"
-                      onClick={() => router.push('/')}
-                    >
+                    <ButtonGreen variant="secondary" size="lg" onClick={() => router.push('/')}>
                       Cancel
                     </ButtonGreen>
                   </div>
@@ -518,8 +514,8 @@ export default function ProfilePage() {
                     <ButtonGreen
                       variant="primary"
                       size="lg"
-                      isLoading={isSaving}
-                      onClick={handleSave}
+                      disabled
+                      onClick={() => toast.info('Notification preferences coming soon')}
                     >
                       Save Preferences
                     </ButtonGreen>
@@ -540,7 +536,10 @@ export default function ProfilePage() {
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Language
                       </label>
-                      <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                      <select
+                        disabled
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring opacity-60 cursor-not-allowed"
+                      >
                         <option>English (US)</option>
                         <option>English (UK)</option>
                         <option>Spanish</option>
@@ -552,7 +551,10 @@ export default function ProfilePage() {
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Timezone
                       </label>
-                      <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                      <select
+                        disabled
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring opacity-60 cursor-not-allowed"
+                      >
                         <option>Pacific Time (PT)</option>
                         <option>Mountain Time (MT)</option>
                         <option>Central Time (CT)</option>
@@ -564,7 +566,10 @@ export default function ProfilePage() {
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Date Format
                       </label>
-                      <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                      <select
+                        disabled
+                        className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring opacity-60 cursor-not-allowed"
+                      >
                         <option>MM/DD/YYYY</option>
                         <option>DD/MM/YYYY</option>
                         <option>YYYY-MM-DD</option>
@@ -576,8 +581,8 @@ export default function ProfilePage() {
                     <ButtonGreen
                       variant="primary"
                       size="lg"
-                      isLoading={isSaving}
-                      onClick={handleSave}
+                      disabled
+                      onClick={() => toast.info('Preferences settings coming soon')}
                     >
                       Save Preferences
                     </ButtonGreen>

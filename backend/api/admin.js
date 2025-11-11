@@ -35,7 +35,7 @@ async function handler(req, res) {
       }
 
       const [users, total] = await prisma.$transaction([
-        prisma.users.findMany({
+        prisma.user.findMany({
           where,
           select: {
             id: true,
@@ -46,14 +46,14 @@ async function handler(req, res) {
             department: true,
             job_title: true,
             is_active: true,
-            is_verified: true,
+            email_verified: true,
             created_at: true,
           },
           orderBy: { created_at: 'desc' },
           skip,
           take: parseInt(limit),
         }),
-        prisma.users.count({ where }),
+        prisma.user.count({ where }),
       ]);
 
       return res.status(200).json({
@@ -90,7 +90,7 @@ async function handler(req, res) {
     // GET /api/admin/users/[id]
     if (path === `/users/${userId}` && method === 'GET') {
       try {
-        const user = await prisma.users.findUnique({
+        const user = await prisma.user.findUnique({
           where: { id: userId },
           select: {
             id: true,
@@ -101,7 +101,7 @@ async function handler(req, res) {
             department: true,
             job_title: true,
             is_active: true,
-            is_verified: true,
+            email_verified: true,
             is_2fa_enabled: true,
             created_at: true,
             updated_at: true,
@@ -133,7 +133,7 @@ async function handler(req, res) {
       try {
         const { role, is_active, department, job_title } = req.body;
 
-        const updatedUser = await prisma.users.update({
+        const updatedUser = await prisma.user.update({
           where: { id: userId },
           data: {
             ...(role && { role }),
@@ -169,7 +169,7 @@ async function handler(req, res) {
     // DELETE /api/admin/users/[id]
     if (path === `/users/${userId}` && method === 'DELETE') {
       try {
-        await prisma.users.update({
+        await prisma.user.update({
           where: { id: userId },
           data: { is_active: false },
         });

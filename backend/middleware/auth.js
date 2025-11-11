@@ -37,7 +37,7 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Get user details from database
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,

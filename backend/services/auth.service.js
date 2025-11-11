@@ -19,19 +19,19 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
   }
 
   // Check if user exists
-  const existingUser = await prisma.users.findUnique({
+  const existingUser = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
-    select: { id: true, is_verified: true },
+    select: { id: true, email_verified: true },
   });
 
   if (existingUser) {
-    if (existingUser.is_verified) {
+    if (existingUser.email_verified) {
       throw { statusCode: 400, message: 'User already exists with this email address' };
     }
 
     // Resend verification
     const { code, hashedCode, expiresAt } = generate2FACode();
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: existingUser.id },
       data: {
         verification_token: hashedCode,
@@ -57,7 +57,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
   const { code, hashedCode, expiresAt } = generate2FACode();
 
   // Create user
-  const newUser = await prisma.users.create({
+  const newUser = await prisma.user.create({
     data: {
       email: email.toLowerCase(),
       password_hash: hashedPassword,
@@ -67,7 +67,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
       job_title: jobTitle || null,
       role: 'user',
       is_active: true,
-      is_verified: false,
+      email_verified: false,
       verification_token: hashedCode,
       verification_token_expires: expiresAt,
     },
@@ -85,7 +85,7 @@ const registerUser = async ({ email, password, firstName, lastName, department, 
     await emailService.sendVerificationEmail(newUser.email, code, newUser.first_name);
   } catch (emailError) {
     // Rollback user creation
-    await prisma.users.delete({ where: { id: newUser.id } });
+    await prisma.user.delete({ where: { id: newUser.id } });
     throw {
       statusCode: 500,
       message: 'Failed to send verification email. Please try again.',
@@ -108,7 +108,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
     throw { statusCode: 400, message: 'Email and password are required' };
   }
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
     select: {
       id: true,
@@ -120,7 +120,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
       department: true,
       job_title: true,
       is_active: true,
-      is_verified: true,
+      email_verified: true,
       failed_login_attempts: true,
       account_locked_until: true,
       is_2fa_enabled: true,
@@ -143,7 +143,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
       lockUntil = new Date(Date.now() + 15 * 60 * 1000);
     }
 
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         failed_login_attempts: newFailedAttempts,
@@ -161,7 +161,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
   }
 
   // Check verification
-  if (!user.is_verified) {
+  if (!user.email_verified) {
     throw {
       statusCode: 403,
       message: 'Please verify your email address first.',
@@ -188,7 +188,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
   if (user.is_2fa_enabled) {
     const { code, hashedCode, expiresAt } = generate2FACode();
 
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: {
         two_factor_code: hashedCode,
@@ -209,7 +209,7 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
   }
 
   // Reset failed attempts
-  await prisma.users.update({
+  await prisma.user.update({
     where: { id: user.id },
     data: {
       failed_login_attempts: 0,
@@ -260,7 +260,7 @@ const verifyEmail = async (userId, code) => {
     throw { statusCode: 400, message: 'User ID and verification code are required' };
   }
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: parseInt(userId) },
     select: {
       id: true,
@@ -268,7 +268,7 @@ const verifyEmail = async (userId, code) => {
       first_name: true,
       verification_token: true,
       verification_token_expires: true,
-      is_verified: true,
+      email_verified: true,
     },
   });
 
@@ -276,7 +276,7 @@ const verifyEmail = async (userId, code) => {
     throw { statusCode: 404, message: 'User not found' };
   }
 
-  if (user.is_verified) {
+  if (user.email_verified) {
     throw { statusCode: 400, message: 'Email already verified' };
   }
 
@@ -297,10 +297,10 @@ const verifyEmail = async (userId, code) => {
   }
 
   // Mark as verified
-  await prisma.users.update({
+  await prisma.user.update({
     where: { id: user.id },
     data: {
-      is_verified: true,
+      email_verified: true,
       verification_token: null,
       verification_token_expires: null,
       updated_at: new Date(),
@@ -321,13 +321,13 @@ const resendVerificationCode = async (userId) => {
     throw { statusCode: 400, message: 'User ID is required' };
   }
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: parseInt(userId) },
     select: {
       id: true,
       email: true,
       first_name: true,
-      is_verified: true,
+      email_verified: true,
       verification_token_expires: true,
     },
   });
@@ -336,7 +336,7 @@ const resendVerificationCode = async (userId) => {
     throw { statusCode: 404, message: 'User not found' };
   }
 
-  if (user.is_verified) {
+  if (user.email_verified) {
     throw { statusCode: 400, message: 'Email already verified' };
   }
 
@@ -357,7 +357,7 @@ const resendVerificationCode = async (userId) => {
   // Generate new code
   const { code, hashedCode, expiresAt } = generate2FACode();
 
-  await prisma.users.update({
+  await prisma.user.update({
     where: { id: user.id },
     data: {
       verification_token: hashedCode,
@@ -391,7 +391,7 @@ const checkUserExists = async (email) => {
     };
   }
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
     select: {
       id: true,
@@ -401,7 +401,7 @@ const checkUserExists = async (email) => {
       department: true,
       job_title: true,
       role: true,
-      is_verified: true,
+      email_verified: true,
       is_active: true,
     },
   });
@@ -419,7 +419,7 @@ const checkUserExists = async (email) => {
           department: user.department,
           jobTitle: user.job_title,
           role: user.role,
-          emailVerified: user.is_verified,
+          emailVerified: user.email_verified,
           isActive: user.is_active,
         }
       : null,

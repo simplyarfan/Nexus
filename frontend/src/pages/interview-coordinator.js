@@ -1,3 +1,4 @@
+import Link from 'next/link';
 
 
 import { useState } from 'react';
@@ -5,12 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import DateTimePicker from '@/components/ui/DateTimePicker';
-
-type WorkflowStage = {
-  stage: 'initial_email' | 'awaiting_response' | 'scheduled' | 'completed' | 'rejected';
-  timestamp: string;
-  details?: string;
-};
 
 
 
@@ -98,7 +93,7 @@ export default function InterviewsPage() {
     { label: 'Completed', value: interviews.filter(i => i.status === 'completed').length, color: 'text-primary' },
   ];
 
-  const getStatusColor = (status: Interview['status']) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'awaiting_response':
         return 'bg-muted text-muted-foreground';
@@ -115,7 +110,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageIcon = (stage: WorkflowStage['stage']) => {
+  const getStageIcon = (stage) => {
     switch (stage) {
       case 'initial_email':
         return (
@@ -150,7 +145,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageColor = (stage: WorkflowStage['stage']) => {
+  const getStageColor = (stage) => {
     switch (stage) {
       case 'initial_email':
         return 'bg-accent text-primary border-primary';
@@ -167,7 +162,7 @@ export default function InterviewsPage() {
     }
   };
 
-  const getStageName = (stage: WorkflowStage['stage']) => {
+  const getStageName = (stage) => {
     switch (stage) {
       case 'initial_email':
         return 'Initial Email Sent';
@@ -208,12 +203,12 @@ Best regards,
     }));
   };
 
-  const handleScheduleInterview = (interview: Interview) => {
+  const handleScheduleInterview = (interview) => {
     setSelectedInterview(interview);
     setView('schedule');
   };
 
-  const handleViewDetails = (interview: Interview) => {
+  const handleViewDetails = (interview) => {
     setSelectedInterview(interview);
     setView('details');
   };
@@ -255,12 +250,12 @@ Best regards,
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Dashboard
-            </a>
+            </Link>
           </div>
           <div className="flex items-center justify-between">
             <div>
@@ -453,7 +448,7 @@ Best regards,
                             className="text-sm font-medium text-primary hover:opacity-80 transition-opacity"
                           >
                             {selectedInterview.meetingLink}
-                          </a>
+                          </Link>
                         </div>
                       )}
                     </div>

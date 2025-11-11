@@ -6,25 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 
-type Candidate = {
-  id: number;
-  name: string;
-  position: string;
-  score: number;
-  email: string;
-  phone: string;
-  location: string;
-  experience: string;
-  education: string;
-  salary: string;
-  matchedSkills: string[];
-  missingSkills: string[];
-  additionalSkills: string[];
-  experienceTimeline: { company: string; role: string; period: string }[];
-  certifications: string[];
-  professionalAssessment: string;
-};
-
 
 
 export default function CVIntelligencePage() {
@@ -151,7 +132,7 @@ export default function CVIntelligencePage() {
     },
   ];
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
   };
@@ -160,23 +141,23 @@ export default function CVIntelligencePage() {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     // Simulate file upload
     setView('batches');
   };
 
-  const handleBatchClick = (batch: Batch) => {
+  const handleBatchClick = (batch) => {
     setSelectedBatch(batch);
     setView('candidates');
   };
 
-  const handleCandidateClick = (candidate: Candidate) => {
+  const handleCandidateClick = (candidate) => {
     setSelectedCandidate(candidate);
   };
 
-  const calculateSkillsGap = (candidate: Candidate) => {
+  const calculateSkillsGap = (candidate) => {
     const totalRequired = candidate.matchedSkills.length + candidate.missingSkills.length;
     return Math.round((candidate.matchedSkills.length / totalRequired) * 100);
   };

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import { tokenManager } from '../utils/api';
-import { debugCookies, checkTokenValidity } from '../utils/debug-cookies';
 
 export default function CVIntelligencePage() {
   const [isDragging, setIsDragging] = useState(false);
@@ -20,8 +19,6 @@ export default function CVIntelligencePage() {
       try {
         setLoading(true);
         const token = tokenManager.getAccessToken();
-        debugCookies();
-        checkTokenValidity(token);
 
         console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
 

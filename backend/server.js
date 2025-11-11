@@ -127,21 +127,31 @@ app.use(
 // Apply security headers
 app.use(securityHeaders);
 
-// CORS Configuration - Environment-driven
+// CORS Configuration - Fixed for Vercel deployment
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
   // Get allowed origins from environment or use defaults
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-    : ['https://thesimpleai.netlify.app', 'http://localhost:3000', 'http://127.0.0.1:3000'];
+    : [
+        'https://thesimpleai.netlify.app',
+        'https://thesimpleai.vercel.app',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+      ];
 
   // Allow Netlify preview deployments and main site
   const isNetlifyDomain =
     origin && (origin.includes('thesimpleai.netlify.app') || origin.includes('netlify.app'));
+  const isVercelDomain = origin && origin.includes('thesimpleai.vercel.app');
 
-  if (allowedOrigins.includes(origin) || isNetlifyDomain) {
+  // CRITICAL: Always set Access-Control-Allow-Origin header
+  if (allowedOrigins.includes(origin) || isNetlifyDomain || isVercelDomain) {
     res.header('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // For requests without origin (like curl), allow the default
+    res.header('Access-Control-Allow-Origin', 'https://thesimpleai.netlify.app');
   }
 
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -151,9 +161,11 @@ app.use((req, res, next) => {
     'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Admin-Secret,Cache-Control,Pragma',
   );
   res.header('Access-Control-Expose-Headers', 'Content-Length,X-Request-ID');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
 
+  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    return res.status(200).end();
   }
   next();
 });

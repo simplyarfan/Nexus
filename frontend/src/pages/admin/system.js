@@ -117,7 +117,7 @@ export default function SystemHealth() {
 
   if (loading || loadingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
       </div>
     );
@@ -126,8 +126,8 @@ export default function SystemHealth() {
   if (!isAdmin && !isSuperAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b border-gray-200 bg-white">
+    <div className="min-h-screen bg-secondary">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center gap-4">
             <button
@@ -135,7 +135,7 @@ export default function SystemHealth() {
               className="p-2 hover:bg-green-50 rounded-lg transition-colors"
             >
               <svg
-                className="w-5 h-5 text-gray-900"
+                className="w-5 h-5 text-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -149,8 +149,8 @@ export default function SystemHealth() {
               </svg>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">System Health</h1>
-              <p className="text-gray-600 mt-1">Monitor system performance and status</p>
+              <h1 className="text-3xl font-bold text-foreground">System Health</h1>
+              <p className="text-muted-foreground mt-1">Monitor system performance and status</p>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function SystemHealth() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white border border-gray-200 rounded-xl p-6"
+              className="bg-card border border-border rounded-xl p-6"
             >
               <div className="flex items-center gap-3 mb-6">
                 <div
@@ -185,14 +185,14 @@ export default function SystemHealth() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">{metric.category}</h3>
+                <h3 className="text-xl font-bold text-foreground">{metric.category}</h3>
               </div>
               <div className="space-y-4">
                 {metric.items.map((item) => (
                   <div key={item.label} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{item.label}</span>
+                    <span className="text-sm text-muted-foreground">{item.label}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+                      <span className="text-sm font-semibold text-foreground">{item.value}</span>
                       {item.status === 'warning' && (
                         <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
                       )}

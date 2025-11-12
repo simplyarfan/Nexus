@@ -147,7 +147,7 @@ export default function About() {
           </section>
 
           {/* Values Section */}
-          <section className="py-20 bg-white/5 backdrop-blur-sm">
+          <section className="py-20 bg-card/5 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-16">
                 <h2 className="text-4xl font-bold text-white mb-4">Our Values</h2>
@@ -196,7 +196,7 @@ export default function About() {
                       y: -10,
                       transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                     }}
-                    className="text-center bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
+                    className="text-center bg-card/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
                   >
                     <div
                       className={`w-16 h-16 bg-gradient-to-br ${value.gradient} rounded-2xl flex items-center justify-center mx-auto mb-6`}
@@ -313,7 +313,7 @@ export default function About() {
 
             <div className="max-w-6xl mx-auto px-6">
               <div
-                className="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 py-12 px-8 flex items-center justify-center"
+                className="bg-card/5 backdrop-blur-sm rounded-3xl border border-white/10 py-12 px-8 flex items-center justify-center"
                 style={{ height: '200px', position: 'relative', overflow: 'hidden' }}
               >
                 <LogoLoop
@@ -378,7 +378,7 @@ export default function About() {
               <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
+                    <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                   </div>
                   <span className="text-lg font-bold text-white">Nexus</span>
                 </div>

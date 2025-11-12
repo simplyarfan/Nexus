@@ -157,7 +157,7 @@ const AdminDashboard = () => {
     const IconComponent = agent.icon;
 
     return (
-      <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-green-200/50 p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden">
+      <div className="bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl border border-green-200/50 p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden">
         {/* Background gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-green-50/30 pointer-events-none" />
 
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
             </div>
           )}
           {agent.status === 'coming_soon' && (
-            <div className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-medium">
+            <div className="px-2 py-1 bg-muted text-muted-foreground rounded-md text-xs font-medium">
               Coming Soon
             </div>
           )}
@@ -196,8 +196,8 @@ const AdminDashboard = () => {
           >
             <IconComponent className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-lg font-semibold mb-1 text-gray-900">{agent.name}</h3>
-          <p className="text-sm text-gray-700 leading-relaxed">{agent.description}</p>
+          <h3 className="text-lg font-semibold mb-1 text-foreground">{agent.name}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{agent.description}</p>
         </div>
 
         {/* Metrics */}
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
           {Object.entries(agent.metrics).map(([key, value], idx) => (
             <div key={idx} className="text-center">
               <div
-                className={`text-lg font-bold ${agent.status === 'active' ? 'text-gray-900' : 'text-gray-500'}`}
+                className={`text-lg font-bold ${agent.status === 'active' ? 'text-foreground' : 'text-gray-500'}`}
               >
                 {value}
               </div>
@@ -224,7 +224,7 @@ const AdminDashboard = () => {
               className={`text-xs px-2.5 py-1.5 rounded-lg font-medium ${
                 agent.status === 'active'
                   ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-500'
+                  : 'bg-muted text-gray-500'
               }`}
             >
               {feature}
@@ -237,7 +237,7 @@ const AdminDashboard = () => {
           className={`w-full py-2.5 rounded-lg font-medium transition-all duration-200 text-sm relative z-10 ${
             agent.status === 'active'
               ? `bg-gradient-to-r ${agent.gradient} text-white hover:shadow-lg hover:scale-[1.02]`
-              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : 'bg-muted text-gray-500 cursor-not-allowed'
           }`}
           onClick={() => {
             if (agent.status === 'active') {
@@ -268,15 +268,15 @@ const AdminDashboard = () => {
       <main className="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Welcome Section */}
         <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-green-200/50 p-8 mb-8">
+          <div className="bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-green-200/50 p-8 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                  <p className="text-gray-600">
+                  <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+                  <p className="text-muted-foreground">
                     Welcome back, {user?.first_name}! Manage all departments and support.
                   </p>
                 </div>
@@ -304,7 +304,7 @@ const AdminDashboard = () => {
         {/* Department Filter */}
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">All Department Agents</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-4">All Department Agents</h2>
             <div className="flex flex-wrap gap-4">
               {departments.map((dept) => (
                 <button
@@ -313,7 +313,7 @@ const AdminDashboard = () => {
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
                     selectedDepartment === dept.id
                       ? 'bg-gradient-to-r from-green-500 to-green-500 text-white shadow-lg'
-                      : 'bg-white/80 text-gray-700 hover:bg-white border border-green-200/50'
+                      : 'bg-card/80 text-muted-foreground hover:bg-card border border-green-200/50'
                   }`}
                 >
                   {dept.name} ({dept.count})

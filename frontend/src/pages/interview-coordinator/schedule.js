@@ -136,10 +136,10 @@ ${user?.email || ''}`;
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -150,24 +150,24 @@ ${user?.email || ''}`;
       <Head>
         <title>Schedule Interview - Enterprise AI Platform</title>
       </Head>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-secondary">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => router.push('/interview-coordinator')}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
                 >
-                  <Icons.ArrowLeft className="w-5 h-5 text-gray-600" />
+                  <Icons.ArrowLeft className="w-5 h-5 text-muted-foreground" />
                 </button>
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
                     <Icons.Calendar className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-semibold text-gray-900">Schedule Interview</h1>
+                    <h1 className="text-xl font-semibold text-foreground">Schedule Interview</h1>
                     <p className="text-sm text-gray-500">Create and send interview invitations</p>
                   </div>
                 </div>
@@ -180,14 +180,14 @@ ${user?.email || ''}`;
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Candidate Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                 <Icons.Users className="w-5 h-5 mr-2 text-green-600" />
                 Candidate Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Candidate Name *
                   </label>
                   <input
@@ -201,7 +201,7 @@ ${user?.email || ''}`;
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Email Address *
                   </label>
                   <input
@@ -218,14 +218,14 @@ ${user?.email || ''}`;
             </div>
 
             {/* Interview Details */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                 <Icons.Briefcase className="w-5 h-5 mr-2 text-green-600" />
                 Interview Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Position/Title *
                   </label>
                   <input
@@ -239,7 +239,7 @@ ${user?.email || ''}`;
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Interview Type
                   </label>
                   <select
@@ -255,7 +255,7 @@ ${user?.email || ''}`;
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Duration (minutes)
                   </label>
                   <select
@@ -279,7 +279,7 @@ ${user?.email || ''}`;
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Location</label>
                   <input
                     type="text"
                     name="location"
@@ -290,7 +290,7 @@ ${user?.email || ''}`;
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Meeting Link (optional)
                   </label>
                   <input
@@ -303,7 +303,7 @@ ${user?.email || ''}`;
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Additional Notes (optional)
                   </label>
                   <textarea
@@ -323,7 +323,7 @@ ${user?.email || ''}`;
               <button
                 type="button"
                 onClick={() => router.push('/interview-coordinator')}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 border border-gray-300 text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
               >
                 Cancel
               </button>
@@ -341,12 +341,12 @@ ${user?.email || ''}`;
         {/* Email Preview Modal */}
         {showEmailPreview && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="bg-card rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+              <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Review & Edit Email</h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <h3 className="text-lg font-semibold text-foreground">Review & Edit Email</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
                       {isEditingEmail
                         ? '✏️ Editing mode - Make your changes'
                         : '👀 Preview mode - Click "Edit Content" to make changes'}
@@ -354,7 +354,7 @@ ${user?.email || ''}`;
                   </div>
                   <button
                     onClick={() => setShowEmailPreview(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-muted-foreground"
                   >
                     <Icons.X className="w-5 h-5" />
                   </button>
@@ -369,7 +369,7 @@ ${user?.email || ''}`;
                     className="w-full h-64 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
                   />
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-secondary p-4 rounded-lg">
                     <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800">
                       {emailContent}
                     </pre>
@@ -377,7 +377,7 @@ ${user?.email || ''}`;
                 )}
               </div>
 
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between">
+              <div className="px-6 py-4 border-t border-border bg-secondary flex justify-between">
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setIsEditingEmail(!isEditingEmail)}
@@ -412,18 +412,18 @@ ${user?.email || ''}`;
         {/* Calendar Connection Modal */}
         {showCalendarConnection && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="bg-card rounded-lg max-w-md w-full p-6">
               <div className="flex items-center mb-4">
                 <Icons.AlertCircle className="w-6 h-6 text-green-500 mr-3" />
-                <h3 className="text-lg font-semibold text-gray-900">Email Connection Required</h3>
+                <h3 className="text-lg font-semibold text-foreground">Email Connection Required</h3>
               </div>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 To send interview invitations, you need to connect your email account first.
               </p>
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowCalendarConnection(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>

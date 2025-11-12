@@ -7,7 +7,7 @@ export default function DashboardLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-secondary dark:bg-gray-900">
       {/* Sidebar */}
       <Sidebar
         collapsed={sidebarCollapsed}

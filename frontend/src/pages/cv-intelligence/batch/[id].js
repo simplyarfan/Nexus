@@ -122,10 +122,10 @@ const BatchDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 text-sm">Loading batch details...</p>
+          <p className="mt-4 text-muted-foreground text-sm">Loading batch details...</p>
         </div>
       </div>
     );
@@ -133,11 +133,11 @@ const BatchDetail = () => {
 
   if (!batch) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
           <Icons.Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Batch Not Found</h2>
-          <p className="text-gray-600 mb-6">The requested batch could not be found.</p>
+          <h2 className="text-xl font-bold text-foreground mb-2">Batch Not Found</h2>
+          <p className="text-muted-foreground mb-6">The requested batch could not be found.</p>
           <button
             onClick={() => router.push('/cv-intelligence')}
             className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-colors"
@@ -150,29 +150,29 @@ const BatchDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       <Head>
         <title>{batch.name} - CV Intelligence</title>
         <meta name="description" content="CV batch analysis results" />
       </Head>
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/cv-intelligence')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
               >
-                <Icons.ArrowLeft className="w-5 h-5 text-gray-600" />
+                <Icons.ArrowLeft className="w-5 h-5 text-muted-foreground" />
               </button>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                   <Icons.Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">{batch.name}</h1>
+                  <h1 className="text-xl font-semibold text-foreground">{batch.name}</h1>
                   <p className="text-sm text-gray-500">
                     Created {new Date(batch.created_at).toLocaleDateString()}
                   </p>
@@ -183,12 +183,12 @@ const BatchDetail = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
                 >
-                  <Icons.MoreVertical className="w-5 h-5 text-gray-600" />
+                  <Icons.MoreVertical className="w-5 h-5 text-muted-foreground" />
                 </button>
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-10">
                     <button
                       onClick={() => {
                         setShowDeleteModal(true);
@@ -211,36 +211,36 @@ const BatchDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Batch Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-card rounded-xl border border-border p-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Icons.Users className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total CVs</p>
-                <p className="text-2xl font-bold text-gray-900">{batch.cv_count || 0}</p>
+                <p className="text-sm text-muted-foreground">Total CVs</p>
+                <p className="text-2xl font-bold text-foreground">{batch.cv_count || 0}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-card rounded-xl border border-border p-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <Icons.CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Analyzed</p>
-                <p className="text-2xl font-bold text-gray-900">{candidates.length}</p>
+                <p className="text-sm text-muted-foreground">Analyzed</p>
+                <p className="text-2xl font-bold text-foreground">{candidates.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-card rounded-xl border border-border p-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <Icons.TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Status</p>
-                <p className="text-lg font-semibold text-gray-900 capitalize">
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className="text-lg font-semibold text-foreground capitalize">
                   {batch.status || 'Processing'}
                 </p>
               </div>
@@ -249,19 +249,19 @@ const BatchDetail = () => {
         </div>
 
         {/* Candidates List */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Analyzed Candidates</h2>
-            <p className="text-sm text-gray-600">Ranked from best to worst match</p>
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Analyzed Candidates</h2>
+            <p className="text-sm text-muted-foreground">Ranked from best to worst match</p>
           </div>
 
           {candidates.length === 0 ? (
             <div className="text-center py-12">
               <Icons.Brain className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 No candidates analyzed yet
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 CV analysis is in progress. Please check back in a few minutes.
               </p>
             </div>
@@ -274,7 +274,7 @@ const BatchDetail = () => {
                 .map((candidate, index) => (
                   <div
                     key={candidate.id || index}
-                    className="p-6 hover:bg-gray-50 transition-colors"
+                    className="p-6 hover:bg-secondary transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
@@ -284,18 +284,18 @@ const BatchDetail = () => {
                           </div>
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">
+                          <h3 className="text-lg font-semibold text-foreground">
                             {candidate.personal?.name || candidate.name || `Candidate ${index + 1}`}
                           </h3>
                           <div className="flex items-center space-x-4 mt-1">
                             {candidate.personal?.email && (
-                              <div className="flex items-center space-x-1 text-sm text-gray-600">
+                              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                                 <Icons.Mail className="w-4 h-4" />
                                 <span>{candidate.personal.email}</span>
                               </div>
                             )}
                             {candidate.personal?.phone && (
-                              <div className="flex items-center space-x-1 text-sm text-gray-600">
+                              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                                 <Icons.Phone className="w-4 h-4" />
                                 <span>{candidate.personal.phone}</span>
                               </div>
@@ -313,7 +313,7 @@ const BatchDetail = () => {
                                   ? 'bg-blue-100 text-blue-800'
                                   : index === 2
                                     ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                    : 'bg-muted text-gray-800'
                             }`}
                           >
                             {index === 0
@@ -356,7 +356,7 @@ const BatchDetail = () => {
                     {/* Skills Preview */}
                     {candidate.skills?.matched && candidate.skills.matched.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-100">
-                        <p className="text-sm text-gray-600 mb-2">Key Skills:</p>
+                        <p className="text-sm text-muted-foreground mb-2">Key Skills:</p>
                         <div className="flex flex-wrap gap-2">
                           {candidate.skills.matched.slice(0, 5).map((skill, skillIndex) => (
                             <span
@@ -367,7 +367,7 @@ const BatchDetail = () => {
                             </span>
                           ))}
                           {candidate.skills.matched.length > 5 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                            <span className="px-2 py-1 bg-muted text-muted-foreground rounded-full text-xs">
                               +{candidate.skills.matched.length - 5} more
                             </span>
                           )}
@@ -384,24 +384,24 @@ const BatchDetail = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+          <div className="bg-card rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <Icons.Trash2 className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Delete Batch</h3>
-                <p className="text-sm text-gray-600">This action cannot be undone</p>
+                <h3 className="text-lg font-semibold text-foreground">Delete Batch</h3>
+                <p className="text-sm text-muted-foreground">This action cannot be undone</p>
               </div>
             </div>
-            <p className="text-gray-700 mb-6">
+            <p className="text-muted-foreground mb-6">
               Are you sure you want to delete &quot;{batch.name}&quot;? All analysis results and
               candidate data will be permanently removed.
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
               >
                 Cancel
               </button>
@@ -419,7 +419,7 @@ const BatchDetail = () => {
       {/* Candidate Detail Modal */}
       {showCandidateModal && selectedCandidate && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-card rounded-2xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center">
@@ -428,43 +428,43 @@ const BatchDetail = () => {
                   </span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                  <h2 className="text-2xl font-bold text-foreground mb-1">
                     {selectedCandidate.name || 'Name not found'}
                   </h2>
-                  <p className="text-gray-600">Candidate Analysis Report</p>
+                  <p className="text-muted-foreground">Candidate Analysis Report</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowCandidateModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
               >
-                <Icons.X className="w-5 h-5 text-gray-600" />
+                <Icons.X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
             <div className="space-y-6">
               {/* Contact Information */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Icons.User className="w-5 h-5 mr-2 text-blue-600" />
                   Contact Information
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Icons.Mail className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">
+                    <span className="text-muted-foreground">
                       {selectedCandidate.email || 'Email not found'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Icons.Phone className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">
+                    <span className="text-muted-foreground">
                       {selectedCandidate.phone || 'Phone not found'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Icons.MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">
+                    <span className="text-muted-foreground">
                       {selectedCandidate.location || 'Location not specified'}
                     </span>
                   </div>
@@ -473,7 +473,7 @@ const BatchDetail = () => {
 
               {/* Professional Assessment - MOVED TO TOP */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Icons.FileText className="w-5 h-5 mr-2 text-blue-600" />
                   Professional Assessment
                 </h3>
@@ -495,12 +495,12 @@ const BatchDetail = () => {
                         <div className="space-y-4">
                           {/* Main Assessment */}
                           {rankingReason && (
-                            <div className="bg-white border border-blue-200 rounded-lg p-4">
-                              <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                            <div className="bg-card border border-blue-200 rounded-lg p-4">
+                              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center">
                                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                                 Overall Assessment
                               </h4>
-                              <p className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap">
+                              <p className="text-muted-foreground leading-relaxed text-sm whitespace-pre-wrap">
                                 {rankingReason}
                               </p>
                             </div>
@@ -508,7 +508,7 @@ const BatchDetail = () => {
 
                           {/* Ranking Badge */}
                           <div className="flex items-center justify-between pt-2">
-                            <span className="text-sm font-medium text-gray-600">
+                            <span className="text-sm font-medium text-muted-foreground">
                               Candidate Rank:
                             </span>
                             <span
@@ -519,7 +519,7 @@ const BatchDetail = () => {
                                     ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
                                     : rank === 3
                                       ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300'
-                                      : 'bg-gray-100 text-gray-800 border-2 border-gray-300'
+                                      : 'bg-muted text-gray-800 border-2 border-gray-300'
                               }`}
                             >
                               #{rank} {rank === 1 && '🏆'}
@@ -529,7 +529,7 @@ const BatchDetail = () => {
                           {/* Recommendation Level */}
                           {recommendationLevel && (
                             <div className="flex items-center justify-between pt-2 border-t border-blue-200">
-                              <span className="text-sm font-medium text-gray-600">
+                              <span className="text-sm font-medium text-muted-foreground">
                                 Recommendation:
                               </span>
                               <span
@@ -557,8 +557,8 @@ const BatchDetail = () => {
               </div>
 
               {/* Skills Analysis */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Icons.Code className="w-5 h-5 mr-2 text-purple-600" />
                   Skills Analysis
                 </h3>
@@ -654,14 +654,14 @@ const BatchDetail = () => {
                             return (
                               irrelevantSkills.length > 0 && (
                                 <div>
-                                  <p className="text-sm font-medium text-gray-700 mb-2">
+                                  <p className="text-sm font-medium text-muted-foreground mb-2">
                                     Additional Skills (Not Required for JD):
                                   </p>
                                   <div className="flex flex-wrap gap-2">
                                     {irrelevantSkills.map((skill, index) => (
                                       <span
                                         key={index}
-                                        className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium"
+                                        className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-sm font-medium"
                                       >
                                         {skill}
                                       </span>
@@ -680,18 +680,18 @@ const BatchDetail = () => {
 
                           {/* Skills Gap Chart */}
                           {(matchedSkills.length > 0 || missingSkills.length > 0) && (
-                            <div className="mt-6 pt-6 border-t border-gray-200">
-                              <h4 className="text-sm font-semibold text-gray-900 mb-4">
+                            <div className="mt-6 pt-6 border-t border-border">
+                              <h4 className="text-sm font-semibold text-foreground mb-4">
                                 Skills Gap Analysis
                               </h4>
                               <div className="space-y-3">
                                 {/* Match Percentage Bar */}
                                 <div>
                                   <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs font-medium text-gray-600">
+                                    <span className="text-xs font-medium text-muted-foreground">
                                       JD Match Rate (Smart Matching)
                                     </span>
-                                    <span className="text-xs font-bold text-gray-900">
+                                    <span className="text-xs font-bold text-foreground">
                                       {Math.round(
                                         (matchedSkills.length /
                                           (matchedSkills.length + missingSkills.length)) *
@@ -744,8 +744,8 @@ const BatchDetail = () => {
               </div>
 
               {/* Professional Experience */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Icons.Briefcase className="w-5 h-5 mr-2 text-green-600" />
                   Professional Experience
                 </h3>
@@ -792,11 +792,11 @@ const BatchDetail = () => {
 
                       return (
                         <div className="space-y-4">
-                          <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                            <span className="text-sm font-medium text-gray-600">
+                          <div className="flex justify-between items-center pb-2 border-b border-border">
+                            <span className="text-sm font-medium text-muted-foreground">
                               Total Experience:
                             </span>
-                            <span className="font-semibold text-gray-900">
+                            <span className="font-semibold text-foreground">
                               {experienceYears} years • {experience.length} positions
                             </span>
                           </div>
@@ -834,10 +834,10 @@ const BatchDetail = () => {
                                     </div>
 
                                     {/* Experience Card */}
-                                    <div className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div className="bg-gradient-to-r from-gray-50 to-white border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
                                       <div className="flex justify-between items-start mb-2">
                                         <div className="flex-1">
-                                          <h4 className="font-semibold text-gray-900 text-sm">
+                                          <h4 className="font-semibold text-foreground text-sm">
                                             {exp.role || 'Role not specified'}
                                           </h4>
                                           <p className="text-sm text-blue-600 font-medium">
@@ -859,7 +859,7 @@ const BatchDetail = () => {
                                           )}
                                         </div>
                                       </div>
-                                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                      <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                                         {summary}
                                       </p>
                                     </div>
@@ -886,8 +886,8 @@ const BatchDetail = () => {
               </div>
 
               {/* Education & Qualifications */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Icons.GraduationCap className="w-5 h-5 mr-2 text-indigo-600" />
                   Education & Qualifications
                 </h3>
@@ -932,7 +932,7 @@ const BatchDetail = () => {
                                         <span className="text-xs text-gray-500 uppercase tracking-wide">
                                           Degree
                                         </span>
-                                        <p className="font-semibold text-gray-900">{degree}</p>
+                                        <p className="font-semibold text-foreground">{degree}</p>
                                       </div>
                                     </div>
                                   )}
@@ -943,7 +943,7 @@ const BatchDetail = () => {
                                         <span className="text-xs text-gray-500 uppercase tracking-wide">
                                           Institution
                                         </span>
-                                        <p className="font-medium text-gray-900">{university}</p>
+                                        <p className="font-medium text-foreground">{university}</p>
                                       </div>
                                     </div>
                                   )}
@@ -955,7 +955,7 @@ const BatchDetail = () => {
                                         Field of Study
                                       </span>
                                       <p
-                                        className={`font-medium ${field === 'Not specified' ? 'text-gray-500 italic' : 'text-gray-900'}`}
+                                        className={`font-medium ${field === 'Not specified' ? 'text-gray-500 italic' : 'text-foreground'}`}
                                       >
                                         {field}
                                       </p>
@@ -968,7 +968,7 @@ const BatchDetail = () => {
                                         <span className="text-xs text-gray-500 uppercase tracking-wide">
                                           Year
                                         </span>
-                                        <p className="font-medium text-gray-900">
+                                        <p className="font-medium text-foreground">
                                           {graduationYear}
                                         </p>
                                       </div>
@@ -988,8 +988,8 @@ const BatchDetail = () => {
               </div>
 
               {/* Certifications */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-card border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                   <Icons.Award className="w-5 h-5 mr-2 text-yellow-600" />
                   Certifications
                 </h3>
@@ -1021,10 +1021,10 @@ const BatchDetail = () => {
                                     <Icons.Award className="w-5 h-5 text-yellow-600" />
                                   </div>
                                   <div className="flex-1">
-                                    <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                                    <h4 className="font-semibold text-foreground text-sm mb-1">
                                       {certName}
                                     </h4>
-                                    <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                                       {certIssuer && <span>{certIssuer}</span>}
                                       {certIssuer && certYear && <span>•</span>}
                                       {certYear && <span>{certYear}</span>}

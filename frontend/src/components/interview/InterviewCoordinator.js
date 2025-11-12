@@ -172,7 +172,7 @@ const InterviewCoordinator = () => {
       case 'rescheduled':
         return 'bg-yellow-100 text-yellow-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-gray-800';
     }
   };
 
@@ -189,8 +189,8 @@ const InterviewCoordinator = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Interview Coordinator</h1>
-          <p className="text-gray-600 mt-2">Schedule and manage candidate interviews</p>
+          <h1 className="text-3xl font-bold text-foreground">Interview Coordinator</h1>
+          <p className="text-muted-foreground mt-2">Schedule and manage candidate interviews</p>
         </div>
         <button
           onClick={() => setShowScheduleModal(true)}
@@ -203,79 +203,79 @@ const InterviewCoordinator = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Interviews</p>
-              <p className="text-2xl font-bold text-gray-900">{interviews.length}</p>
+              <p className="text-sm text-muted-foreground">Total Interviews</p>
+              <p className="text-2xl font-bold text-foreground">{interviews.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <Check className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">Completed</p>
+              <p className="text-2xl font-bold text-foreground">
                 {interviews.filter((i) => i.status === 'completed').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <Clock className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Scheduled</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">Scheduled</p>
+              <p className="text-2xl font-bold text-foreground">
                 {interviews.filter((i) => i.status === 'scheduled').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Candidates</p>
-              <p className="text-2xl font-bold text-gray-900">{candidates.length}</p>
+              <p className="text-sm text-muted-foreground">Candidates</p>
+              <p className="text-2xl font-bold text-foreground">{candidates.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Interviews List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Scheduled Interviews</h2>
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Scheduled Interviews</h2>
         </div>
 
         {interviews.length === 0 ? (
           <div className="text-center py-12">
             <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No interviews scheduled</h3>
-            <p className="text-gray-600">Schedule your first interview to get started</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No interviews scheduled</h3>
+            <p className="text-muted-foreground">Schedule your first interview to get started</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
             {interviews.map((interview) => (
-              <div key={interview.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div key={interview.id} className="p-6 hover:bg-secondary transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{interview.title}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{interview.title}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4" />
                         <span>{new Date(interview.scheduled_time).toLocaleDateString()}</span>
@@ -300,7 +300,7 @@ const InterviewCoordinator = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => downloadICS(interview.id)}
-                      className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-muted-foreground transition-colors"
                       title="Download Calendar Invite"
                     >
                       <Download className="w-5 h-5" />
@@ -316,21 +316,21 @@ const InterviewCoordinator = () => {
       {/* Schedule Interview Modal */}
       {showScheduleModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Schedule Interview</h2>
+              <h2 className="text-2xl font-bold text-foreground">Schedule Interview</h2>
               <button
                 onClick={() => setShowScheduleModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-600" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
             <div className="space-y-6">
               {/* Candidate Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Select Candidate
                 </label>
                 <select
@@ -358,7 +358,7 @@ const InterviewCoordinator = () => {
                   {/* Interview Details */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Interview Type
                       </label>
                       <select
@@ -375,7 +375,7 @@ const InterviewCoordinator = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Duration (minutes)
                       </label>
                       <input
@@ -401,7 +401,7 @@ const InterviewCoordinator = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Meeting Link
                     </label>
                     <input
@@ -417,8 +417,8 @@ const InterviewCoordinator = () => {
 
                   {/* Generated Questions Preview */}
                   {generatedQuestions && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <div className="bg-secondary rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
                         <FileText className="w-5 h-5 mr-2" />
                         Generated Interview Questions
                       </h3>
@@ -426,7 +426,7 @@ const InterviewCoordinator = () => {
                         {generatedQuestions.technical_questions
                           ?.slice(0, 3)
                           .map((question, index) => (
-                            <div key={index} className="text-sm text-gray-700">
+                            <div key={index} className="text-sm text-muted-foreground">
                               <span className="font-medium">Q{index + 1}:</span> {question}
                             </div>
                           ))}
@@ -438,10 +438,10 @@ const InterviewCoordinator = () => {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                  <div className="flex items-center justify-end space-x-4 pt-6 border-t border-border">
                     <button
                       onClick={() => setShowScheduleModal(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
                     >
                       Cancel
                     </button>

@@ -87,7 +87,7 @@ const ErrorAlert = ({
  */
 export const ErrorFallback = ({ error, resetErrorBoundary }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-secondary px-4">
       <div className="max-w-md w-full">
         <ErrorAlert
           type="error"

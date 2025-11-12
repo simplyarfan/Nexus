@@ -91,7 +91,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.6 }}
                 className="mb-8"
               >
-                <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 mb-8 shadow-lg">
+                <div className="inline-flex items-center space-x-2 bg-card/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 mb-8 shadow-lg">
                   <div className="w-4 h-4 bg-gradient-to-br from-orange-600 to-red-600 rounded-sm transform rotate-45 animate-pulse"></div>
                   <span className="text-sm font-medium text-gray-200">
                     AI Agents That Actually Work
@@ -160,7 +160,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.8, delay: 1 }}
                 className="max-w-2xl mx-auto"
               >
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/10 hover:border-orange-500/50 transition-all duration-300">
+                <div className="bg-card/5 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/10 hover:border-orange-500/50 transition-all duration-300">
                   <div className="flex items-center space-x-3 mb-6">
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                       <Sparkles className="w-4 h-4 text-white" />
@@ -260,7 +260,7 @@ export default function LandingPage() {
                       y: -10,
                       transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                     }}
-                    className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 ease-out cursor-pointer"
+                    className="group bg-card/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-card/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 ease-out cursor-pointer"
                   >
                     <div className="mb-4">
                       <useCase.icon className="w-12 h-12 text-orange-500 group-hover:scale-110 transition-transform duration-300" />
@@ -316,7 +316,7 @@ export default function LandingPage() {
                   Stop waiting weeks for work AI can do in minutes.
                 </p>
 
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-white/10">
+                <div className="bg-card/5 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-white/10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                     <div>
                       <h4 className="font-bold text-red-500 mb-3">Without Nexus:</h4>
@@ -359,7 +359,7 @@ export default function LandingPage() {
               <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
+                    <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                   </div>
                   <span className="text-lg font-bold text-white">Nexus</span>
                 </div>

@@ -297,7 +297,7 @@ const InterviewDetailPage = () => {
             ? 'bg-green-100 text-green-800 border-green-200'
             : outcome === 'rejected'
               ? 'bg-red-100 text-red-800 border-red-200'
-              : 'bg-gray-100 text-gray-800 border-gray-200',
+              : 'bg-muted text-gray-800 border-border',
         icon:
           outcome === 'selected' ? CheckCircle2 : outcome === 'rejected' ? XCircle : CheckCircle2,
         text:
@@ -312,7 +312,7 @@ const InterviewDetailPage = () => {
 
     return (
       statusConfig[status] || {
-        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        color: 'bg-muted text-gray-800 border-border',
         icon: AlertCircle,
         text: status,
       }
@@ -321,7 +321,7 @@ const InterviewDetailPage = () => {
 
   if (!user || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
       </div>
     );
@@ -342,18 +342,18 @@ const InterviewDetailPage = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="bg-card border-b border-border shadow-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => router.push('/interview-coordinator')}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-muted rounded-lg transition-colors"
                 >
-                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground" />
                 </button>
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">Interview Details</h1>
+                  <h1 className="text-xl font-semibold text-foreground">Interview Details</h1>
                   <p className="text-sm text-gray-500">Manage and track interview progress</p>
                 </div>
               </div>
@@ -367,10 +367,10 @@ const InterviewDetailPage = () => {
             {/* Left Column - Main Info */}
             <div className="lg:col-span-2 space-y-6">
               {/* Candidate Card */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
                 <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-8">
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center">
                       <User className="w-8 h-8 text-green-600" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -394,7 +394,7 @@ const InterviewDetailPage = () => {
                 <div className="px-6 py-6 space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500 block mb-1">Position</label>
-                    <p className="text-lg font-semibold text-gray-900">{interview.job_title}</p>
+                    <p className="text-lg font-semibold text-foreground">{interview.job_title}</p>
                   </div>
 
                   {interview.interview_type && (
@@ -402,7 +402,7 @@ const InterviewDetailPage = () => {
                       <label className="text-sm font-medium text-gray-500 block mb-1">
                         Interview Type
                       </label>
-                      <p className="text-gray-900 capitalize">{interview.interview_type}</p>
+                      <p className="text-foreground capitalize">{interview.interview_type}</p>
                     </div>
                   )}
 
@@ -412,7 +412,7 @@ const InterviewDetailPage = () => {
                         <label className="text-sm font-medium text-gray-500 block mb-1">
                           Scheduled Date & Time
                         </label>
-                        <p className="text-gray-900 flex items-center">
+                        <p className="text-foreground flex items-center">
                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                           {new Date(interview.scheduled_time).toLocaleString('en-US', {
                             dateStyle: 'medium',
@@ -424,7 +424,7 @@ const InterviewDetailPage = () => {
                         <label className="text-sm font-medium text-gray-500 block mb-1">
                           Duration
                         </label>
-                        <p className="text-gray-900 flex items-center">
+                        <p className="text-foreground flex items-center">
                           <Clock className="w-4 h-4 mr-2 text-gray-400" />
                           {interview.duration || 60} minutes
                         </p>
@@ -437,7 +437,7 @@ const InterviewDetailPage = () => {
                       <label className="text-sm font-medium text-gray-500 block mb-1">
                         Platform
                       </label>
-                      <p className="text-gray-900 flex items-center">
+                      <p className="text-foreground flex items-center">
                         <Video className="w-4 h-4 mr-2 text-gray-400" />
                         {interview.platform}
                       </p>
@@ -481,7 +481,7 @@ const InterviewDetailPage = () => {
                   {interview.notes && (
                     <div>
                       <label className="text-sm font-medium text-gray-500 block mb-1">Notes</label>
-                      <p className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <p className="text-muted-foreground whitespace-pre-wrap bg-secondary p-4 rounded-lg border border-border">
                         {interview.notes}
                       </p>
                     </div>
@@ -495,8 +495,8 @@ const InterviewDetailPage = () => {
             {/* Right Column - Actions */}
             <div className="space-y-6">
               {/* Status Actions */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
+              <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Update Status</h3>
                 <div className="space-y-3">
                   {/* Current Status Display */}
                   <div
@@ -541,7 +541,7 @@ const InterviewDetailPage = () => {
                   {/* Outcome Selection - Show when completed without outcome */}
                   {interview.status === 'completed' && !interview.outcome && (
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-muted-foreground">
                         Select Outcome
                       </label>
                       <div className="flex gap-2">
@@ -566,8 +566,8 @@ const InterviewDetailPage = () => {
               </div>
 
               {/* Danger Zone */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Danger Zone</h3>
+              <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Danger Zone</h3>
                 <div className="space-y-3">
                   {/* Cancel Interview - Show if not already cancelled or completed with outcome */}
                   {interview.status !== 'cancelled' &&
@@ -593,28 +593,28 @@ const InterviewDetailPage = () => {
               </div>
 
               {/* Metadata */}
-              <div className="bg-gray-50 rounded-xl border border-gray-200 p-6">
+              <div className="bg-secondary rounded-xl border border-border p-6">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                   Metadata
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Created</span>
-                    <span className="text-gray-900 font-medium">
+                    <span className="text-muted-foreground">Created</span>
+                    <span className="text-foreground font-medium">
                       {new Date(interview.created_at).toLocaleDateString()}
                     </span>
                   </div>
                   {interview.updated_at && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Last Updated</span>
-                      <span className="text-gray-900 font-medium">
+                      <span className="text-muted-foreground">Last Updated</span>
+                      <span className="text-foreground font-medium">
                         {new Date(interview.updated_at).toLocaleDateString()}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Interview ID</span>
-                    <span className="text-gray-900 font-mono text-xs">
+                    <span className="text-muted-foreground">Interview ID</span>
+                    <span className="text-foreground font-mono text-xs">
                       {interview.id.slice(0, 12)}...
                     </span>
                   </div>
@@ -626,12 +626,12 @@ const InterviewDetailPage = () => {
           {/* Inline Scheduling Form - Show when awaiting_response and Next Step clicked */}
           {showScheduleForm && interview.status === 'awaiting_response' && (
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-card rounded-xl shadow-sm border border-border p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">Schedule Interview</h3>
+                  <h3 className="text-xl font-bold text-foreground">Schedule Interview</h3>
                   <button
                     onClick={() => setShowScheduleForm(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-muted-foreground"
                   >
                     ✕
                   </button>
@@ -640,7 +640,7 @@ const InterviewDetailPage = () => {
                 <form onSubmit={handleScheduleInterview} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Interview Type *
                       </label>
                       <select
@@ -659,7 +659,7 @@ const InterviewDetailPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Duration (minutes) *
                       </label>
                       <input
@@ -677,7 +677,7 @@ const InterviewDetailPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Scheduled Date & Time *
                     </label>
                     <input
@@ -692,7 +692,7 @@ const InterviewDetailPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Platform *
                     </label>
                     <select
@@ -712,7 +712,7 @@ const InterviewDetailPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Notes (Optional)
                     </label>
                     <textarea
@@ -726,7 +726,7 @@ const InterviewDetailPage = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
                         CC Emails (Optional)
                       </label>
                       <input
@@ -741,7 +741,7 @@ const InterviewDetailPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
                         BCC Emails (Optional)
                       </label>
                       <input
@@ -757,7 +757,7 @@ const InterviewDetailPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Attach CV (Optional)
                     </label>
                     <input
@@ -774,7 +774,7 @@ const InterviewDetailPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowScheduleForm(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
                     >
                       Cancel
                     </button>
@@ -794,15 +794,15 @@ const InterviewDetailPage = () => {
         {/* Reschedule Modal */}
         {showRescheduleModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="bg-card rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <h3 className="text-xl font-bold text-foreground flex items-center">
                   <Clock className="w-6 h-6 mr-2 text-green-600" />
                   Reschedule Interview
                 </h3>
                 <button
                   onClick={() => setShowRescheduleModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-muted-foreground"
                 >
                   ✕
                 </button>
@@ -810,7 +810,7 @@ const InterviewDetailPage = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     New Date & Time
                   </label>
                   <input
@@ -825,7 +825,7 @@ const InterviewDetailPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Duration (minutes)
                   </label>
                   <input
@@ -841,7 +841,7 @@ const InterviewDetailPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Reason for Reschedule (Optional)
                   </label>
                   <textarea
@@ -867,7 +867,7 @@ const InterviewDetailPage = () => {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowRescheduleModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>
@@ -885,18 +885,18 @@ const InterviewDetailPage = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="bg-card rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Delete Interview</h3>
-                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                  <h3 className="text-xl font-bold text-foreground">Delete Interview</h3>
+                  <p className="text-sm text-muted-foreground">This action cannot be undone</p>
                 </div>
               </div>
 
-              <p className="text-gray-700 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Are you sure you want to delete this interview with{' '}
                 <strong>{interview.candidate_name}</strong>? All associated data will be permanently
                 removed.
@@ -905,7 +905,7 @@ const InterviewDetailPage = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>
@@ -926,18 +926,18 @@ const InterviewDetailPage = () => {
         {/* Cancel Confirmation Modal */}
         {showCancelModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="bg-card rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
                   <XCircle className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Cancel Interview</h3>
-                  <p className="text-sm text-gray-600">Mark interview as cancelled</p>
+                  <h3 className="text-xl font-bold text-foreground">Cancel Interview</h3>
+                  <p className="text-sm text-muted-foreground">Mark interview as cancelled</p>
                 </div>
               </div>
 
-              <p className="text-gray-700 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Are you sure you want to cancel this interview with{' '}
                 <strong>{interview.candidate_name}</strong>? The interview status will be updated to
                 cancelled.
@@ -946,7 +946,7 @@ const InterviewDetailPage = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowCancelModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
                 >
                   Go Back
                 </button>

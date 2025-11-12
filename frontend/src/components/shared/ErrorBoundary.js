@@ -25,8 +25,8 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+        <div className="min-h-screen flex items-center justify-center bg-secondary">
+          <div className="max-w-md w-full bg-card shadow-lg rounded-lg p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
                 <svg
@@ -44,7 +44,7 @@ class ErrorBoundary extends React.Component {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-lg font-medium text-gray-900">Something went wrong</h3>
+                <h3 className="text-lg font-medium text-foreground">Something went wrong</h3>
               </div>
             </div>
 
@@ -54,10 +54,10 @@ class ErrorBoundary extends React.Component {
 
             {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
               <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+                <summary className="cursor-pointer text-sm font-medium text-muted-foreground mb-2">
                   Error Details (Development)
                 </summary>
-                <div className="bg-gray-100 p-3 rounded text-xs font-mono text-gray-800 overflow-auto max-h-40">
+                <div className="bg-muted p-3 rounded text-xs font-mono text-gray-800 overflow-auto max-h-40">
                   <div className="mb-2">
                     <strong>Error:</strong> {this.state.error && this.state.error.toString()}
                   </div>
@@ -82,7 +82,7 @@ class ErrorBoundary extends React.Component {
               </button>
               <button
                 onClick={() => (window.location.href = '/')}
-                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="flex-1 bg-muted text-gray-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 Go Home
               </button>

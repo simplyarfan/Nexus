@@ -95,7 +95,7 @@ export default function Contact() {
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
+                className="bg-card/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
               >
                 <h2 className="text-2xl font-bold text-white mb-6">Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -105,7 +105,7 @@ export default function Contact() {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                       placeholder="Your name"
                       required
                     />
@@ -117,7 +117,7 @@ export default function Contact() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                       placeholder="your@email.com"
                       required
                     />
@@ -129,7 +129,7 @@ export default function Contact() {
                       type="text"
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                       placeholder="How can we help?"
                       required
                     />
@@ -141,7 +141,7 @@ export default function Contact() {
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       rows={6}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
                       placeholder="Tell us more about your needs..."
                       required
                     />
@@ -212,7 +212,7 @@ export default function Contact() {
                         x: 10,
                         transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                       }}
-                      className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
+                      className="flex items-start space-x-4 bg-card/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
                     >
                       <div
                         className={`w-12 h-12 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center flex-shrink-0`}
@@ -238,7 +238,7 @@ export default function Contact() {
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
+                  <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                 </div>
                 <span className="text-lg font-bold">Nexus</span>
               </div>

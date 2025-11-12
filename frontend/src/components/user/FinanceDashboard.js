@@ -62,7 +62,7 @@ export default function FinanceDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -73,20 +73,20 @@ export default function FinanceDashboard() {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-border">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
+              <div className="w-4 h-4 bg-card rounded-sm transform rotate-45"></div>
             </div>
-            <span className="text-xl font-bold text-gray-900">Nexus</span>
+            <span className="text-xl font-bold text-foreground">Nexus</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-lg hover:bg-muted"
           >
             <X className="w-5 h-5" />
           </button>
@@ -103,7 +103,7 @@ export default function FinanceDashboard() {
               <button
                 key={agent.id}
                 onClick={() => router.push(agent.route)}
-                className="w-full flex items-center px-3 py-3 text-left text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
+                className="w-full flex items-center px-3 py-3 text-left text-muted-foreground rounded-lg hover:bg-muted transition-colors group"
               >
                 <div
                   className={`w-10 h-10 bg-gradient-to-br ${agent.color} rounded-lg flex items-center justify-center mr-3`}
@@ -111,20 +111,20 @@ export default function FinanceDashboard() {
                   <agent.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{agent.name}</p>
+                  <p className="text-sm font-medium text-foreground">{agent.name}</p>
                   <p className="text-xs text-gray-500">{agent.description}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-muted-foreground" />
               </button>
             ))}
           </div>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
           <div className="relative">
             {/* Dropdown Menu */}
             {userDropdownOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-lg shadow-lg py-2">
                 {quickActions.map((action) => (
                   <button
                     key={action.name}
@@ -132,13 +132,13 @@ export default function FinanceDashboard() {
                       router.push(action.route);
                       setUserDropdownOpen(false);
                     }}
-                    className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center px-4 py-2 text-left text-muted-foreground hover:bg-muted transition-colors"
                   >
                     <action.icon className="w-4 h-4 mr-3 text-gray-400" />
                     <span className="text-sm font-medium">{action.name}</span>
                   </button>
                 ))}
-                <div className="border-t border-gray-200 my-1"></div>
+                <div className="border-t border-border my-1"></div>
                 <button
                   onClick={() => {
                     handleLogout();
@@ -155,13 +155,13 @@ export default function FinanceDashboard() {
             {/* User Profile Button */}
             <button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-muted transition-colors"
             >
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-gray-600" />
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+                <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
                 <p className="text-xs text-gray-500 truncate">Finance Department</p>
               </div>
               <ChevronUp
@@ -175,17 +175,17 @@ export default function FinanceDashboard() {
       {/* Main content */}
       <div className="lg:pl-64 min-h-screen">
         {/* Top bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+                className="lg:hidden p-2 rounded-lg hover:bg-muted"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Finance Dashboard</h1>
+                <h1 className="text-xl font-semibold text-foreground">Finance Dashboard</h1>
                 <p className="text-sm text-gray-500">Welcome back, {user?.first_name}!</p>
               </div>
             </div>
@@ -198,7 +198,7 @@ export default function FinanceDashboard() {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+              <button className="p-2 text-gray-400 hover:text-muted-foreground rounded-lg hover:bg-muted">
                 <Bell className="w-5 h-5" />
               </button>
             </div>
@@ -217,7 +217,7 @@ export default function FinanceDashboard() {
                 </p>
               </div>
               <div className="hidden md:block">
-                <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <div className="w-24 h-24 bg-card bg-opacity-20 rounded-full flex items-center justify-center">
                   <Brain className="w-12 h-12 text-white" />
                 </div>
               </div>
@@ -230,7 +230,7 @@ export default function FinanceDashboard() {
               <div
                 key={agent.id}
                 onClick={() => router.push(agent.route)}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group"
+                className="bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer group"
               >
                 <div className="flex items-start space-x-4">
                   <div
@@ -239,8 +239,8 @@ export default function FinanceDashboard() {
                     <agent.icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{agent.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{agent.description}</p>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{agent.name}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">{agent.description}</p>
                     <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
                       <span>Launch Agent</span>
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />

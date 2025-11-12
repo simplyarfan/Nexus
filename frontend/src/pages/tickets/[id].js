@@ -63,9 +63,9 @@ export default function TicketDetailPage() {
       open: 'bg-blue-100 text-blue-800',
       'in-progress': 'bg-yellow-100 text-yellow-800',
       resolved: 'bg-green-100 text-green-800',
-      closed: 'bg-gray-100 text-gray-800',
+      closed: 'bg-muted text-gray-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-muted text-gray-800';
   };
 
   const getPriorityColor = (priority) => {
@@ -75,7 +75,7 @@ export default function TicketDetailPage() {
       high: 'text-orange-600',
       urgent: 'text-red-600',
     };
-    return colors[priority] || 'text-gray-600';
+    return colors[priority] || 'text-muted-foreground';
   };
 
   if (authLoading || loading || !ticket) {
@@ -83,7 +83,7 @@ export default function TicketDetailPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading ticket...</p>
+          <p className="mt-4 text-muted-foreground">Loading ticket...</p>
         </div>
       </div>
     );
@@ -99,12 +99,12 @@ export default function TicketDetailPage() {
         <title>Ticket #{ticket.id} - Enterprise AI Hub</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-secondary py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <Link
             href="/tickets"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
           >
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -118,11 +118,11 @@ export default function TicketDetailPage() {
           </Link>
 
           {/* Ticket Header */}
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="bg-card shadow rounded-lg p-6 mb-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{ticket.subject}</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <h1 className="text-2xl font-bold text-foreground">{ticket.subject}</h1>
+                <p className="text-sm text-muted-foreground mt-1">
                   Ticket #{ticket.id} • Created {new Date(ticket.created_at).toLocaleDateString()}
                 </p>
               </div>
@@ -142,19 +142,19 @@ export default function TicketDetailPage() {
 
             {ticket.category && (
               <div className="mb-4">
-                <span className="text-sm text-gray-600">Category:</span>
-                <span className="ml-2 text-sm font-medium text-gray-900">{ticket.category}</span>
+                <span className="text-sm text-muted-foreground">Category:</span>
+                <span className="ml-2 text-sm font-medium text-foreground">{ticket.category}</span>
               </div>
             )}
 
             <div className="prose max-w-none">
-              <p className="text-gray-700">{ticket.description}</p>
+              <p className="text-muted-foreground">{ticket.description}</p>
             </div>
           </div>
 
           {/* Comments Section */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-card shadow rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Comments ({ticket.comments?.length || 0})
             </h2>
 
@@ -164,25 +164,25 @@ export default function TicketDetailPage() {
                 {ticket.comments.map((c) => (
                   <div key={c.id} className="border-l-4 border-blue-500 pl-4 py-2">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-foreground">
                         {c.user?.first_name} {c.user?.last_name}
                       </span>
                       <span className="text-xs text-gray-500">
                         {new Date(c.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700">{c.comment}</p>
+                    <p className="text-sm text-muted-foreground">{c.comment}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-600 mb-6">No comments yet.</p>
+              <p className="text-sm text-muted-foreground mb-6">No comments yet.</p>
             )}
 
             {/* Add Comment Form */}
             {ticket.status !== 'closed' && (
               <form onSubmit={handleSubmitComment}>
-                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="comment" className="block text-sm font-medium text-muted-foreground mb-2">
                   Add a comment
                 </label>
                 <textarea

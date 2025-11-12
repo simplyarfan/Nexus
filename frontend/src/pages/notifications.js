@@ -119,25 +119,25 @@ export default function NotificationsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.back()}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
               >
                 <svg
-                  className="w-5 h-5 text-gray-900"
+                  className="w-5 h-5 text-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -151,8 +151,8 @@ export default function NotificationsPage() {
                 </svg>
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-                <p className="text-gray-600 mt-1">Stay updated with your activity</p>
+                <h1 className="text-3xl font-bold text-foreground">Notifications</h1>
+                <p className="text-muted-foreground mt-1">Stay updated with your activity</p>
               </div>
             </div>
             <button
@@ -172,7 +172,7 @@ export default function NotificationsPage() {
             onClick={() => setFilter('all')}
             className={
               'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'all' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100')
+              (filter === 'all' ? 'bg-green-500 text-white' : 'text-muted-foreground hover:bg-muted')
             }
           >
             All
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
             onClick={() => setFilter('unread')}
             className={
               'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'unread' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100')
+              (filter === 'unread' ? 'bg-green-500 text-white' : 'text-muted-foreground hover:bg-muted')
             }
           >
             Unread
@@ -189,13 +189,13 @@ export default function NotificationsPage() {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-600">
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <svg
                 className="w-16 h-16 mb-4 opacity-50"
                 fill="none"
@@ -220,7 +220,7 @@ export default function NotificationsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={
-                    'p-6 hover:bg-gray-50 transition-colors ' +
+                    'p-6 hover:bg-secondary transition-colors ' +
                     (!notification.is_read ? 'bg-blue-50/30' : '')
                   }
                 >
@@ -229,7 +229,7 @@ export default function NotificationsPage() {
                       className={
                         'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ' +
                         (notification.is_read
-                          ? 'bg-gray-100 text-gray-600'
+                          ? 'bg-muted text-muted-foreground'
                           : 'bg-green-100 text-green-600')
                       }
                     >
@@ -238,10 +238,10 @@ export default function NotificationsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900 mb-1">
+                          <p className="text-sm font-semibold text-foreground mb-1">
                             {notification.title}
                           </p>
-                          <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
+                          <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
                           <p className="text-xs text-gray-500">
                             {new Date(notification.created_at).toLocaleString()}
                           </p>
@@ -291,11 +291,11 @@ export default function NotificationsPage() {
                 setPagination((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
               }
               disabled={pagination.page === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <button
@@ -306,7 +306,7 @@ export default function NotificationsPage() {
                 }))
               }
               disabled={pagination.page === pagination.totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>

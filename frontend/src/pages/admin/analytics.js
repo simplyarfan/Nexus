@@ -100,7 +100,7 @@ export default function AnalyticsDashboard() {
 
   if (loading || loadingStats) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
       </div>
     );
@@ -109,8 +109,8 @@ export default function AnalyticsDashboard() {
   if (!isAdmin && !isSuperAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b border-gray-200 bg-white">
+    <div className="min-h-screen bg-secondary">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center gap-4">
             <button
@@ -118,7 +118,7 @@ export default function AnalyticsDashboard() {
               className="p-2 hover:bg-green-50 rounded-lg transition-colors"
             >
               <svg
-                className="w-5 h-5 text-gray-900"
+                className="w-5 h-5 text-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -132,8 +132,8 @@ export default function AnalyticsDashboard() {
               </svg>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-              <p className="text-gray-600 mt-1">View system analytics and insights</p>
+              <h1 className="text-3xl font-bold text-foreground">Analytics Dashboard</h1>
+              <p className="text-muted-foreground mt-1">View system analytics and insights</p>
             </div>
           </div>
         </div>
@@ -147,14 +147,14 @@ export default function AnalyticsDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow"
+              className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-600">{stat.label}</p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <span className="text-xs font-medium text-gray-500">{stat.trend}</span>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                 <div
                   className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}
                 >

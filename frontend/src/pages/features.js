@@ -148,7 +148,7 @@ export default function Features() {
                     y: -10,
                     transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                   }}
-                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
+                  className="bg-card/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
                 >
                   <div
                     className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4`}
@@ -194,7 +194,7 @@ export default function Features() {
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
+                  <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                 </div>
                 <span className="text-lg font-bold">Nexus</span>
               </div>

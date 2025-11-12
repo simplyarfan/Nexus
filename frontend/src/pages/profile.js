@@ -12,6 +12,13 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Determine correct dashboard based on role
+  const getDashboardPath = () => {
+    if (isSuperAdmin) return '/superadmin';
+    if (isAdmin) return '/admin';
+    return '/dashboard';
+  };
+
   // Profile form state
   const [profileData, setProfileData] = useState({
     first_name: '',
@@ -67,7 +74,7 @@ export default function ProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
             <a
-              href="/dashboard"
+              href={getDashboardPath()}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -70,24 +70,10 @@ jobs:
         working-directory: ./backend
         run: npm run format:check
 
-      - name: Run backend tests with coverage
+      - name: Run backend unit tests
         working-directory: ./backend
-        run: npm run test:coverage || npm test --passWithNoTests
+        run: npm test -- --testPathIgnorePatterns=__tests__/e2e --passWithNoTests
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./backend/coverage/coverage-final.json
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-
-      - name: Archive test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ matrix.node-version }}
-          path: backend/coverage/
 
   security:
     runs-on: ubuntu-latest

@@ -297,19 +297,21 @@ Best regards,
       }
 
       // Parse CC and BCC emails (convert comma-separated strings to arrays)
-      const ccEmailsArray = availabilityForm.ccEmails
-        ? availabilityForm.ccEmails
-            .split(',')
-            .map((email) => email.trim())
-            .filter((email) => email)
-        : [];
+      const ccEmailsArray =
+        availabilityForm.ccEmails && typeof availabilityForm.ccEmails === 'string'
+          ? availabilityForm.ccEmails
+              .split(',')
+              .map((email) => email.trim())
+              .filter((email) => email)
+          : [];
 
-      const bccEmailsArray = availabilityForm.bccEmails
-        ? availabilityForm.bccEmails
-            .split(',')
-            .map((email) => email.trim())
-            .filter((email) => email)
-        : [];
+      const bccEmailsArray =
+        availabilityForm.bccEmails && typeof availabilityForm.bccEmails === 'string'
+          ? availabilityForm.bccEmails
+              .split(',')
+              .map((email) => email.trim())
+              .filter((email) => email)
+          : [];
 
       // Make API call to send email
       const response = await api.post('/interview-coordinator/request-availability', {
@@ -323,7 +325,9 @@ Best regards,
         bccEmails: bccEmailsArray,
       });
 
-      if (response.data.success) {
+      console.log('Availability request response:', response.data);
+
+      if (response.data.success || response.data.data) {
         alert('✅ Availability request sent successfully!');
 
         // Refresh interviews list
@@ -372,18 +376,20 @@ Best regards,
       formData.append('notes', scheduleForm.notes);
 
       // Parse CC and BCC emails (convert comma-separated strings to arrays)
-      const ccEmailsArray = scheduleForm.ccEmails
-        ? scheduleForm.ccEmails
-            .split(',')
-            .map((email) => email.trim())
-            .filter((email) => email)
-        : [];
-      const bccEmailsArray = scheduleForm.bccEmails
-        ? scheduleForm.bccEmails
-            .split(',')
-            .map((email) => email.trim())
-            .filter((email) => email)
-        : [];
+      const ccEmailsArray =
+        scheduleForm.ccEmails && typeof scheduleForm.ccEmails === 'string'
+          ? scheduleForm.ccEmails
+              .split(',')
+              .map((email) => email.trim())
+              .filter((email) => email)
+          : [];
+      const bccEmailsArray =
+        scheduleForm.bccEmails && typeof scheduleForm.bccEmails === 'string'
+          ? scheduleForm.bccEmails
+              .split(',')
+              .map((email) => email.trim())
+              .filter((email) => email)
+          : [];
 
       formData.append('ccEmails', JSON.stringify(ccEmailsArray));
       formData.append('bccEmails', JSON.stringify(bccEmailsArray));
@@ -543,8 +549,8 @@ Best regards,
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-yellow-500">Outlook Not Connected</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  To send interview emails, you need to connect your company Outlook account
-                  (@{process.env.NEXT_PUBLIC_COMPANY_DOMAIN}). This is a one-time setup.
+                  To send interview emails, you need to connect your company Outlook account (@
+                  {process.env.NEXT_PUBLIC_COMPANY_DOMAIN}). This is a one-time setup.
                 </p>
                 <button
                   onClick={() => (window.location.href = '/api/auth/outlook/auth')}
@@ -672,10 +678,13 @@ Best regards,
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
-                                {interview.candidateName
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')}
+                                {interview.candidateName &&
+                                typeof interview.candidateName === 'string'
+                                  ? interview.candidateName
+                                      .split(' ')
+                                      .map((n) => n[0])
+                                      .join('')
+                                  : 'N/A'}
                               </div>
                               <div>
                                 <h3 className="text-lg font-semibold text-foreground">
@@ -786,10 +795,13 @@ Best regards,
                 <div className="flex items-start justify-between mb-6 pb-6 border-b border-border">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-2xl font-bold">
-                      {selectedInterview.candidateName
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')}
+                      {selectedInterview.candidateName &&
+                      typeof selectedInterview.candidateName === 'string'
+                        ? selectedInterview.candidateName
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                        : 'N/A'}
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">

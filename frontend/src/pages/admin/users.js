@@ -404,7 +404,10 @@ export default function UserManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' + getRoleBadgeColor(u.role)}
+                            className={
+                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              getRoleBadgeColor(u.role)
+                            }
                           >
                             {u.role}
                           </span>
@@ -414,10 +417,12 @@ export default function UserManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                            className={
+                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
                               (u.is_active
                                 ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700')}
+                                : 'bg-red-100 text-red-700')
+                            }
                           >
                             {u.is_active ? 'Active' : 'Inactive'}
                           </span>

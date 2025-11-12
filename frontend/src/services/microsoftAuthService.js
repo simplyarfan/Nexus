@@ -182,16 +182,13 @@ class MicrosoftAuthService {
         return { exists: false, user: null };
       }
 
-      const response = await fetch(
-        `${apiUrl}/api/auth/check-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
+      const response = await fetch(`${apiUrl}/api/auth/check-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ email }),
+      });
 
       const data = await response.json();
       return {

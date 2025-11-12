@@ -61,7 +61,7 @@ export default function SupportManagement() {
     try {
       setSelectedTicket(ticket);
       setShowTicketModal(true);
-      
+
       // Fetch ticket details with comments
       const result = await supportAPI.getTicketDetails(ticket.id);
       setComments(result.data.comments || []);
@@ -78,7 +78,7 @@ export default function SupportManagement() {
       setIsSubmitting(true);
       await supportAPI.addComment(selectedTicket.id, newComment);
       toast.success('Comment added successfully');
-      
+
       // Refresh comments
       const result = await supportAPI.getTicketDetails(selectedTicket.id);
       setComments(result.data.comments || []);
@@ -314,14 +314,20 @@ export default function SupportManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' + getPriorityColor(ticket.priority)}
+                            className={
+                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              getPriorityColor(ticket.priority)
+                            }
                           >
                             {ticket.priority}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' + getStatusColor(ticket.status)}
+                            className={
+                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              getStatusColor(ticket.status)
+                            }
                           >
                             {ticket.status?.replace('_', ' ')}
                           </span>
@@ -367,10 +373,20 @@ export default function SupportManagement() {
                     {selectedTicket.subject}
                   </h2>
                   <div className="flex items-center gap-4">
-                    <span className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' + getStatusColor(selectedTicket.status)}>
+                    <span
+                      className={
+                        'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                        getStatusColor(selectedTicket.status)
+                      }
+                    >
                       {selectedTicket.status?.replace('_', ' ')}
                     </span>
-                    <span className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' + getPriorityColor(selectedTicket.priority)}>
+                    <span
+                      className={
+                        'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                        getPriorityColor(selectedTicket.priority)
+                      }
+                    >
                       {selectedTicket.priority}
                     </span>
                   </div>

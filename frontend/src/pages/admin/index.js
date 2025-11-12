@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalUsers: 0,
     openTickets: 0,
-    resolvedToday: 0
+    resolvedToday: 0,
   });
   const [notifications, setNotifications] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
       const [usersResponse, ticketsResponse, notificationsResponse] = await Promise.all([
         usersAPI.getUsers({ limit: 1000 }),
         supportAPI.getMyTickets({ limit: 1000 }),
-        notificationsAPI.getNotifications({ limit: 10, unread_only: true })
+        notificationsAPI.getNotifications({ limit: 10, unread_only: true }),
       ]);
 
       const allUsers = usersResponse.data.users || [];
@@ -52,13 +52,13 @@ export default function AdminDashboard() {
 
       // Calculate stats
       const openTickets = allTickets.filter(
-        t => t.status === 'open' || t.status === 'pending'
+        (t) => t.status === 'open' || t.status === 'pending',
       ).length;
 
       // Get tickets resolved today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const resolvedToday = allTickets.filter(t => {
+      const resolvedToday = allTickets.filter((t) => {
         if (t.status !== 'resolved' && t.status !== 'closed') return false;
         const resolvedDate = new Date(t.updated_at);
         return resolvedDate >= today;
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
       setStats({
         totalUsers: allUsers.length,
         openTickets,
-        resolvedToday
+        resolvedToday,
       });
 
       setNotifications(userNotifications);
@@ -441,7 +441,9 @@ export default function AdminDashboard() {
                                   <p className="font-medium text-gray-900 text-sm">
                                     {notification.title}
                                   </p>
-                                  <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    {notification.message}
+                                  </p>
                                   <p className="text-xs text-gray-600 mt-2">
                                     {formatNotificationTime(notification.created_at)}
                                   </p>

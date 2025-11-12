@@ -34,18 +34,23 @@ export default function AnalyticsDashboard() {
       const usersResponse = await usersAPI.getUsers({ limit: 1000 });
       const allUsers = usersResponse.data.users || [];
       const totalUsers = allUsers.length;
-      const activeUsers = allUsers.filter(u => u.is_active !== false).length;
+      const activeUsers = allUsers.filter((u) => u.is_active !== false).length;
 
       // Fetch tickets data
       const ticketsResponse = await supportAPI.getMyTickets({ limit: 1000 });
       const allTickets = ticketsResponse.data.tickets || [];
       const totalTickets = allTickets.length;
-      const resolvedTickets = allTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
-      const openTickets = allTickets.filter(t => t.status === 'open' || t.status === 'pending').length;
-      const inProgressTickets = allTickets.filter(t => t.status === 'in_progress').length;
+      const resolvedTickets = allTickets.filter(
+        (t) => t.status === 'resolved' || t.status === 'closed',
+      ).length;
+      const openTickets = allTickets.filter(
+        (t) => t.status === 'open' || t.status === 'pending',
+      ).length;
+      const inProgressTickets = allTickets.filter((t) => t.status === 'in_progress').length;
 
       // Calculate percentages
-      const resolvedPercentage = totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0;
+      const resolvedPercentage =
+        totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0;
       const activePercentage = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0;
 
       setStats([
@@ -53,13 +58,13 @@ export default function AnalyticsDashboard() {
           label: 'Total Users',
           value: totalUsers.toString(),
           trend: `${activeUsers} active`,
-          color: 'bg-blue-500/10 text-blue-600'
+          color: 'bg-blue-500/10 text-blue-600',
         },
         {
           label: 'Active Users',
           value: activeUsers.toString(),
           trend: `${activePercentage}%`,
-          color: 'bg-green-500/10 text-green-600'
+          color: 'bg-green-500/10 text-green-600',
         },
         {
           label: 'Total Tickets',
@@ -71,13 +76,13 @@ export default function AnalyticsDashboard() {
           label: 'Resolved Tickets',
           value: resolvedTickets.toString(),
           trend: `${resolvedPercentage}%`,
-          color: 'bg-green-50 text-green-900'
+          color: 'bg-green-50 text-green-900',
         },
         {
           label: 'In Progress',
           value: inProgressTickets.toString(),
           trend: 'Active',
-          color: 'bg-yellow-500/10 text-yellow-600'
+          color: 'bg-yellow-500/10 text-yellow-600',
         },
         {
           label: 'Open Tickets',

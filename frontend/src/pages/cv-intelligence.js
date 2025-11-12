@@ -581,10 +581,12 @@ export default function CVIntelligencePage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-foreground font-semibold">
-                              {candidate.name
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join('')}
+                              {candidate.name && typeof candidate.name === 'string'
+                                ? candidate.name
+                                    .split(' ')
+                                    .map((n) => n[0])
+                                    .join('')
+                                : 'N/A'}
                             </div>
                             <div>
                               <h3 className="text-xl font-bold text-foreground">
@@ -755,10 +757,12 @@ export default function CVIntelligencePage() {
                   <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-2xl font-bold">
-                        {selectedCandidate.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')}
+                        {selectedCandidate.name && typeof selectedCandidate.name === 'string'
+                          ? selectedCandidate.name
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                          : 'N/A'}
                       </div>
                       <div>
                         <h2 className="text-2xl font-bold text-foreground">

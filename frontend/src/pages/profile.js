@@ -213,7 +213,9 @@ export default function ProfilePage() {
                         <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-3xl font-bold">
                           {profileData.first_name?.charAt(0) || user?.name?.charAt(0) || 'U'}
                           {profileData.last_name?.charAt(0) ||
-                            user?.name?.split(' ')[1]?.charAt(0) ||
+                            (user?.name && typeof user.name === 'string'
+                              ? user.name.split(' ')[1]?.charAt(0)
+                              : '') ||
                             ''}
                         </div>
                         <div>

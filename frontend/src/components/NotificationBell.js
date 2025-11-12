@@ -35,8 +35,8 @@ export default function NotificationBell() {
         limit: 10,
         types: 'new_ticket,ticket_comment,ticket_response,ticket_status_change',
       });
-      if (response.data?.success) {
-        setNotifications(response.data.data.notifications);
+      if (response?.success) {
+        setNotifications(response.data?.notifications || []);
       }
     } catch (error) {
       // Intentionally empty - loading state handled by finally block, UI shows empty state

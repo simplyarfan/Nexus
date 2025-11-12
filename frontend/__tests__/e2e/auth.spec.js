@@ -11,7 +11,9 @@ test.describe('Authentication Flow', () => {
 
   test('should navigate to login page', async ({ page }) => {
     // Look for login link in navigation
-    const loginButton = page.locator('a[href="/auth/login"], button:has-text("Login"), a:has-text("Login")').first();
+    const loginButton = page
+      .locator('a[href="/auth/login"], button:has-text("Login"), a:has-text("Login")')
+      .first();
 
     if (await loginButton.isVisible()) {
       await loginButton.click();
@@ -30,22 +32,29 @@ test.describe('Authentication Flow', () => {
     await page.goto('/auth/login');
 
     // Try to submit without filling form
-    const submitButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign in")').first();
+    const submitButton = page
+      .locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign in")')
+      .first();
     await submitButton.click();
 
     // Wait a bit for validation to appear
     await page.waitForTimeout(500);
 
     // Check for validation messages or error states
-    const hasValidation = await page.locator('text=/required|fill|enter|invalid/i').isVisible().catch(() => false);
-    expect(hasValidation || await page.locator('input:invalid').count() > 0).toBeTruthy();
+    const hasValidation = await page
+      .locator('text=/required|fill|enter|invalid/i')
+      .isVisible()
+      .catch(() => false);
+    expect(hasValidation || (await page.locator('input:invalid').count()) > 0).toBeTruthy();
   });
 
   test('should navigate to register page', async ({ page }) => {
     await page.goto('/auth/login');
 
     // Look for register/signup link
-    const registerLink = page.locator('a[href="/auth/register"], a:has-text("Register"), a:has-text("Sign up")').first();
+    const registerLink = page
+      .locator('a[href="/auth/register"], a:has-text("Register"), a:has-text("Sign up")')
+      .first();
 
     if (await registerLink.isVisible()) {
       await registerLink.click();
@@ -68,10 +77,15 @@ test.describe('Authentication Flow', () => {
 
     // Check if password requirements or validation appears
     await page.waitForTimeout(500);
-    const hasRequirements = await page.locator('text=/8 characters|uppercase|lowercase|number/i').isVisible().catch(() => false);
+    const hasRequirements = await page
+      .locator('text=/8 characters|uppercase|lowercase|number/i')
+      .isVisible()
+      .catch(() => false);
 
     // At least one of these should be true: requirements shown or form validation present
-    expect(hasRequirements || await passwordInput.evaluate(el => !el.validity.valid)).toBeTruthy();
+    expect(
+      hasRequirements || (await passwordInput.evaluate((el) => !el.validity.valid)),
+    ).toBeTruthy();
   });
 });
 
@@ -95,7 +109,9 @@ test.describe('Navigation', () => {
     await page.goto('/');
 
     // Mobile menu should exist
-    const mobileMenu = page.locator('[aria-label*="menu" i], button:has-text("Menu"), .mobile-menu, #mobile-menu').first();
+    const mobileMenu = page
+      .locator('[aria-label*="menu" i], button:has-text("Menu"), .mobile-menu, #mobile-menu')
+      .first();
 
     if (await mobileMenu.isVisible()) {
       await mobileMenu.click();
@@ -157,7 +173,7 @@ test.describe('Performance', () => {
 
   test('should not have console errors on homepage', async ({ page }) => {
     const errors = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error') {
         errors.push(msg.text());
       }

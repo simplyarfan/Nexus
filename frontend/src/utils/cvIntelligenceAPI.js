@@ -218,10 +218,7 @@ export const cvIntelligenceAPI = {
 
   // Schedule interview for a candidate
   scheduleInterview: async (candidateId, interviewData) => {
-    const response = await api.post(
-      `/candidate/${candidateId}/schedule-interview`,
-      interviewData,
-    );
+    const response = await api.post(`/candidate/${candidateId}/schedule-interview`, interviewData);
 
     return response.data;
   },

@@ -10,7 +10,8 @@ import LandingPage from './landing';
 import ClientOnly from '../components/shared/ClientOnly';
 
 const Dashboard = () => {
-  const { user, loading, isAuthenticated, isSuperAdmin, isAdmin, isUser, hasDepartment } = useAuth();
+  const { user, loading, isAuthenticated, isSuperAdmin, isAdmin, isUser, hasDepartment } =
+    useAuth();
   const router = useRouter();
 
   // Dashboard mapping for cleaner code
@@ -57,7 +58,9 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground text-sm">Redirecting to superadmin dashboard...</p>
+          <p className="mt-4 text-muted-foreground text-sm">
+            Redirecting to superadmin dashboard...
+          </p>
         </div>
       </div>
     );

@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
         // Fetch batches
         const batchesResponse = await api.get('/cv-intelligence/batches');
-        const batches = batchesResponse.data.batches || [];
+        const batches = batchesResponse.data.data || [];
 
         // Calculate total candidates from all batches
         const totalCandidates = batches.reduce(
@@ -35,8 +35,12 @@ export default function DashboardPage() {
           0,
         );
 
-        // TODO: Fetch interviews when backend endpoint is ready
-        const scheduledInterviews = 0;
+        // Fetch interviews
+        const interviewsResponse = await api.get('/interview-coordinator/interviews');
+        const interviews = interviewsResponse.data.data || [];
+        const scheduledInterviews = interviews.filter(
+          (interview) => interview.status === 'scheduled',
+        ).length;
 
         setStats({
           activeBatches: batches.length,
@@ -58,7 +62,7 @@ export default function DashboardPage() {
     const fetchNotifications = async () => {
       try {
         const result = await notificationsAPI.getNotifications({ limit: 5 });
-        setNotifications(result.notifications || []);
+        setNotifications(result.data?.notifications || []);
       } catch (error) {
         // Silent failure - keep empty array
         setNotifications([]);

@@ -35,24 +35,27 @@ export default function SystemHealth() {
       const [usersResponse, ticketsResponse, notificationsResponse] = await Promise.all([
         usersAPI.getUsers({ limit: 1000 }),
         supportAPI.getMyTickets({ limit: 1000 }),
-        notificationsAPI.getNotifications({ limit: 1000 })
+        notificationsAPI.getNotifications({ limit: 1000 }),
       ]);
 
       const allUsers = usersResponse.data.users || [];
       const allTickets = ticketsResponse.data.tickets || [];
-      const allNotifications = notificationsResponse.data.notifications || [];
+      const allNotifications = notificationsResponse.data?.notifications || [];
 
       // Calculate metrics
-      const activeUsers = allUsers.filter(u => u.is_active !== false).length;
-      const departments = [...new Set(allUsers.map(u => u.department).filter(Boolean))];
+      const activeUsers = allUsers.filter((u) => u.is_active !== false).length;
+      const departments = [...new Set(allUsers.map((u) => u.department).filter(Boolean))];
 
-      const openTickets = allTickets.filter(t => t.status === 'open' || t.status === 'pending').length;
-      const resolvedTickets = allTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
-      const ticketSuccessRate = allTickets.length > 0
-        ? Math.round((resolvedTickets / allTickets.length) * 100)
-        : 0;
+      const openTickets = allTickets.filter(
+        (t) => t.status === 'open' || t.status === 'pending',
+      ).length;
+      const resolvedTickets = allTickets.filter(
+        (t) => t.status === 'resolved' || t.status === 'closed',
+      ).length;
+      const ticketSuccessRate =
+        allTickets.length > 0 ? Math.round((resolvedTickets / allTickets.length) * 100) : 0;
 
-      const unreadNotifications = allNotifications.filter(n => !n.is_read).length;
+      const unreadNotifications = allNotifications.filter((n) => !n.is_read).length;
 
       setMetrics([
         {
@@ -67,7 +70,11 @@ export default function SystemHealth() {
           category: 'Support System',
           items: [
             { label: 'Total Tickets', value: allTickets.length.toString(), status: 'healthy' },
-            { label: 'Open Tickets', value: openTickets.toString(), status: openTickets > 20 ? 'warning' : 'healthy' },
+            {
+              label: 'Open Tickets',
+              value: openTickets.toString(),
+              status: openTickets > 20 ? 'warning' : 'healthy',
+            },
             { label: 'Success Rate', value: `${ticketSuccessRate}%`, status: 'healthy' },
           ],
         },
@@ -83,7 +90,11 @@ export default function SystemHealth() {
           category: 'Database',
           items: [
             { label: 'Status', value: 'Connected', status: 'healthy' },
-            { label: 'Total Records', value: (allUsers.length + allTickets.length + allNotifications.length).toString(), status: 'healthy' },
+            {
+              label: 'Total Records',
+              value: (allUsers.length + allTickets.length + allNotifications.length).toString(),
+              status: 'healthy',
+            },
             { label: 'Health', value: 'Good', status: 'healthy' },
           ],
         },
@@ -156,13 +167,15 @@ export default function SystemHealth() {
               className="bg-white border border-gray-200 rounded-xl p-6"
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  metric.items.some(item => item.status === 'error')
-                    ? 'bg-red-500/10 text-red-600'
-                    : metric.items.some(item => item.status === 'warning')
-                    ? 'bg-yellow-500/10 text-yellow-600'
-                    : 'bg-green-500/10 text-green-600'
-                }`}>
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    metric.items.some((item) => item.status === 'error')
+                      ? 'bg-red-500/10 text-red-600'
+                      : metric.items.some((item) => item.status === 'warning')
+                        ? 'bg-yellow-500/10 text-yellow-600'
+                        : 'bg-green-500/10 text-green-600'
+                  }`}
+                >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"

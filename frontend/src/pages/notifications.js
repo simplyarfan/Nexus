@@ -50,8 +50,8 @@ export default function NotificationsPage() {
       // Update local state
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === notificationId ? { ...n, is_read: true, read_at: new Date() } : n
-        )
+          n.id === notificationId ? { ...n, is_read: true, read_at: new Date() } : n,
+        ),
       );
     } catch (error) {
       toast.error('Failed to mark as read');
@@ -170,19 +170,19 @@ export default function NotificationsPage() {
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setFilter('all')}
-            className={'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'all'
-                ? 'bg-green-500 text-white'
-                : 'text-gray-600 hover:bg-gray-100')}
+            className={
+              'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
+              (filter === 'all' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100')
+            }
           >
             All
           </button>
           <button
             onClick={() => setFilter('unread')}
-            className={'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'unread'
-                ? 'bg-green-500 text-white'
-                : 'text-gray-600 hover:bg-gray-100')}
+            className={
+              'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
+              (filter === 'unread' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-100')
+            }
           >
             Unread
           </button>
@@ -219,15 +219,19 @@ export default function NotificationsPage() {
                   key={notification.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={'p-6 hover:bg-gray-50 transition-colors ' +
-                    (!notification.is_read ? 'bg-blue-50/30' : '')}
+                  className={
+                    'p-6 hover:bg-gray-50 transition-colors ' +
+                    (!notification.is_read ? 'bg-blue-50/30' : '')
+                  }
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ' +
+                      className={
+                        'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ' +
                         (notification.is_read
                           ? 'bg-gray-100 text-gray-600'
-                          : 'bg-green-100 text-green-600')}
+                          : 'bg-green-100 text-green-600')
+                      }
                     >
                       {getNotificationIcon(notification.type)}
                     </div>

@@ -29,6 +29,42 @@ export default function InterviewsPage() {
     bccEmails: '',
   });
 
+  // Helper function to safely format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not scheduled';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  // Helper function to transform snake_case to camelCase
+  const transformInterview = (interview) => ({
+    ...interview,
+    candidateName: interview.candidate_name || interview.candidateName,
+    candidateEmail: interview.candidate_email || interview.candidateEmail,
+    jobTitle: interview.job_title || interview.jobTitle,
+    interviewType: interview.interview_type || interview.interviewType,
+    scheduledTime: interview.scheduled_time || interview.scheduledTime,
+    meetingLink: interview.meeting_link || interview.meetingLink,
+    calendlyLink: interview.calendly_link || interview.calendlyLink,
+    googleFormLink: interview.google_form_link || interview.googleFormLink,
+    panelMembers: interview.panel_members || interview.panelMembers,
+    generatedQuestions: interview.generated_questions || interview.generatedQuestions,
+    scheduledBy: interview.scheduled_by || interview.scheduledBy,
+    createdAt: interview.created_at || interview.createdAt,
+    updatedAt: interview.updated_at || interview.updatedAt,
+  });
+
   // Check Outlook connection status on mount
   useEffect(() => {
     const checkOutlookStatus = async () => {
@@ -58,7 +94,8 @@ export default function InterviewsPage() {
 
         const response = await api.get('/interview-coordinator/interviews');
 
-        setInterviews(response.data.data || []);
+        const transformedInterviews = (response.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
       } catch (error) {
         setInterviews([]);
       } finally {
@@ -332,7 +369,8 @@ Best regards,
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
-        setInterviews(refreshResponse.data.data || []);
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
 
         // Reset form and go back to list
         setView('list');
@@ -411,7 +449,8 @@ Best regards,
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
-        setInterviews(refreshResponse.data.data || []);
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
 
         // Reset form and go back to list
         setView('list');
@@ -452,7 +491,8 @@ Best regards,
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
-        setInterviews(refreshResponse.data.data || []);
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
 
         // Go back to list view
         setView('list');
@@ -707,7 +747,7 @@ Best regards,
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Request Sent</p>
                             <p className="text-sm font-medium text-foreground">
-                              {new Date(interview.createdDate).toLocaleDateString()}
+                              {formatDate(interview.createdAt || interview.created_at)}
                             </p>
                           </div>
                           {interview.scheduledTime && (
@@ -715,7 +755,7 @@ Best regards,
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">Scheduled Time</p>
                                 <p className="text-sm font-medium text-foreground">
-                                  {new Date(interview.scheduledTime).toLocaleString()}
+                                  {formatDate(interview.scheduledTime)}
                                 </p>
                               </div>
                               <div>
@@ -974,10 +1014,14 @@ Best regards,
                   {/* Candidate Information */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="candidateName"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         Candidate Name *
                       </label>
                       <input
+                        id="candidateName"
                         type="text"
                         value={availabilityForm.candidateName}
                         onChange={(e) =>
@@ -991,10 +1035,14 @@ Best regards,
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="candidateEmail"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         Email *
                       </label>
                       <input
+                        id="candidateEmail"
                         type="email"
                         value={availabilityForm.candidateEmail}
                         onChange={(e) =>
@@ -1010,10 +1058,14 @@ Best regards,
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="position"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Position *
                     </label>
                     <input
+                      id="position"
                       type="text"
                       value={availabilityForm.position}
                       onChange={(e) =>
@@ -1025,10 +1077,14 @@ Best regards,
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="googleFormLink"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Google Form Link (Optional)
                     </label>
                     <input
+                      id="googleFormLink"
                       type="url"
                       value={availabilityForm.googleFormLink}
                       onChange={(e) =>
@@ -1043,10 +1099,14 @@ Best regards,
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label
+                      htmlFor="emailSubject"
+                      className="block text-sm font-medium text-foreground mb-2"
+                    >
                       Email Subject
                     </label>
                     <input
+                      id="emailSubject"
                       type="text"
                       value={availabilityForm.emailSubject}
                       onChange={(e) =>
@@ -1074,10 +1134,14 @@ Best regards,
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="ccEmails"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         CC (Optional)
                       </label>
                       <input
+                        id="ccEmails"
                         type="text"
                         value={availabilityForm.ccEmails}
                         onChange={(e) =>
@@ -1091,10 +1155,14 @@ Best regards,
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="bccEmails"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         BCC (Optional)
                       </label>
                       <input
+                        id="bccEmails"
                         type="text"
                         value={availabilityForm.bccEmails}
                         onChange={(e) =>
@@ -1313,10 +1381,14 @@ Best regards,
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="scheduleCcEmails"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         CC (Optional)
                       </label>
                       <input
+                        id="scheduleCcEmails"
                         type="text"
                         value={scheduleForm.ccEmails}
                         onChange={(e) =>
@@ -1327,10 +1399,14 @@ Best regards,
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="scheduleBccEmails"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         BCC (Optional)
                       </label>
                       <input
+                        id="scheduleBccEmails"
                         type="text"
                         value={scheduleForm.bccEmails}
                         onChange={(e) =>

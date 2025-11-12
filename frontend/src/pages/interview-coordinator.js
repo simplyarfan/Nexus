@@ -16,6 +16,15 @@ export default function InterviewsPage() {
   const [isSending, setIsSending] = useState(false);
   const [interviews, setInterviews] = useState([]);
   const [loadingInterviews, setLoadingInterviews] = useState(true);
+  const [showMarkModal, setShowMarkModal] = useState(false);
+  const [markingInterview, setMarkingInterview] = useState(null);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [reschedulingInterview, setReschedulingInterview] = useState(null);
+  const [rescheduleForm, setRescheduleForm] = useState({
+    scheduledTime: '',
+    duration: 60,
+    notes: '',
+  });
 
   // Request Availability Form (Stage 1)
   const [availabilityForm, setAvailabilityForm] = useState({
@@ -505,6 +514,107 @@ Best regards,
     }
   };
 
+  const handleMarkInterview = async (outcome) => {
+    if (!markingInterview) return;
+
+    try {
+      const response = await api.put(`/interview-coordinator/interview/${markingInterview.id}/status`, {
+        status: 'completed',
+        outcome: outcome,
+      });
+
+      if (response.data.success) {
+        alert(`✅ Candidate marked as ${outcome}`);
+
+        // Refresh interviews list
+        const refreshResponse = await api.get('/interview-coordinator/interviews');
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
+
+        // Close modal and update selected interview if in details view
+        setShowMarkModal(false);
+        setMarkingInterview(null);
+
+        if (selectedInterview?.id === markingInterview.id) {
+          // Update selected interview with new data
+          const updatedInterview = transformedInterviews.find(i => i.id === markingInterview.id);
+          if (updatedInterview) {
+            setSelectedInterview(updatedInterview);
+          }
+        }
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to mark interview';
+      alert(`❌ Error: ${errorMessage}`);
+    }
+  };
+
+  const openMarkModal = (interview) => {
+    setMarkingInterview(interview);
+    setShowMarkModal(true);
+  };
+
+  const openRescheduleModal = (interview) => {
+    setReschedulingInterview(interview);
+    setRescheduleForm({
+      scheduledTime: interview.scheduledTime || '',
+      duration: interview.duration || 60,
+      notes: interview.notes || '',
+    });
+    setShowRescheduleModal(true);
+  };
+
+  const handleRescheduleInterview = async () => {
+    if (!reschedulingInterview) return;
+
+    try {
+      setIsSending(true);
+
+      // Validation
+      if (!rescheduleForm.scheduledTime) {
+        alert('Please select a new date and time');
+        setIsSending(false);
+        return;
+      }
+
+      const response = await api.put(
+        `/interview-coordinator/interview/${reschedulingInterview.id}/reschedule`,
+        {
+          scheduledTime: rescheduleForm.scheduledTime,
+          duration: rescheduleForm.duration,
+          notes: rescheduleForm.notes,
+        }
+      );
+
+      if (response.data.success) {
+        alert('✅ Interview rescheduled successfully! Notification sent to candidate.');
+
+        // Refresh interviews list
+        const refreshResponse = await api.get('/interview-coordinator/interviews');
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
+
+        // Close modal and update selected interview if in details view
+        setShowRescheduleModal(false);
+        setReschedulingInterview(null);
+
+        if (selectedInterview?.id === reschedulingInterview.id) {
+          const updatedInterview = transformedInterviews.find(i => i.id === reschedulingInterview.id);
+          if (updatedInterview) {
+            setSelectedInterview(updatedInterview);
+          }
+        }
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to reschedule interview';
+      alert(`❌ Error: ${errorMessage}`);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -806,7 +916,7 @@ Best regards,
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => alert('Reschedule functionality coming soon')}
+                              onClick={() => openRescheduleModal(interview)}
                             >
                               Reschedule
                             </Button>
@@ -958,28 +1068,27 @@ Best regards,
                       <Button
                         variant="secondary"
                         size="lg"
-                        onClick={() => alert('Reschedule functionality coming soon')}
+                        onClick={() => openRescheduleModal(selectedInterview)}
                       >
                         Reschedule
                       </Button>
                       <Button
                         variant="secondary"
                         size="lg"
-                        onClick={() => alert('Interview marked')}
+                        onClick={() => openMarkModal(selectedInterview)}
                       >
                         Mark
                       </Button>
                     </>
                   )}
                   {selectedInterview.status === 'completed' && (
-                    <>
-                      <Button variant="primary" size="lg" onClick={() => alert('Candidate marked')}>
-                        Mark
-                      </Button>
-                      <Button variant="ghost" size="lg" onClick={() => alert('Candidate marked')}>
-                        Mark
-                      </Button>
-                    </>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={() => openMarkModal(selectedInterview)}
+                    >
+                      Update Mark
+                    </Button>
                   )}
                   <Button
                     variant="ghost"
@@ -1439,6 +1548,169 @@ Best regards,
           )}
         </AnimatePresence>
       </div>
+
+      {/* Mark Interview Modal */}
+      {showMarkModal && markingInterview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-card border border-border rounded-2xl p-8 max-w-md w-full"
+          >
+            <h3 className="text-2xl font-bold text-foreground mb-4">Mark Candidate</h3>
+            <p className="text-muted-foreground mb-6">
+              How would you like to mark{' '}
+              <span className="font-semibold text-foreground">{markingInterview.candidateName}</span>?
+            </p>
+
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full bg-green-600 hover:bg-green-700"
+                onClick={() => handleMarkInterview('selected')}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Mark as Selected
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-full text-destructive hover:bg-destructive/10"
+                onClick={() => handleMarkInterview('rejected')}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Mark as Rejected
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full mt-4"
+                onClick={() => {
+                  setShowMarkModal(false);
+                  setMarkingInterview(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Reschedule Interview Modal */}
+      {showRescheduleModal && reschedulingInterview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-card border border-border rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <h3 className="text-2xl font-bold text-foreground mb-4">Reschedule Interview</h3>
+            <p className="text-muted-foreground mb-6">
+              Update the interview time for{' '}
+              <span className="font-semibold text-foreground">{reschedulingInterview.candidateName}</span>
+            </p>
+
+            <div className="space-y-6">
+              <div>
+                <DateTimePicker
+                  label="New Scheduled Date & Time"
+                  value={rescheduleForm.scheduledTime}
+                  onChange={(value) =>
+                    setRescheduleForm({ ...rescheduleForm, scheduledTime: value })
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Duration (minutes)
+                </label>
+                <select
+                  value={rescheduleForm.duration}
+                  onChange={(e) =>
+                    setRescheduleForm({ ...rescheduleForm, duration: parseInt(e.target.value) })
+                  }
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value={30}>30 minutes</option>
+                  <option value={45}>45 minutes</option>
+                  <option value={60}>1 hour</option>
+                  <option value={90}>1.5 hours</option>
+                  <option value={120}>2 hours</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  rows={4}
+                  value={rescheduleForm.notes}
+                  onChange={(e) => setRescheduleForm({ ...rescheduleForm, notes: e.target.value })}
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Reason for rescheduling or additional instructions..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-6 border-t border-border">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="flex-1"
+                  onClick={handleRescheduleInterview}
+                  isLoading={isSending}
+                  disabled={isSending}
+                >
+                  {isSending ? 'Rescheduling...' : 'Reschedule & Notify'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onClick={() => {
+                    setShowRescheduleModal(false);
+                    setReschedulingInterview(null);
+                  }}
+                  disabled={isSending}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

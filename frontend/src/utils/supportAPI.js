@@ -110,55 +110,55 @@ api.interceptors.response.use(
 export const supportAPI = {
   // Get all tickets for current user
   getMyTickets: async (params = {}) => {
-    const response = await api.get('/tickets', { params });
+    const response = await api.get('/', { params });
     return response;
   },
 
   // Get all tickets (admin only)
   getAllTickets: async (params = {}) => {
-    const response = await api.get('/tickets/all', { params });
+    const response = await api.get('/all', { params });
     return response;
   },
 
   // Get ticket by ID
   getTicket: async (id) => {
-    const response = await api.get(`/tickets/${id}`);
+    const response = await api.get(`/${id}`);
     return response;
   },
 
   // Create new ticket
   createTicket: async (ticketData) => {
-    const response = await api.post('/tickets', ticketData);
+    const response = await api.post('/', ticketData);
     return response;
   },
 
   // Update ticket
   updateTicket: async (id, updates) => {
-    const response = await api.patch(`/tickets/${id}`, updates);
+    const response = await api.patch(`/${id}`, updates);
     return response;
   },
 
   // Update ticket status
   updateTicketStatus: async (id, status) => {
-    const response = await api.patch(`/tickets/${id}/status`, { status });
+    const response = await api.patch(`/${id}/status`, { status });
     return response;
   },
 
   // Delete ticket
   deleteTicket: async (id) => {
-    const response = await api.delete(`/tickets/${id}`);
+    const response = await api.delete(`/${id}`);
     return response;
   },
 
   // Get comments for a ticket
   getTicketComments: async (ticketId) => {
-    const response = await api.get(`/tickets/${ticketId}/comments`);
+    const response = await api.get(`/${ticketId}/comments`);
     return response;
   },
 
   // Add comment to ticket
   addComment: async (ticketId, comment, isInternal = false) => {
-    const response = await api.post(`/tickets/${ticketId}/comments`, {
+    const response = await api.post(`/${ticketId}/comments`, {
       comment,
       is_internal: isInternal,
     });
@@ -167,25 +167,25 @@ export const supportAPI = {
 
   // Update comment
   updateComment: async (ticketId, commentId, comment) => {
-    const response = await api.patch(`/tickets/${ticketId}/comments/${commentId}`, { comment });
+    const response = await api.patch(`/${ticketId}/comments/${commentId}`, { comment });
     return response;
   },
 
   // Delete comment
   deleteComment: async (ticketId, commentId) => {
-    const response = await api.delete(`/tickets/${ticketId}/comments/${commentId}`);
+    const response = await api.delete(`/${ticketId}/comments/${commentId}`);
     return response;
   },
 
   // Assign ticket (admin only)
   assignTicket: async (ticketId, userId) => {
-    const response = await api.post(`/tickets/${ticketId}/assign`, { userId });
+    const response = await api.post(`/${ticketId}/assign`, { userId });
     return response;
   },
 
   // Get ticket statistics (admin only)
   getTicketStats: async () => {
-    const response = await api.get('/tickets/stats');
+    const response = await api.get('/stats');
     return response;
   },
 };

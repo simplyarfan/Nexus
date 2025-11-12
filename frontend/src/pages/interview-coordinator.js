@@ -864,11 +864,24 @@ Best regards,
                               </div>
                             </div>
                           </div>
-                          <span
-                            className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(interview.status)}`}
-                          >
-                            {interview.status.replace('_', ' ')}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(interview.status)}`}
+                            >
+                              {interview.status.replace('_', ' ')}
+                            </span>
+                            {interview.outcome && (
+                              <span
+                                className={`px-3 py-1 text-xs font-medium rounded-full ${
+                                  interview.outcome === 'selected'
+                                    ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                    : 'bg-red-500/10 text-red-600 border border-red-500/20'
+                                }`}
+                              >
+                                {interview.outcome === 'selected' ? '✓ Selected' : '✗ Rejected'}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
@@ -981,11 +994,24 @@ Best regards,
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedInterview.status)}`}
-                  >
-                    {selectedInterview.status.replace('_', ' ')}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedInterview.status)}`}
+                    >
+                      {selectedInterview.status.replace('_', ' ')}
+                    </span>
+                    {selectedInterview.outcome && (
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          selectedInterview.outcome === 'selected'
+                            ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                            : 'bg-red-500/10 text-red-600 border border-red-500/20'
+                        }`}
+                      >
+                        {selectedInterview.outcome === 'selected' ? '✓ Selected' : '✗ Rejected'}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Interview Details */}

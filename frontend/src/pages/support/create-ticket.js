@@ -55,17 +55,17 @@ export default function CreateTicket() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto px-8 py-6">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-secondary rounded-lg transition-colors"
             >
               <svg
-                className="w-5 h-5 text-gray-900"
+                className="w-5 h-5 text-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -79,8 +79,8 @@ export default function CreateTicket() {
               </svg>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Create Support Ticket</h1>
-              <p className="text-gray-600 mt-1">Submit a new support request</p>
+              <h1 className="text-3xl font-bold text-foreground">Create Support Ticket</h1>
+              <p className="text-muted-foreground mt-1">Submit a new support request</p>
             </div>
           </div>
         </div>
@@ -90,13 +90,13 @@ export default function CreateTicket() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-gray-200 rounded-xl p-8"
+          className="bg-card border border-border rounded-xl p-8"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Subject */}
             <div>
-              <label htmlFor="subject" className="block text-sm font-semibold text-gray-900 mb-2">
-                Subject <span className="text-red-600">*</span>
+              <label htmlFor="subject" className="block text-sm font-semibold text-foreground mb-2">
+                Subject <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -106,15 +106,15 @@ export default function CreateTicket() {
                 onChange={handleChange}
                 required
                 placeholder="Brief description of your issue"
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent ${errors.subject ? 'border-destructive' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 bg-secondary border rounded-lg text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent ${errors.subject ? 'border-destructive' : 'border-border'}`}
               />
-              {errors.subject && <p className="text-sm text-red-600 mt-1">{errors.subject}</p>}
+              {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject}</p>}
             </div>
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-semibold text-gray-900 mb-2">
-                Category <span className="text-red-600">*</span>
+              <label htmlFor="category" className="block text-sm font-semibold text-foreground mb-2">
+                Category <span className="text-destructive">*</span>
               </label>
               <select
                 id="category"
@@ -122,7 +122,7 @@ export default function CreateTicket() {
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent ${errors.category ? 'border-destructive' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 bg-secondary border rounded-lg text-foreground focus:ring-2 focus:ring-primary focus:border-transparent ${errors.category ? 'border-destructive' : 'border-border'}`}
               >
                 <option value="general">General Inquiry</option>
                 <option value="technical">Technical Issue</option>
@@ -131,13 +131,13 @@ export default function CreateTicket() {
                 <option value="bug">Bug Report</option>
                 <option value="other">Other</option>
               </select>
-              {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
+              {errors.category && <p className="text-sm text-destructive mt-1">{errors.category}</p>}
             </div>
 
             {/* Priority */}
             <div>
-              <label htmlFor="priority" className="block text-sm font-semibold text-gray-900 mb-2">
-                Priority <span className="text-red-600">*</span>
+              <label htmlFor="priority" className="block text-sm font-semibold text-foreground mb-2">
+                Priority <span className="text-destructive">*</span>
               </label>
               <select
                 id="priority"
@@ -145,22 +145,22 @@ export default function CreateTicket() {
                 value={formData.priority}
                 onChange={handleChange}
                 required
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent ${errors.priority ? 'border-destructive' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 bg-secondary border rounded-lg text-foreground focus:ring-2 focus:ring-primary focus:border-transparent ${errors.priority ? 'border-destructive' : 'border-border'}`}
               >
                 <option value="low">Low - General question or minor issue</option>
                 <option value="medium">Medium - Affects my work but h</option>
                 <option value="high">High - Blocking my work, needs urgent attention</option>
               </select>
-              {errors.priority && <p className="text-sm text-red-600 mt-1">{errors.priority}</p>}
+              {errors.priority && <p className="text-sm text-destructive mt-1">{errors.priority}</p>}
             </div>
 
             {/* Description */}
             <div>
               <label
                 htmlFor="description"
-                className="block text-sm font-semibold text-gray-900 mb-2"
+                className="block text-sm font-semibold text-foreground mb-2"
               >
-                Description <span className="text-red-600">*</span>
+                Description <span className="text-destructive">*</span>
               </label>
               <textarea
                 id="description"
@@ -170,12 +170,12 @@ export default function CreateTicket() {
                 required
                 rows={8}
                 placeholder="Please provide detailed information about your issue..."
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${errors.description ? 'border-destructive' : 'border-gray-200'}`}
+                className={`w-full px-4 py-3 bg-secondary border rounded-lg text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${errors.description ? 'border-destructive' : 'border-border'}`}
               />
               {errors.description && (
-                <p className="text-sm text-red-600 mt-1">{errors.description}</p>
+                <p className="text-sm text-destructive mt-1">{errors.description}</p>
               )}
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Tip: Include steps to reproduce the issue, error messages, and any relevant
                 screenshots
               </p>
@@ -200,8 +200,8 @@ export default function CreateTicket() {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1">What happens next?</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="text-sm font-semibold text-foreground mb-1">What happens next?</h4>
+                  <p className="text-sm text-muted-foreground">
                     Our support team will review your ticket and respond within 24 hours.
                     You&apos;ll receive email notifications for any updates.
                   </p>
@@ -214,7 +214,7 @@ export default function CreateTicket() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-secondary0/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -243,7 +243,7 @@ export default function CreateTicket() {
                 type="button"
                 onClick={() => router.back()}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-100/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-gray-100 text-foreground rounded-lg font-semibold hover:bg-gray-100/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -261,15 +261,15 @@ export default function CreateTicket() {
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white border border-gray-200 rounded-xl p-8 max-w-md w-full relative"
+              className="bg-card border border-border rounded-xl p-8 max-w-md w-full relative"
             >
               <button
                 onClick={() => setShowSuccess(false)}
-                className="absolute top-4 right-4 p-1.5 hover:bg-green-50 rounded-lg transition-colors"
+                className="absolute top-4 right-4 p-1.5 hover:bg-secondary rounded-lg transition-colors"
                 aria-label="Close"
               >
                 <svg
-                  className="w-5 h-5 text-gray-600"
+                  className="w-5 h-5 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -293,9 +293,9 @@ export default function CreateTicket() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Ticket Submitted!</h3>
-                <p className="text-gray-600 mb-1">Your support ticket h created successfully.</p>
-                <p className="text-sm text-gray-600">We&apos;ll get back to you soon.</p>
+                <h3 className="text-2xl font-bold text-foreground mb-2">Ticket Submitted!</h3>
+                <p className="text-muted-foreground mb-1">Your support ticket h created successfully.</p>
+                <p className="text-sm text-muted-foreground">We&apos;ll get back to you soon.</p>
               </div>
             </motion.div>
           </motion.div>

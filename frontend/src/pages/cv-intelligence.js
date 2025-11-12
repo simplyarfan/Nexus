@@ -30,6 +30,10 @@ export default function CVIntelligencePage() {
     batchId: null,
     batchName: '',
   });
+  const [batchName, setBatchName] = useState('');
+  const [cvFiles, setCvFiles] = useState([]);
+  const [jdFile, setJdFile] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch CV batches from API
   useEffect(() => {
@@ -135,6 +139,81 @@ export default function CVIntelligencePage() {
         batchName: selectedBatch?.name || '',
       },
     });
+  };
+
+  const handleCvFilesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setCvFiles(files);
+  };
+
+  const handleJdFileChange = (e) => {
+    const file = e.target.files?.[0];
+    setJdFile(file || null);
+  };
+
+  const handleProcessBatch = async () => {
+    // Validation
+    if (!batchName.trim()) {
+      toast.error('Please enter a batch name');
+      return;
+    }
+    if (cvFiles.length === 0) {
+      toast.error('Please select at least one CV file');
+      return;
+    }
+    if (!jdFile) {
+      toast.error('Please select a job description file');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+
+      // Create batch first
+      const batchResponse = await api.post('/cv-intelligence', {
+        name: batchName.trim(),
+      });
+
+      if (!batchResponse.data.success) {
+        throw new Error('Failed to create batch');
+      }
+
+      const batchId = batchResponse.data.data.batch.id;
+
+      // Upload and process files
+      const formData = new FormData();
+      formData.append('jdFile', jdFile);
+      cvFiles.forEach((file) => {
+        formData.append('cvFiles', file);
+      });
+
+      const processResponse = await api.post(`/cv-intelligence/batch/${batchId}/process`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 600000, // 10 minutes
+      });
+
+      if (processResponse.data.success) {
+        toast.success('Batch processed successfully!');
+
+        // Reset form
+        setBatchName('');
+        setCvFiles([]);
+        setJdFile(null);
+
+        // Refresh batches and go back to list
+        const refreshResponse = await api.get('/cv-intelligence/batches');
+        setBatches(refreshResponse.data.data || []);
+        setView('batches');
+      } else {
+        throw new Error(processResponse.data.message || 'Failed to process batch');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Failed to process batch');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -406,6 +485,8 @@ export default function CVIntelligencePage() {
                     </label>
                     <input
                       type="text"
+                      value={batchName}
+                      onChange={(e) => setBatchName(e.target.value)}
                       placeholder="e.g., Sr. AI Developer - December 2024"
                       className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     />
@@ -457,6 +538,7 @@ export default function CVIntelligencePage() {
                         id="cv-files"
                         multiple
                         accept=".pdf,.doc,.docx"
+                        onChange={handleCvFilesChange}
                         className="hidden"
                       />
                       <label htmlFor="cv-files">
@@ -464,6 +546,11 @@ export default function CVIntelligencePage() {
                           Select CV Files
                         </Button>
                       </label>
+                      {cvFiles.length > 0 && (
+                        <p className="text-sm text-green-600 mt-2">
+                          ✓ {cvFiles.length} file{cvFiles.length > 1 ? 's' : ''} selected
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -500,6 +587,7 @@ export default function CVIntelligencePage() {
                         type="file"
                         id="jd-file"
                         accept=".pdf,.doc,.docx,.txt"
+                        onChange={handleJdFileChange}
                         className="hidden"
                       />
                       <label htmlFor="jd-file">
@@ -507,28 +595,58 @@ export default function CVIntelligencePage() {
                           Select JD File
                         </Button>
                       </label>
+                      {jdFile && (
+                        <p className="text-sm text-green-600 mt-2">
+                          ✓ {jdFile.name}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-8">
-                  <Button variant="primary" size="lg" className="flex-1">
-                    <svg
-                      className="w-5 h-5 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    Start AI Processing
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="flex-1"
+                    onClick={handleProcessBatch}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-5 h-5 mr-2"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                          />
+                        </svg>
+                        Start AI Processing
+                      </>
+                    )}
                   </Button>
-                  <Button variant="secondary" size="lg" onClick={() => setView('batches')}>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => {
+                      setView('batches');
+                      setBatchName('');
+                      setCvFiles([]);
+                      setJdFile(null);
+                    }}
+                    disabled={isProcessing}
+                  >
                     Cancel
                   </Button>
                 </div>

@@ -158,46 +158,46 @@ class Database {
         )
       `);
 
-      // Add missing columns if they don't exist
-      try {
-        await this.run(
-          'ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0',
-        );
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS account_locked_until TIMESTAMP');
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_access_token TEXT');
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_refresh_token TEXT');
-        await this.run(
-          'ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_token_expires_at TIMESTAMP',
-        );
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_email VARCHAR(255)');
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_pkce_verifier TEXT');
+    // Add missing columns if they don't exist
+    try {
+      await this.run(
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0',
+      );
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS account_locked_until TIMESTAMP');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_access_token TEXT');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_refresh_token TEXT');
+      await this.run(
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_token_expires_at TIMESTAMP',
+      );
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_email VARCHAR(255)');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS outlook_pkce_verifier TEXT');
 
-        // 2FA columns
-        await this.run(
-          'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE',
-        );
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret VARCHAR(255)');
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_code VARCHAR(10)');
-        await this.run(
-          'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_code_expires_at TIMESTAMP',
-        );
+      // 2FA columns
+      await this.run(
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE',
+      );
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret VARCHAR(255)');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_code VARCHAR(10)');
+      await this.run(
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_code_expires_at TIMESTAMP',
+      );
 
-        // Google Calendar columns
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_access_token TEXT');
-        await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_refresh_token TEXT');
-        await this.run(
-          'ALTER TABLE users ADD COLUMN IF NOT EXISTS google_token_expires_at TIMESTAMP',
-        );
-      } catch (error) {
-        // Columns already exist
-      }
+      // Google Calendar columns
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_access_token TEXT');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_refresh_token TEXT');
+      await this.run(
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS google_token_expires_at TIMESTAMP',
+      );
+    } catch (error) {
+      // Columns already exist
+    }
 
-      // Create indexes (IF NOT EXISTS is safe but slow - only runs once)
-      await this.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)');
-      await this.run('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
-      await this.run('CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active)');
+    // Create indexes (IF NOT EXISTS is safe but slow - only runs once)
+    await this.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)');
+    await this.run('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
+    await this.run('CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active)');
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS user_sessions (
           id SERIAL PRIMARY KEY,
           user_id INTEGER NOT NULL,
@@ -211,15 +211,15 @@ class Database {
         )
       `);
 
-      // Create essential indexes only
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at)',
-      );
+    // Create essential indexes only
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at)',
+    );
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS user_preferences (
           id SERIAL PRIMARY KEY,
           user_id INTEGER UNIQUE NOT NULL,
@@ -234,8 +234,8 @@ class Database {
         )
       `);
 
-      // User analytics table
-      await this.run(`
+    // User analytics table
+    await this.run(`
         CREATE TABLE IF NOT EXISTS user_analytics (
           id SERIAL PRIMARY KEY,
           user_id INTEGER,
@@ -249,8 +249,8 @@ class Database {
         )
       `);
 
-      // Agent usage stats table
-      await this.run(`
+    // Agent usage stats table
+    await this.run(`
         CREATE TABLE IF NOT EXISTS agent_usage_stats (
           id SERIAL PRIMARY KEY,
           user_id INTEGER NOT NULL,
@@ -265,10 +265,10 @@ class Database {
         )
       `);
 
-      // SIMPLIFIED CV INTELLIGENCE SCHEMA - NO FOREIGN KEY CONSTRAINTS
-      // This will prevent the foreign key constraint errors
+    // SIMPLIFIED CV INTELLIGENCE SCHEMA - NO FOREIGN KEY CONSTRAINTS
+    // This will prevent the foreign key constraint errors
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS cv_batches (
           id VARCHAR(255) PRIMARY KEY,
           user_id INTEGER NOT NULL,
@@ -282,18 +282,18 @@ class Database {
         )
       `);
 
-      // Create essential indexes only
-      await this.run('CREATE INDEX IF NOT EXISTS idx_cv_batches_user_id ON cv_batches(user_id)');
-      await this.run('CREATE INDEX IF NOT EXISTS idx_cv_batches_status ON cv_batches(status)');
+    // Create essential indexes only
+    await this.run('CREATE INDEX IF NOT EXISTS idx_cv_batches_user_id ON cv_batches(user_id)');
+    await this.run('CREATE INDEX IF NOT EXISTS idx_cv_batches_status ON cv_batches(status)');
 
-      try {
-        await this.run('ALTER TABLE cv_batches ADD COLUMN jd_requirements TEXT');
-      } catch (e) {
-        // Column already exists, ignore error
-      }
+    try {
+      await this.run('ALTER TABLE cv_batches ADD COLUMN jd_requirements TEXT');
+    } catch (e) {
+      // Column already exists, ignore error
+    }
 
-      // Simple candidates table
-      await this.run(`
+    // Simple candidates table
+    await this.run(`
         CREATE TABLE IF NOT EXISTS candidates (
           id VARCHAR(255) PRIMARY KEY,
           batch_id VARCHAR(255) NOT NULL,
@@ -307,10 +307,10 @@ class Database {
         )
       `);
 
-      // Create essential indexes only
-      await this.run('CREATE INDEX IF NOT EXISTS idx_candidates_batch_id ON candidates(batch_id)');
+    // Create essential indexes only
+    await this.run('CREATE INDEX IF NOT EXISTS idx_candidates_batch_id ON candidates(batch_id)');
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS support_tickets (
           id SERIAL PRIMARY KEY,
           user_id INTEGER NOT NULL,
@@ -329,15 +329,15 @@ class Database {
         )
       `);
 
-      // Create essential indexes only
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON support_tickets(user_id)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status)',
-      );
+    // Create essential indexes only
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON support_tickets(user_id)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status)',
+    );
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS ticket_comments (
           id SERIAL PRIMARY KEY,
           ticket_id INTEGER NOT NULL,
@@ -350,8 +350,8 @@ class Database {
         )
       `);
 
-      // Notifications table
-      await this.run(`
+    // Notifications table
+    await this.run(`
         CREATE TABLE IF NOT EXISTS notifications (
           id SERIAL PRIMARY KEY,
           user_id INTEGER NOT NULL,
@@ -366,8 +366,8 @@ class Database {
         )
       `);
 
-      // System settings table
-      await this.run(`
+    // System settings table
+    await this.run(`
         CREATE TABLE IF NOT EXISTS system_settings (
           id SERIAL PRIMARY KEY,
           key VARCHAR(100) UNIQUE NOT NULL,
@@ -378,9 +378,9 @@ class Database {
         )
       `);
 
-      // Interview Coordinator tables (HR-02)
+    // Interview Coordinator tables (HR-02)
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS interviews (
           id VARCHAR(255) PRIMARY KEY,
           candidate_id VARCHAR(255) NOT NULL,
@@ -404,31 +404,31 @@ class Database {
         )
       `);
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_by ON interviews(scheduled_by)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interviews_candidate_email ON interviews(candidate_email)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_time ON interviews(scheduled_time)',
-      );
-      await this.run('CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)');
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_by ON interviews(scheduled_by)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interviews_candidate_email ON interviews(candidate_email)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_time ON interviews(scheduled_time)',
+    );
+    await this.run('CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)');
 
-      // Add missing columns if they don't exist
-      try {
-        await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS platform VARCHAR(100)');
-        await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS outcome VARCHAR(50)');
-        await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP');
-        await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS cv_file_path TEXT');
-        await this.run(
-          'ALTER TABLE interviews ADD COLUMN IF NOT EXISTS teams_meeting_id VARCHAR(255)',
-        );
-      } catch (error) {
+    // Add missing columns if they don't exist
+    try {
+      await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS platform VARCHAR(100)');
+      await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS outcome VARCHAR(50)');
+      await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP');
+      await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS cv_file_path TEXT');
+      await this.run(
+        'ALTER TABLE interviews ADD COLUMN IF NOT EXISTS teams_meeting_id VARCHAR(255)',
+      );
+    } catch (error) {
       // Intentionally empty - error is handled by caller
     }
 
-      await this.run(`
+    await this.run(`
         CREATE TABLE IF NOT EXISTS interview_reminders (
           id VARCHAR(255) PRIMARY KEY,
           interview_id VARCHAR(255) NOT NULL,
@@ -443,53 +443,53 @@ class Database {
         )
       `);
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interview_reminders_interview_id ON interview_reminders(interview_id)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interview_reminders_send_at ON interview_reminders(send_at)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interview_reminders_sent ON interview_reminders(sent)',
-      );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interview_reminders_interview_id ON interview_reminders(interview_id)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interview_reminders_send_at ON interview_reminders(send_at)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interview_reminders_sent ON interview_reminders(sent)',
+    );
 
-      // PERFORMANCE OPTIMIZATION INDEXES
-      // ============================================
+    // PERFORMANCE OPTIMIZATION INDEXES
+    // ============================================
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_tickets_status_created ON support_tickets(status, created_at DESC)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_tickets_priority_status ON support_tickets(priority, status)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_tickets_user_status ON support_tickets(user_id, status)',
-      );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_tickets_status_created ON support_tickets(status, created_at DESC)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_tickets_priority_status ON support_tickets(priority, status)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_tickets_user_status ON support_tickets(user_id, status)',
+    );
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_comments_ticket_created ON ticket_comments(ticket_id, created_at)',
-      );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_comments_ticket_created ON ticket_comments(ticket_id, created_at)',
+    );
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_analytics_user_action_date ON user_analytics(user_id, action, created_at DESC)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_analytics_agent_date ON agent_usage_stats(agent_id, date DESC)',
-      );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_analytics_user_action_date ON user_analytics(user_id, action, created_at DESC)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_analytics_agent_date ON agent_usage_stats(agent_id, date DESC)',
+    );
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_candidates_batch_score ON candidates(batch_id, overall_score DESC)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_batches_user_status ON cv_batches(user_id, status, created_at DESC)',
-      );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_candidates_batch_score ON candidates(batch_id, overall_score DESC)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_batches_user_status ON cv_batches(user_id, status, created_at DESC)',
+    );
 
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_time_status ON interviews(scheduled_time, status)',
-      );
-      await this.run(
-        'CREATE INDEX IF NOT EXISTS idx_reminders_send_at_sent ON interview_reminders(send_at, sent)',
-      );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_time_status ON interviews(scheduled_time, status)',
+    );
+    await this.run(
+      'CREATE INDEX IF NOT EXISTS idx_reminders_send_at_sent ON interview_reminders(send_at, sent)',
+    );
 
     await this.createDefaultAdmin();
     this.tablesInitialized = true;

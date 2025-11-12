@@ -17,7 +17,8 @@ const getCorsHeaders = (origin) => {
       'Access-Control-Allow-Origin': 'null',
       'Access-Control-Allow-Credentials': 'false',
       'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
-      'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID',
+      'Access-Control-Allow-Headers':
+        'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID',
       'Access-Control-Expose-Headers': 'Content-Length,X-Request-ID',
     };
   }

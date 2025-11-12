@@ -16,12 +16,9 @@ const securityHeaders = helmet({
       // Allow inline styles only for critical CSS (consider moving to external files)
       styleSrc: ["'self'", "'unsafe-inline'"], // Keep for now, TODO: move to external CSS
       // Restrict images to self, data URIs, and configured domains
-      imgSrc: [
-        "'self'",
-        'data:',
-        process.env.BACKEND_URL,
-        process.env.FRONTEND_URL,
-      ].filter(Boolean),
+      imgSrc: ["'self'", 'data:', process.env.BACKEND_URL, process.env.FRONTEND_URL].filter(
+        Boolean,
+      ),
       connectSrc: ["'self'", process.env.BACKEND_URL, process.env.FRONTEND_URL].filter(Boolean),
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],

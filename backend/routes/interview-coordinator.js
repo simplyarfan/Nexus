@@ -44,8 +44,8 @@ try {
   const OutlookEmailServiceClass = require('../services/outlook-email.service.js');
   OutlookEmailService = new OutlookEmailServiceClass();
 } catch (error) {
-      // Intentionally empty - error is handled by caller
-    }
+  // Intentionally empty - error is handled by caller
+}
 
 const router = express.Router();
 
@@ -634,8 +634,8 @@ router.post(
             [cvFilePath, interviewId],
           );
         } catch (error) {
-      // Intentionally empty - error is handled by caller
-    }
+          // Intentionally empty - error is handled by caller
+        }
       }
 
       // Send confirmation email with calendar invite and CV attachment
@@ -666,8 +666,8 @@ router.post(
           );
           emailSent = true;
         } catch (error) {
-      // Intentionally empty - error is handled by caller
-    }
+          // Intentionally empty - error is handled by caller
+        }
       }
 
       res.json({
@@ -848,8 +848,8 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
           icsContent,
         );
       } catch (error) {
-      // Intentionally empty - error is handled by caller
-    }
+        // Intentionally empty - error is handled by caller
+      }
     }
 
     res.json({
@@ -1223,8 +1223,8 @@ router.delete('/interview/:id', authenticateToken, async (req, res) => {
       try {
         await OutlookEmailService.cancelTeamsMeeting(req.user.id, interview.teams_meeting_id);
       } catch (error) {
-      // Intentionally empty - error is handled by caller
-    }
+        // Intentionally empty - error is handled by caller
+      }
     }
 
     // Delete the interview

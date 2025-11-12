@@ -3,9 +3,7 @@ const compression = require('compression');
 require('dotenv').config();
 
 // Import security middleware
-const {
-  securityHeaders,
-} = require('./middleware/security');
+const { securityHeaders } = require('./middleware/security');
 
 // Import logger
 const logger = require('./utils/logger');

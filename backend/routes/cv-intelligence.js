@@ -15,8 +15,8 @@ try {
   const CVIntelligenceHR01Service = require('../services/cvIntelligenceHR01');
   CVIntelligenceHR01 = new CVIntelligenceHR01Service();
 } catch (error) {
-      // Intentionally empty - error is handled by caller
-    }
+  // Intentionally empty - error is handled by caller
+}
 
 // Optional multer with fallback
 let multer, upload;
@@ -361,8 +361,8 @@ router.post(
               ],
             );
           } catch (dbError) {
-      // Intentionally empty - error is handled by caller
-    }
+            // Intentionally empty - error is handled by caller
+          }
         }
       }
 
@@ -378,8 +378,8 @@ router.post(
             [candidates.length, batchId],
           );
         } catch (dbError) {
-      // Intentionally empty - error is handled by caller
-    }
+          // Intentionally empty - error is handled by caller
+        }
       }
 
       res.json({
@@ -404,8 +404,8 @@ router.post(
           [req.params.id],
         );
       } catch (updateError) {
-      // Intentionally empty - error is handled by caller
-    }
+        // Intentionally empty - error is handled by caller
+      }
 
       res.status(500).json({
         success: false,

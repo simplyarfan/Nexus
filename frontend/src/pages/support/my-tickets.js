@@ -15,7 +15,7 @@ import {
   Search,
   Eye,
 } from 'lucide-react';
-import { supportAPI } from '../../utils/api';
+import { supportAPI } from '../../utils/supportAPI';
 import toast from 'react-hot-toast';
 
 export default function MyTickets() {
@@ -65,9 +65,9 @@ export default function MyTickets() {
       case 'resolved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'closed':
-        return <CheckCircle className="w-4 h-4 text-gray-600" />;
+        return <CheckCircle className="w-4 h-4 text-muted-foreground" />;
       default:
-        return <MessageSquare className="w-4 h-4 text-gray-600" />;
+        return <MessageSquare className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -80,9 +80,9 @@ export default function MyTickets() {
       case 'resolved':
         return 'text-green-600 bg-green-50';
       case 'closed':
-        return 'text-gray-600 bg-gray-50';
+        return 'text-muted-foreground bg-secondary/50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-muted-foreground bg-secondary/50';
     }
   };
 
@@ -95,7 +95,7 @@ export default function MyTickets() {
       case 'low':
         return 'text-green-600 bg-green-50';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-muted-foreground bg-secondary/50';
     }
   };
 
@@ -122,45 +122,45 @@ export default function MyTickets() {
         <meta name="description" content="View and manage your support tickets" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         {/* Top Navigation */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => router.push('/')}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                    <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
+                    <div className="w-4 h-4 bg-card rounded-sm transform rotate-45"></div>
                   </div>
                   <div>
-                    <h1 className="text-xl font-semibold text-gray-900">My Support Tickets</h1>
-                    <p className="text-sm text-gray-500">Track your support requests</p>
+                    <h1 className="text-xl font-semibold text-foreground">My Support Tickets</h1>
+                    <p className="text-sm text-muted-foreground">Track your support requests</p>
                   </div>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-gray-600" />
+                  <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-muted-foreground" />
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{user?.name}</span>
+                  <span className="text-sm font-medium text-foreground">{user?.name}</span>
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => router.push('/profile')}
-                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
                   >
                     <Settings className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                   </button>
@@ -173,7 +173,7 @@ export default function MyTickets() {
         {/* Main Content */}
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           {/* Filters and Search */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-6 mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               <div className="flex flex-wrap gap-2">
                 {[
@@ -189,7 +189,7 @@ export default function MyTickets() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       filter === status.key
                         ? 'bg-green-100 text-green-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-muted-foreground hover:bg-secondary'
                     }`}
                   >
                     {status.label} ({statusCounts[status.key]})
@@ -197,13 +197,13 @@ export default function MyTickets() {
                 ))}
               </div>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-64"
+                  className="pl-10 pr-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-64"
                 />
               </div>
             </div>
@@ -212,15 +212,15 @@ export default function MyTickets() {
           {/* Tickets List */}
           <div className="space-y-4">
             {loading ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+              <div className="bg-card rounded-xl shadow-sm border border-border p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-                <p className="text-gray-500">Loading tickets...</p>
+                <p className="text-muted-foreground">Loading tickets...</p>
               </div>
             ) : filteredTickets.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No tickets found</h3>
-                <p className="text-gray-500 mb-4">
+              <div className="bg-card rounded-xl shadow-sm border border-border p-8 text-center">
+                <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No tickets found</h3>
+                <p className="text-muted-foreground mb-4">
                   {searchQuery || filter !== 'all'
                     ? 'No tickets match your current filters.'
                     : "You haven't created any support tickets yet."}
@@ -237,12 +237,12 @@ export default function MyTickets() {
               filteredTickets.map((ticket) => (
                 <div
                   key={ticket.id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                  className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{ticket.subject}</h3>
+                        <h3 className="text-lg font-semibold text-foreground">{ticket.subject}</h3>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}
                         >
@@ -254,8 +254,10 @@ export default function MyTickets() {
                           {ticket.priority.toUpperCase()}
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-4 line-clamp-2">{ticket.description}</p>
-                      <div className="flex items-center space-x-6 text-sm text-gray-500">
+                      <p className="text-muted-foreground mb-4 line-clamp-2">
+                        {ticket.description}
+                      </p>
+                      <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                         <div className="flex items-center space-x-1">
                           {getStatusIcon(ticket.status)}
                           <span>Ticket #{ticket.id}</span>

@@ -24,6 +24,12 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         setLoading(true);
+        // Reset stats to ensure no stale data
+        setStats({
+          activeBatches: 0,
+          totalCandidates: 0,
+          scheduledInterviews: 0,
+        });
 
         // Fetch batches
         const batchesResponse = await api.get('/cv-intelligence/batches');
@@ -48,19 +54,39 @@ export default function DashboardPage() {
           scheduledInterviews: scheduledInterviews,
         });
       } catch (error) {
-        // Silent failure
+        // Reset to 0 on error to show accurate state
+        setStats({
+          activeBatches: 0,
+          totalCandidates: 0,
+          scheduledInterviews: 0,
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchStats();
+
+    // Re-fetch when component becomes visible (navigation back)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchStats();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Fetch real notifications from backend
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
+        // Reset notifications first
+        setNotifications([]);
         const result = await notificationsAPI.getNotifications({ limit: 5 });
         setNotifications(result.data?.notifications || []);
       } catch (error) {
@@ -70,6 +96,19 @@ export default function DashboardPage() {
     };
 
     fetchNotifications();
+
+    // Re-fetch when component becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchNotifications();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const agents = [

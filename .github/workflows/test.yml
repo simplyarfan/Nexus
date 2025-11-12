@@ -56,29 +56,36 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
         run: npm ci
 
-      - name: Run linter
+      - name: Run backend linter
+        working-directory: ./backend
         run: npm run lint
 
-      - name: Run format check
+      - name: Run backend format check
+        working-directory: ./backend
         run: npm run format:check
 
-      - name: Run unit tests
+      - name: Run backend unit tests
+        working-directory: ./backend
         run: npm test -- --testPathPattern=__tests__/utils
 
-      - name: Run integration tests
+      - name: Run backend integration tests
+        working-directory: ./backend
         run: npm test -- --testPathPattern=__tests__/integration
 
-      - name: Run all tests with coverage
+      - name: Run backend tests with coverage
+        working-directory: ./backend
         run: npm run test:coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage/coverage-final.json
+          file: ./backend/coverage/coverage-final.json
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -88,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.node-version }}
-          path: coverage/
+          path: backend/coverage/
 
   security:
     runs-on: ubuntu-latest
@@ -102,14 +109,18 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
         run: npm ci
 
-      - name: Run security audit
+      - name: Run backend security audit
+        working-directory: ./backend
         run: npm audit --audit-level=moderate
 
-      - name: Check for outdated packages
+      - name: Check for outdated backend packages
+        working-directory: ./backend
         run: npm outdated || true
 
   build:
@@ -125,18 +136,22 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
         run: npm ci
 
-      - name: Build application
+      - name: Build backend application
+        working-directory: ./backend
         run: npm run build
 
       - name: Check for build artifacts
+        working-directory: ./backend
         run: |
           if [ -d "node_modules/@prisma/client" ]; then
-            echo "Build successful"
+            echo "Backend build successful"
           else
-            echo "Build failed"
+            echo "Backend build failed"
             exit 1
           fi

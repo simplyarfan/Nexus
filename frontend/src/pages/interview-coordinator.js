@@ -17,7 +17,7 @@ export default function InterviewsPage() {
   const getDashboardPath = () => {
     if (isSuperAdmin) return '/superadmin';
     if (isAdmin) return '/admin';
-    return '/dashboard';
+    return '/';
   };
   const [view, setView] = useState('list');
   const [selectedInterview, setSelectedInterview] = useState(null);

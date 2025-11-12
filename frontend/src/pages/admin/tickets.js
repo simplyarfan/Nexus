@@ -128,9 +128,9 @@ export default function SupportManagement() {
       case 'resolved':
         return 'bg-green-100 text-green-700';
       case 'closed':
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-muted text-muted-foreground';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -145,13 +145,13 @@ export default function SupportManagement() {
       case 'low':
         return 'bg-green-100 text-green-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
   if (authLoading || (!isAdmin && !isSuperAdmin)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
       </div>
     );
@@ -165,17 +165,17 @@ export default function SupportManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push(isSuperAdmin ? '/superadmin' : '/admin')}
-              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <svg
-                className="w-5 h-5 text-gray-900"
+                className="w-5 h-5 text-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -189,8 +189,8 @@ export default function SupportManagement() {
               </svg>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
-              <p className="text-gray-600 mt-1">Manage and respond to support tickets</p>
+              <h1 className="text-3xl font-bold text-foreground">Support Tickets</h1>
+              <p className="text-muted-foreground mt-1">Manage and respond to support tickets</p>
             </div>
           </div>
         </div>
@@ -198,12 +198,12 @@ export default function SupportManagement() {
 
       <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Filters */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+        <div className="bg-card border border-border rounded-xl p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -220,7 +220,7 @@ export default function SupportManagement() {
                   placeholder="Search tickets by subject or user..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="pl-10 pr-4 py-3 w-full bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function SupportManagement() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">All Status</option>
                 <option value="open">Open</option>
@@ -241,7 +241,7 @@ export default function SupportManagement() {
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">All Priority</option>
                 <option value="urgent">Urgent</option>
@@ -254,7 +254,7 @@ export default function SupportManagement() {
         </div>
 
         {/* Tickets Table */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
@@ -262,24 +262,24 @@ export default function SupportManagement() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-secondary">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">
                       Ticket
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">
                       User
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">
                       Priority
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">
                       Created
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase">
                       Actions
                     </th>
                   </tr>
@@ -288,7 +288,7 @@ export default function SupportManagement() {
                   {filteredTickets.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
-                        <p className="text-gray-600">No tickets found</p>
+                        <p className="text-muted-foreground">No tickets found</p>
                       </td>
                     </tr>
                   ) : (
@@ -297,20 +297,20 @@ export default function SupportManagement() {
                         key={ticket.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="hover:bg-secondary transition-colors cursor-pointer"
                         onClick={() => openTicketDetails(ticket)}
                       >
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">{ticket.subject}</div>
-                          <div className="text-sm text-gray-600 line-clamp-1">
+                          <div className="text-sm font-medium text-foreground">{ticket.subject}</div>
+                          <div className="text-sm text-muted-foreground line-clamp-1">
                             {ticket.description}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-foreground">
                             {ticket.user?.first_name} {ticket.user?.last_name}
                           </div>
-                          <div className="text-sm text-gray-600">{ticket.user?.email}</div>
+                          <div className="text-sm text-muted-foreground">{ticket.user?.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -332,7 +332,7 @@ export default function SupportManagement() {
                             {ticket.status?.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {new Date(ticket.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -364,12 +364,12 @@ export default function SupportManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-3xl my-8"
+              className="bg-card rounded-xl p-6 w-full max-w-3xl my-8"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
                     {selectedTicket.subject}
                   </h2>
                   <div className="flex items-center gap-4">
@@ -393,7 +393,7 @@ export default function SupportManagement() {
                 </div>
                 <button
                   onClick={() => setShowTicketModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-muted-foreground"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -407,9 +407,9 @@ export default function SupportManagement() {
               </div>
 
               {/* User Info */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600">Submitted by:</p>
-                <p className="text-sm font-medium text-gray-900">
+              <div className="mb-6 p-4 bg-secondary rounded-lg">
+                <p className="text-sm text-muted-foreground">Submitted by:</p>
+                <p className="text-sm font-medium text-foreground">
                   {selectedTicket.user?.first_name} {selectedTicket.user?.last_name} (
                   {selectedTicket.user?.email})
                 </p>
@@ -420,22 +420,22 @@ export default function SupportManagement() {
 
               {/* Description */}
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                <h3 className="text-sm font-semibold text-foreground mb-2">Description</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {selectedTicket.description}
                 </p>
               </div>
 
               {/* Comments */}
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                <h3 className="text-sm font-semibold text-foreground mb-4">
                   Comments ({comments.length})
                 </h3>
                 <div className="space-y-4 max-h-64 overflow-y-auto mb-4">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
+                    <div key={comment.id} className="p-4 bg-secondary rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {comment.first_name} {comment.last_name}
                           {comment.role !== 'user' && (
                             <span className="ml-2 text-xs text-green-600">({comment.role})</span>
@@ -445,7 +445,7 @@ export default function SupportManagement() {
                           {new Date(comment.created_at).toLocaleString()}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.comment}</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{comment.comment}</p>
                     </div>
                   ))}
                 </div>
@@ -457,7 +457,7 @@ export default function SupportManagement() {
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a comment..."
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                   <button
                     type="submit"
@@ -470,11 +470,11 @@ export default function SupportManagement() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <div className="flex gap-3 pt-4 border-t border-border">
                 <select
                   value={selectedTicket.status}
                   onChange={(e) => handleChangeStatus(selectedTicket.id, e.target.value)}
-                  className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="open">Open</option>
                   <option value="in_progress">In Progress</option>
@@ -489,7 +489,7 @@ export default function SupportManagement() {
                 </button>
                 <button
                   onClick={() => setShowTicketModal(false)}
-                  className="ml-auto px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="ml-auto px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
                 >
                   Close
                 </button>
@@ -507,22 +507,22 @@ export default function SupportManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md"
+              className="bg-card rounded-xl p-6 w-full max-w-md"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Resolve Ticket</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Resolve Ticket</h2>
               <form onSubmit={handleResolveTicket} className="space-y-4">
                 <textarea
                   value={resolution}
                   onChange={(e) => setResolution(e.target.value)}
                   placeholder="Resolution notes (optional)..."
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setShowResolveModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
                   >
                     Cancel
                   </button>

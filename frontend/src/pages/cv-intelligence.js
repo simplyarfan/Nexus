@@ -17,7 +17,7 @@ export default function CVIntelligencePage() {
   const getDashboardPath = () => {
     if (isSuperAdmin) return '/superadmin';
     if (isAdmin) return '/admin';
-    return '/dashboard';
+    return '/';
   };
   const [isDragging, setIsDragging] = useState(false);
   const [view, setView] = useState('batches');

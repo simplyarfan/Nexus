@@ -207,13 +207,13 @@ export default function UserManagement() {
       case 'admin':
         return 'bg-blue-100 text-blue-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
   if (authLoading || (!isAdmin && !isSuperAdmin)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
       </div>
     );
@@ -228,18 +228,18 @@ export default function UserManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push(isSuperAdmin ? '/superadmin' : '/admin')}
-                className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
               >
                 <svg
-                  className="w-5 h-5 text-gray-900"
+                  className="w-5 h-5 text-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -253,8 +253,8 @@ export default function UserManagement() {
                 </svg>
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-                <p className="text-gray-600 mt-1">Manage users, roles, and permissions</p>
+                <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+                <p className="text-muted-foreground mt-1">Manage users, roles, and permissions</p>
               </div>
             </div>
             {isSuperAdmin && (
@@ -279,12 +279,12 @@ export default function UserManagement() {
 
       <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Filters */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+        <div className="bg-card border border-border rounded-xl p-6 mb-6">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -301,7 +301,7 @@ export default function UserManagement() {
                   placeholder="Search users by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-3 w-full bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -309,7 +309,7 @@ export default function UserManagement() {
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">All Roles</option>
                 <option value="superadmin">Superadmin</option>
@@ -321,7 +321,7 @@ export default function UserManagement() {
               <select
                 value={filterDepartment}
                 onChange={(e) => setFilterDepartment(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">All Departments</option>
                 <option value="Human Resources">Human Resources</option>
@@ -339,7 +339,7 @@ export default function UserManagement() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
@@ -347,21 +347,21 @@ export default function UserManagement() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-secondary">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Department
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -370,7 +370,7 @@ export default function UserManagement() {
                   {filteredUsers.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center text-gray-600">
+                        <div className="flex flex-col items-center justify-center text-muted-foreground">
                           <p className="text-lg font-medium mb-1">No users found</p>
                           <p className="text-sm">Try adjusting your filters or search criteria</p>
                         </div>
@@ -382,7 +382,7 @@ export default function UserManagement() {
                         key={u.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="hover:bg-gray-50 transition-colors"
+                        className="hover:bg-secondary transition-colors"
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -395,10 +395,10 @@ export default function UserManagement() {
                               </div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-foreground">
                                 {u.first_name} {u.last_name}
                               </div>
-                              <div className="text-sm text-gray-600">{u.email}</div>
+                              <div className="text-sm text-muted-foreground">{u.email}</div>
                             </div>
                           </div>
                         </td>
@@ -412,7 +412,7 @@ export default function UserManagement() {
                             {u.role}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {u.department || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -437,14 +437,14 @@ export default function UserManagement() {
                             </button>
                             {isSuperAdmin && (
                               <>
-                                <span className="text-gray-300">|</span>
+                                <span className="text-border">|</span>
                                 <button
                                   onClick={() => openPasswordModal(u)}
                                   className="text-yellow-600 hover:text-yellow-900"
                                 >
                                   Password
                                 </button>
-                                <span className="text-gray-300">|</span>
+                                <span className="text-border">|</span>
                                 <button
                                   onClick={() => {
                                     setSelectedUser(u);
@@ -476,9 +476,9 @@ export default function UserManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md"
+              className="bg-card rounded-xl p-6 w-full max-w-md"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Add New User</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Add New User</h2>
               <form onSubmit={handleCreateUser} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <input
@@ -487,7 +487,7 @@ export default function UserManagement() {
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     required
-                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                   <input
                     type="text"
@@ -495,7 +495,7 @@ export default function UserManagement() {
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     required
-                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
                 <input
@@ -504,7 +504,7 @@ export default function UserManagement() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <input
                   type="password"
@@ -512,12 +512,12 @@ export default function UserManagement() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -526,7 +526,7 @@ export default function UserManagement() {
                 <select
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">No Department</option>
                   <option value="Human Resources">Human Resources</option>
@@ -538,13 +538,13 @@ export default function UserManagement() {
                   placeholder="Job Title"
                   value={formData.job_title}
                   onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
                   >
                     Cancel
                   </button>
@@ -570,9 +570,9 @@ export default function UserManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md"
+              className="bg-card rounded-xl p-6 w-full max-w-md"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Edit User</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Edit User</h2>
               <form onSubmit={handleUpdateUser} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <input
@@ -582,7 +582,7 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     required
                     disabled={!isSuperAdmin}
-                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-muted"
                   />
                   <input
                     type="text"
@@ -591,20 +591,20 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     required
                     disabled={!isSuperAdmin}
-                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-muted"
                   />
                 </div>
                 <input
                   type="email"
                   value={formData.email}
                   disabled
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-100"
+                  className="w-full px-4 py-2 border border-border rounded-lg bg-muted"
                 />
                 {isSuperAdmin && (
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -614,7 +614,7 @@ export default function UserManagement() {
                 <select
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">No Department</option>
                   <option value="Human Resources">Human Resources</option>
@@ -627,10 +627,10 @@ export default function UserManagement() {
                   value={formData.job_title}
                   onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
                   disabled={!isSuperAdmin}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-muted"
                 />
                 {!isSuperAdmin && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     As an admin, you can only change the department
                   </p>
                 )}
@@ -638,7 +638,7 @@ export default function UserManagement() {
                   <button
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
                   >
                     Cancel
                   </button>
@@ -664,10 +664,10 @@ export default function UserManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md"
+              className="bg-card rounded-xl p-6 w-full max-w-md"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Change Password</h2>
-              <p className="text-sm text-gray-600 mb-4">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Change Password</h2>
+              <p className="text-sm text-muted-foreground mb-4">
                 Changing password for: <strong>{selectedUser.email}</strong>
               </p>
               <form onSubmit={handleChangePassword} className="space-y-4">
@@ -680,7 +680,7 @@ export default function UserManagement() {
                   }
                   required
                   minLength={8}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <input
                   type="password"
@@ -691,13 +691,13 @@ export default function UserManagement() {
                   }
                   required
                   minLength={8}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowPasswordModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
                   >
                     Cancel
                   </button>
@@ -723,10 +723,10 @@ export default function UserManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-xl p-6 w-full max-w-md"
+              className="bg-card rounded-xl p-6 w-full max-w-md"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Delete User</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Delete User</h2>
+              <p className="text-muted-foreground mb-6">
                 Are you sure you want to delete <strong>{selectedUser.email}</strong>? This action
                 cannot be undone.
               </p>
@@ -734,7 +734,7 @@ export default function UserManagement() {
                 <button
                   type="button"
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
                 >
                   Cancel
                 </button>

@@ -78,9 +78,9 @@ export default function TicketDetail() {
       case 'resolved':
         return 'bg-green-500/10 text-green-600 border-primary/20';
       case 'closed':
-        return 'bg-gray-100 text-gray-600 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
       default:
-        return 'bg-gray-100 text-gray-600 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -93,7 +93,7 @@ export default function TicketDetail() {
       case 'low':
         return 'bg-green-500/10 text-green-600 border-primary/20';
       default:
-        return 'bg-gray-100 text-gray-600 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -109,9 +109,9 @@ export default function TicketDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center gap-4">
             <button
@@ -119,7 +119,7 @@ export default function TicketDetail() {
               className="p-2 hover:bg-green-50 rounded-lg transition-colors"
             >
               <svg
-                className="w-5 h-5 text-gray-900"
+                className="w-5 h-5 text-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -134,10 +134,10 @@ export default function TicketDetail() {
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">{ticket.subject}</h1>
-                <span className="text-sm text-gray-600">#{ticket.id}</span>
+                <h1 className="text-2xl font-bold text-foreground">{ticket.subject}</h1>
+                <span className="text-sm text-muted-foreground">#{ticket.id}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Created by {ticket.user_name} • {new Date(ticket.created_at).toLocaleString()}
               </p>
             </div>
@@ -150,7 +150,7 @@ export default function TicketDetail() {
           {/* Main Content - Ticket Details & Activity */}
           <div className="lg:col-span-2 space-y-6">
             {/* Ticket Description */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-card border border-border rounded-xl p-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
@@ -159,19 +159,19 @@ export default function TicketDetail() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-gray-900">{ticket.user_name}</h3>
-                    <span className="text-xs text-gray-600">
+                    <h3 className="font-semibold text-foreground">{ticket.user_name}</h3>
+                    <span className="text-xs text-muted-foreground">
                       {new Date(ticket.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-gray-900 leading-relaxed">{ticket.description}</p>
+                  <p className="text-foreground leading-relaxed">{ticket.description}</p>
                 </div>
               </div>
             </div>
 
             {/* Activity Timeline */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Activity</h3>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="text-lg font-bold text-foreground mb-6">Activity</h3>
               <div className="space-y-6">
                 {activities.map((activity, index) => (
                   <motion.div
@@ -190,9 +190,9 @@ export default function TicketDetail() {
                       {/* Avatar/Icon */}
                       <div className="flex-shrink-0">
                         {activity.type === 'created' || activity.type === 'status' ? (
-                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                             <svg
-                              className="w-5 h-5 text-gray-600"
+                              className="w-5 h-5 text-muted-foreground"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -226,21 +226,21 @@ export default function TicketDetail() {
                       {/* Content */}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-gray-900">{activity.user}</span>
+                          <span className="font-semibold text-foreground">{activity.user}</span>
                           {activity.isInternal && (
                             <span className="text-xs px-2 py-0.5 bg-green-50 text-green-900 border border-accent rounded-full">
                               Internal Note
                             </span>
                           )}
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(activity.timestamp).toLocaleString()}
                           </span>
                         </div>
                         <div
-                          className={`${activity.type === 'comment' || activity.type === 'internal' ? 'bg-gray-100/50 rounded-lg p-4 mt-2' : ''}`}
+                          className={`${activity.type === 'comment' || activity.type === 'internal' ? 'bg-muted/50 rounded-lg p-4 mt-2' : ''}`}
                         >
                           <p
-                            className={`text-sm ${activity.type === 'status' ? 'text-gray-600 italic' : 'text-gray-900'}`}
+                            className={`text-sm ${activity.type === 'status' ? 'text-muted-foreground italic' : 'text-foreground'}`}
                           >
                             {activity.content}
                           </p>
@@ -253,8 +253,8 @@ export default function TicketDetail() {
             </div>
 
             {/* Reply Form */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Add Reply</h3>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Add Reply</h3>
               <form onSubmit={handleReply} className="space-y-4">
                 <div>
                   <textarea
@@ -262,7 +262,7 @@ export default function TicketDetail() {
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Type your reply..."
                     rows={5}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 placeholder-muted-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 bg-secondary border border-border text-foreground placeholder-muted-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -271,16 +271,16 @@ export default function TicketDetail() {
                       type="checkbox"
                       checked={isInternal}
                       onChange={(e) => setIsInternal(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-200 text-green-600 focus:ring-primary"
+                      className="w-4 h-4 rounded border-border text-green-600 focus:ring-primary"
                     />
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm text-foreground">
                       Internal note (not visible to user)
                     </span>
                   </label>
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      className="px-4 py-2.5 text-gray-900 hover:bg-green-50 rounded-lg transition-colors"
+                      className="px-4 py-2.5 text-foreground hover:bg-green-50 rounded-lg transition-colors"
                     >
                       Cancel
                     </button>
@@ -313,13 +313,13 @@ export default function TicketDetail() {
           {/* Sidebar - Ticket Info */}
           <div className="space-y-6">
             {/* Status & Priority */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+            <div className="bg-card border border-border rounded-xl p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Status</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Status</label>
                 <select
                   value={ticketStatus}
                   onChange={(e) => setTicketStatus(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
                   <option value="open">Open</option>
                   <option value="in_progress">In Progress</option>
@@ -329,7 +329,7 @@ export default function TicketDetail() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Priority</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Priority</label>
                 <div
                   className={`inline-flex px-4 py-2 rounded-lg border ${getPriorityColor(ticket.priority)}`}
                 >
@@ -339,52 +339,52 @@ export default function TicketDetail() {
             </div>
 
             {/* User Information */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">User Information</h3>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">User Information</h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Name</p>
-                  <p className="text-sm font-medium text-gray-900">{ticket.user_name}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Name</p>
+                  <p className="text-sm font-medium text-foreground">{ticket.user_name}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Email</p>
-                  <p className="text-sm font-medium text-gray-900">{ticket.user_email}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Email</p>
+                  <p className="text-sm font-medium text-foreground">{ticket.user_email}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Assigned To</p>
-                  <p className="text-sm font-medium text-gray-900">{ticket.assigned_to}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Assigned To</p>
+                  <p className="text-sm font-medium text-foreground">{ticket.assigned_to}</p>
                 </div>
               </div>
             </div>
 
             {/* Ticket Details */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Ticket Details</h3>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Ticket Details</h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Created</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs text-muted-foreground mb-1">Created</p>
+                  <p className="text-sm font-medium text-foreground">
                     {new Date(ticket.created_at).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Last Updated</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-xs text-muted-foreground mb-1">Last Updated</p>
+                  <p className="text-sm font-medium text-foreground">
                     {new Date(ticket.updated_at).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Ticket ID</p>
-                  <p className="text-sm font-medium text-gray-900">#{ticket.id}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Ticket ID</p>
+                  <p className="text-sm font-medium text-foreground">#{ticket.id}</p>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="text-lg font-bold text-foreground mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full px-4 py-2.5 bg-gray-50 hover:bg-green-50 border border-gray-200 text-gray-900 rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
+                <button className="w-full px-4 py-2.5 bg-secondary hover:bg-green-50 border border-border text-foreground rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"

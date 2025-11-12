@@ -401,16 +401,18 @@ Best regards,
                             <div className="flex items-center gap-3 mb-2">
                               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
                                 {interview.candidateName
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')}
+                                  ? interview.candidateName
+                                      .split(' ')
+                                      .map((n) => n[0])
+                                      .join('')
+                                  : '?'}
                               </div>
                               <div>
                                 <h3 className="text-lg font-semibold text-foreground">
-                                  {interview.candidateName}
+                                  {interview.candidateName || 'Unknown Candidate'}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                  {interview.position}
+                                  {interview.position || 'Position not specified'}
                                 </p>
                               </div>
                             </div>
@@ -515,24 +517,28 @@ Best regards,
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-2xl font-bold">
                       {selectedInterview.candidateName
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')}
+                        ? selectedInterview.candidateName
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                        : '?'}
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-foreground">
-                        {selectedInterview.candidateName}
+                        {selectedInterview.candidateName || 'Unknown Candidate'}
                       </h2>
-                      <p className="text-muted-foreground">{selectedInterview.position}</p>
+                      <p className="text-muted-foreground">
+                        {selectedInterview.position || 'Position not specified'}
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {selectedInterview.candidateEmail}
+                        {selectedInterview.candidateEmail || 'Email not available'}
                       </p>
                     </div>
                   </div>
                   <span
                     className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedInterview.status)}`}
                   >
-                    {selectedInterview.status.replace('_', ' ')}
+                    {selectedInterview.status ? selectedInterview.status.replace('_', ' ') : 'Unknown'}
                   </span>
                 </div>
 

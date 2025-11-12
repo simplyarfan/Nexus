@@ -17,7 +17,7 @@ export default function ProfilePage() {
   const getDashboardPath = () => {
     if (isSuperAdmin) return '/superadmin';
     if (isAdmin) return '/admin';
-    return '/dashboard';
+    return '/';
   };
 
   // Profile form state

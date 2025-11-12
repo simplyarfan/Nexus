@@ -12,7 +12,7 @@ export default function CreateTicket() {
   const getDashboardPath = () => {
     if (isSuperAdmin) return '/superadmin';
     if (isAdmin) return '/admin';
-    return '/dashboard';
+    return '/';
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, FileText, Download, Plus, Check, X } from 'lucide-react';
 import DateTimePicker from '../ui/DateTimePicker';
+import toast from 'react-hot-toast';
 
 const InterviewCoordinator = () => {
   const [interviews, setInterviews] = useState([]);
@@ -128,10 +129,10 @@ const InterviewCoordinator = () => {
         setSelectedCandidate(null);
         setGeneratedQuestions(null);
         fetchInterviews();
-        alert('Interview scheduled successfully!');
+        toast.success('Interview scheduled successfully!');
       }
     } catch (error) {
-      alert('Failed to schedule interview');
+      toast.error('Failed to schedule interview');
     }
   };
 

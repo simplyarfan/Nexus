@@ -6,6 +6,7 @@ import DateTimePicker from '../components/ui/DateTimePicker';
 import { useAuth } from '../contexts/AuthContext';
 import ClientOnly from '../components/shared/ClientOnly';
 import { interviewCoordinatorAPI } from '../utils/interviewCoordinatorAPI';
+import toast from 'react-hot-toast';
 
 function InterviewsPage() {
   const { user } = useAuth();
@@ -484,7 +485,7 @@ Best regards,
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => alert('Reschedule functionality coming soon')}
+                              onClick={() => toast.info('Reschedule functionality coming soon')}
                             >
                               Reschedule
                             </Button>
@@ -633,14 +634,14 @@ Best regards,
                       <Button
                         variant="secondary"
                         size="lg"
-                        onClick={() => alert('Reschedule functionality coming soon')}
+                        onClick={() => toast.info('Reschedule functionality coming soon')}
                       >
                         Reschedule
                       </Button>
                       <Button
                         variant="secondary"
                         size="lg"
-                        onClick={() => alert('Interview marked as completed')}
+                        onClick={() => toast.info('Interview marked as completed')}
                       >
                         Mark as Completed
                       </Button>
@@ -651,14 +652,14 @@ Best regards,
                       <Button
                         variant="primary"
                         size="lg"
-                        onClick={() => alert('Candidate marked as selected')}
+                        onClick={() => toast.success('Candidate marked as selected')}
                       >
                         Mark as Selected
                       </Button>
                       <Button
                         variant="ghost"
                         size="lg"
-                        onClick={() => alert('Candidate marked as rejected')}
+                        onClick={() => toast.error('Candidate marked as rejected')}
                       >
                         Mark as Rejected
                       </Button>

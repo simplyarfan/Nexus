@@ -14,6 +14,7 @@ export default function HRDashboard() {
     scheduledInterviews: 0,
     openPositions: 0,
   });
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -54,6 +55,13 @@ export default function HRDashboard() {
           },
         );
 
+        const notificationsResponse = await fetch(`${API_BASE_URL}/api/notifications`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
         let activeBatches = 0;
         let totalCandidates = 0;
         let scheduledInterviews = 0;
@@ -69,6 +77,11 @@ export default function HRDashboard() {
           const interviewsResult = await interviewsResponse.json();
           const interviews = interviewsResult.data || [];
           scheduledInterviews = interviews.filter((i) => i.status === 'scheduled').length;
+        }
+
+        if (notificationsResponse.ok) {
+          const notificationsResult = await notificationsResponse.json();
+          setNotifications(notificationsResult.data || []);
         }
 
         setStats({
@@ -399,38 +412,30 @@ export default function HRDashboard() {
                             <h3 className="font-semibold text-foreground">Notifications</h3>
                           </div>
                           <div className="max-h-96 overflow-y-auto">
-                            {[
-                              {
-                                title: 'New batch created',
-                                detail: 'Sr. AI Developer - 5 candidates',
-                                time: '2 hours ago',
-                              },
-                              {
-                                title: 'Interview scheduled',
-                                detail: 'John Smith - Technical Round',
-                                time: '4 hours ago',
-                              },
-                              {
-                                title: 'CV processed',
-                                detail: 'Backend Engineer position - 8 matches',
-                                time: '1 day ago',
-                              },
-                            ].map((notification, index) => (
-                              <div
-                                key={index}
-                                className="p-4 hover:bg-muted transition-colors border-b border-border last:border-0"
-                              >
-                                <p className="font-medium text-foreground text-sm">
-                                  {notification.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {notification.detail}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  {notification.time}
-                                </p>
+                            {notifications.length > 0 ? (
+                              notifications.map((notification, index) => (
+                                <div
+                                  key={notification.id || index}
+                                  className="p-4 hover:bg-muted transition-colors border-b border-border last:border-0"
+                                >
+                                  <p className="font-medium text-foreground text-sm">
+                                    {notification.title || notification.message}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {notification.description || notification.detail}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    {notification.created_at
+                                      ? new Date(notification.created_at).toLocaleString()
+                                      : 'Just now'}
+                                  </p>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="p-8 text-center">
+                                <p className="text-sm text-muted-foreground">No notifications yet</p>
                               </div>
-                            ))}
+                            )}
                           </div>
                           <div className="p-3 border-t border-border text-center">
                             <button className="text-sm text-primary hover:opacity-80">

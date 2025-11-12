@@ -15,7 +15,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/support`,
+  baseURL: `${API_BASE_URL}/api/tickets`,
   timeout: 30000, // 30 seconds for support operations
   headers: {
     'Content-Type': 'application/json',

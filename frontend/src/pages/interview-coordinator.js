@@ -72,9 +72,10 @@ export default function InterviewsPage() {
   // Helper function to transform snake_case to camelCase
   const transformInterview = (interview) => ({
     ...interview,
-    candidateName: interview.candidate_name || interview.candidateName,
-    candidateEmail: interview.candidate_email || interview.candidateEmail,
-    jobTitle: interview.job_title || interview.jobTitle,
+    candidateName: interview.candidate_name || interview.candidateName || 'Unknown Candidate',
+    candidateEmail: interview.candidate_email || interview.candidateEmail || 'No email provided',
+    jobTitle: interview.job_title || interview.jobTitle || 'Position not specified',
+    position: interview.job_title || interview.jobTitle || interview.position || 'Position not specified',
     interviewType: interview.interview_type || interview.interviewType,
     scheduledTime: interview.scheduled_time || interview.scheduledTime,
     meetingLink: interview.meeting_link || interview.meetingLink,

@@ -214,7 +214,7 @@ export default function CreateTicket() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -243,7 +243,7 @@ export default function CreateTicket() {
                 type="button"
                 onClick={() => router.back()}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-gray-100 text-foreground rounded-lg font-semibold hover:bg-gray-100/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-secondary text-foreground rounded-lg font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

@@ -5,9 +5,20 @@ import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import DateTimePicker from '@/components/ui/DateTimePicker';
 import api from '@/utils/api';
+import toast from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function InterviewsPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin';
+
+  const getDashboardPath = () => {
+    if (isSuperAdmin) return '/superadmin';
+    if (isAdmin) return '/admin';
+    return '/dashboard';
+  };
   const [view, setView] = useState('list');
   const [selectedInterview, setSelectedInterview] = useState(null);
   const [outlookConnected, setOutlookConnected] = useState(false);
@@ -25,6 +36,8 @@ export default function InterviewsPage() {
     duration: 60,
     notes: '',
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingInterview, setDeletingInterview] = useState(null);
 
   // Request Availability Form (Stage 1)
   const [availabilityForm, setAvailabilityForm] = useState({
@@ -337,7 +350,7 @@ Best regards,
         !availabilityForm.candidateEmail ||
         !availabilityForm.position
       ) {
-        alert('Please fill in all required fields: Candidate Name, Email, and Position');
+        toast.error('Please fill in all required fields: Candidate Name, Email, and Position');
         setIsSending(false);
         return;
       }
@@ -374,7 +387,7 @@ Best regards,
       console.log('Availability request response:', response.data);
 
       if (response.data.success || response.data.data) {
-        alert('✅ Availability request sent successfully!');
+        toast.success('Availability request sent successfully!');
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
@@ -396,7 +409,7 @@ Best regards,
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to send email';
-      alert(`❌ Error: ${errorMessage}`);
+      toast.error(errorMessage);
     } finally {
       setIsSending(false);
     }
@@ -408,7 +421,7 @@ Best regards,
 
       // Validation
       if (!scheduleForm.scheduledTime) {
-        alert('Please select a date and time for the interview');
+        toast.error('Please select a date and time for the interview');
         setIsSending(false);
         return;
       }
@@ -454,7 +467,7 @@ Best regards,
       });
 
       if (response.data.success) {
-        alert('✅ Interview scheduled successfully! Confirmation email sent.');
+        toast.success('Interview scheduled successfully! Confirmation email sent.');
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
@@ -477,40 +490,45 @@ Best regards,
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to schedule interview';
-      alert(`❌ Error: ${errorMessage}`);
+      toast.error(errorMessage);
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleDeleteInterview = async (interviewId) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this interview? This will also cancel the Teams meeting.',
-      )
-    ) {
-      return;
-    }
+  const openDeleteModal = (interview) => {
+    setDeletingInterview(interview);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteInterview = async () => {
+    if (!deletingInterview) return;
 
     try {
-      const response = await api.delete(`/interview-coordinator/interview/${interviewId}`);
+      const response = await api.delete(`/interview-coordinator/interview/${deletingInterview.id}`);
 
       if (response.data.success) {
-        alert('✅ Interview deleted successfully');
+        toast.success('Interview deleted successfully');
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
         const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
         setInterviews(transformedInterviews);
 
-        // Go back to list view
-        setView('list');
-        setSelectedInterview(null);
+        // Close modal
+        setShowDeleteModal(false);
+        setDeletingInterview(null);
+
+        // Go back to list view if in details
+        if (view === 'details') {
+          setView('list');
+          setSelectedInterview(null);
+        }
       }
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to delete interview';
-      alert(`❌ Error: ${errorMessage}`);
+      toast.error(errorMessage);
     }
   };
 
@@ -524,7 +542,7 @@ Best regards,
       });
 
       if (response.data.success) {
-        alert(`✅ Candidate marked as ${outcome}`);
+        toast.success(`Candidate marked as ${outcome}`);
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
@@ -546,7 +564,7 @@ Best regards,
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to mark interview';
-      alert(`❌ Error: ${errorMessage}`);
+      toast.error(errorMessage);
     }
   };
 
@@ -573,7 +591,7 @@ Best regards,
 
       // Validation
       if (!rescheduleForm.scheduledTime) {
-        alert('Please select a new date and time');
+        toast.error('Please select a new date and time');
         setIsSending(false);
         return;
       }
@@ -588,7 +606,7 @@ Best regards,
       );
 
       if (response.data.success) {
-        alert('✅ Interview rescheduled successfully! Notification sent to candidate.');
+        toast.success('Interview rescheduled successfully! Notification sent to candidate.');
 
         // Refresh interviews list
         const refreshResponse = await api.get('/interview-coordinator/interviews');
@@ -609,7 +627,7 @@ Best regards,
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to reschedule interview';
-      alert(`❌ Error: ${errorMessage}`);
+      toast.error(errorMessage);
     } finally {
       setIsSending(false);
     }
@@ -622,7 +640,7 @@ Best regards,
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
             <a
-              href="/dashboard"
+              href={getDashboardPath()}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1093,7 +1111,7 @@ Best regards,
                   <Button
                     variant="ghost"
                     size="lg"
-                    onClick={() => handleDeleteInterview(selectedInterview.id)}
+                    onClick={() => openDeleteModal(selectedInterview)}
                     className="text-destructive hover:bg-destructive/10"
                   >
                     Delete Interview
@@ -1707,6 +1725,62 @@ Best regards,
                   Cancel
                 </Button>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Delete Interview Confirmation Modal */}
+      {showDeleteModal && deletingInterview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-card border border-border rounded-2xl p-8 max-w-md w-full"
+          >
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10 mb-4">
+              <svg
+                className="w-6 h-6 text-destructive"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Delete Interview</h3>
+            <p className="text-muted-foreground mb-6">
+              Are you sure you want to delete the interview with{' '}
+              <span className="font-semibold text-foreground">{deletingInterview.candidateName}</span>?
+              This will also cancel the Teams meeting and cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="flex-1 text-destructive hover:bg-destructive/10"
+                onClick={handleDeleteInterview}
+              >
+                Delete
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="flex-1"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletingInterview(null);
+                }}
+              >
+                Cancel
+              </Button>
             </div>
           </motion.div>
         </div>

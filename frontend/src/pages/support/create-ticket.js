@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function CreateTicket() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin';
+
+  const getDashboardPath = () => {
+    if (isSuperAdmin) return '/superadmin';
+    if (isAdmin) return '/admin';
+    return '/dashboard';
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors] = useState({});
@@ -33,7 +43,7 @@ export default function CreateTicket() {
         category: 'general',
       });
       setShowSuccess(false);
-      router.push('/dashboard'); // Redirect to user dashboard
+      router.push(getDashboardPath()); // Redirect to user dashboard
     }, 2000);
   };
 

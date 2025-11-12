@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '../contexts/AuthContext';
 import { profileAPI } from '../utils/profileAPI';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const { user, isAdmin, isSuperAdmin } = useAuth();
@@ -56,12 +57,12 @@ export default function ProfilePage() {
       const result = await profileAPI.updateProfile(profileData);
 
       if (result.success) {
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
-        alert(result.message || 'Failed to update profile');
+        toast.error(result.message || 'Failed to update profile');
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Error updating profile');
+      toast.error(error.response?.data?.message || 'Error updating profile');
     } finally {
       setIsSaving(false);
     }

@@ -5,9 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import api from '../utils/api';
+import toast from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CVIntelligencePage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin';
+
+  const getDashboardPath = () => {
+    if (isSuperAdmin) return '/superadmin';
+    if (isAdmin) return '/admin';
+    return '/dashboard';
+  };
   const [isDragging, setIsDragging] = useState(false);
   const [view, setView] = useState('batches');
   const [selectedBatch, setSelectedBatch] = useState(null);
@@ -96,7 +107,7 @@ export default function CVIntelligencePage() {
         setDeleteConfirmation({ show: false, batchId: null, batchName: '' });
       }
     } catch (error) {
-      alert('Failed to delete batch from database. Please try again.');
+      toast.error('Failed to delete batch from database. Please try again.');
       setDeleteConfirmation({ show: false, batchId: null, batchName: '' });
     }
   };
@@ -133,7 +144,7 @@ export default function CVIntelligencePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
             <Link
-              href="/dashboard"
+              href={getDashboardPath()}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

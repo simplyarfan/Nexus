@@ -104,7 +104,7 @@ const WaitingDashboard = () => {
 
         <nav className="mt-6 px-4">
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Status
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -130,7 +130,7 @@ const WaitingDashboard = () => {
                     }}
                     className="w-full flex items-center px-4 py-2 text-left text-muted-foreground hover:bg-muted transition-colors"
                   >
-                    <action.icon className="w-4 h-4 mr-3 text-gray-400" />
+                    <action.icon className="w-4 h-4 mr-3 text-muted-foreground" />
                     <span className="text-sm font-medium">{action.name}</span>
                   </button>
                 ))}
@@ -160,10 +160,10 @@ const WaitingDashboard = () => {
                 <p className="text-sm font-medium text-foreground truncate">
                   {user?.first_name} {user?.last_name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">Pending Assignment</p>
+                <p className="text-xs text-muted-foreground truncate">Pending Assignment</p>
               </div>
               <ChevronUp
-                className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-muted-foreground transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
               />
             </button>
           </div>
@@ -184,21 +184,21 @@ const WaitingDashboard = () => {
               </button>
               <div>
                 <h1 className="text-xl font-semibold text-foreground">Waiting for Assignment</h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Welcome, {user?.first_name} {user?.last_name}!
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-              <button className="p-2 text-gray-400 hover:text-muted-foreground rounded-lg hover:bg-muted">
+              <button className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted">
                 <Bell className="w-5 h-5" />
               </button>
             </div>
@@ -250,7 +250,7 @@ const WaitingDashboard = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-foreground">Play While You Wait</h3>
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Trophy className="w-4 h-4 mr-1" />
                 <span>Pass the time with fun games!</span>
               </div>
@@ -295,7 +295,7 @@ const WaitingDashboard = () => {
                     onClick={() => setCurrentGame(null)}
                     className="p-2 hover:bg-muted rounded-lg transition-colors"
                   >
-                    <Plus className="w-5 h-5 text-gray-400 rotate-45" />
+                    <Plus className="w-5 h-5 text-muted-foreground rotate-45" />
                   </button>
                 </div>
 

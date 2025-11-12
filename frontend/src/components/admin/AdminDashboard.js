@@ -205,11 +205,11 @@ const AdminDashboard = () => {
           {Object.entries(agent.metrics).map(([key, value], idx) => (
             <div key={idx} className="text-center">
               <div
-                className={`text-lg font-bold ${agent.status === 'active' ? 'text-foreground' : 'text-gray-500'}`}
+                className={`text-lg font-bold ${agent.status === 'active' ? 'text-foreground' : 'text-muted-foreground'}`}
               >
                 {value}
               </div>
-              <div className="text-xs text-gray-500 capitalize">
+              <div className="text-xs text-muted-foreground capitalize">
                 {key.replace(/([A-Z])/g, ' $1').trim()}
               </div>
             </div>
@@ -224,7 +224,7 @@ const AdminDashboard = () => {
               className={`text-xs px-2.5 py-1.5 rounded-lg font-medium ${
                 agent.status === 'active'
                   ? 'bg-green-100 text-green-700'
-                  : 'bg-muted text-gray-500'
+                  : 'bg-muted text-muted-foreground'
               }`}
             >
               {feature}
@@ -237,7 +237,7 @@ const AdminDashboard = () => {
           className={`w-full py-2.5 rounded-lg font-medium transition-all duration-200 text-sm relative z-10 ${
             agent.status === 'active'
               ? `bg-gradient-to-r ${agent.gradient} text-white hover:shadow-lg hover:scale-[1.02]`
-              : 'bg-muted text-gray-500 cursor-not-allowed'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
           onClick={() => {
             if (agent.status === 'active') {

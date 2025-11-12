@@ -43,9 +43,9 @@ export default function TicketsPage() {
       open: 'bg-blue-100 text-blue-800',
       'in-progress': 'bg-yellow-100 text-yellow-800',
       resolved: 'bg-green-100 text-green-800',
-      closed: 'bg-muted text-gray-800',
+      closed: 'bg-muted text-foreground',
     };
-    return colors[status] || 'bg-muted text-gray-800';
+    return colors[status] || 'bg-muted text-foreground';
   };
 
   const getPriorityColor = (priority) => {
@@ -99,7 +99,7 @@ export default function TicketsPage() {
           {tickets.length === 0 ? (
             <div className="bg-card shadow rounded-lg p-12 text-center">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-muted-foreground"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -112,7 +112,7 @@ export default function TicketsPage() {
                 />
               </svg>
               <h3 className="mt-2 text-sm font-medium text-foreground">No tickets</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Get started by creating a new support ticket.
               </p>
               <div className="mt-6">
@@ -158,7 +158,7 @@ export default function TicketsPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500">
+                        <div className="mt-2 flex items-center text-sm text-muted-foreground">
                           <span>
                             {ticket.category && `${ticket.category} • `}
                             Created {new Date(ticket.created_at).toLocaleDateString()}

@@ -135,7 +135,7 @@ const BatchDetail = () => {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Icons.Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <Icons.Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-bold text-foreground mb-2">Batch Not Found</h2>
           <p className="text-muted-foreground mb-6">The requested batch could not be found.</p>
           <button
@@ -173,7 +173,7 @@ const BatchDetail = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-semibold text-foreground">{batch.name}</h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Created {new Date(batch.created_at).toLocaleDateString()}
                   </p>
                 </div>
@@ -257,7 +257,7 @@ const BatchDetail = () => {
 
           {candidates.length === 0 ? (
             <div className="text-center py-12">
-              <Icons.Brain className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <Icons.Brain className="w-16 h-16 text-border mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No candidates analyzed yet
               </h3>
@@ -313,7 +313,7 @@ const BatchDetail = () => {
                                   ? 'bg-blue-100 text-blue-800'
                                   : index === 2
                                     ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-muted text-gray-800'
+                                    : 'bg-muted text-foreground'
                             }`}
                           >
                             {index === 0
@@ -401,7 +401,7 @@ const BatchDetail = () => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
+                className="px-4 py-2 border border-border rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
               >
                 Cancel
               </button>
@@ -451,19 +451,19 @@ const BatchDetail = () => {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <Icons.Mail className="w-4 h-4 text-gray-500" />
+                    <Icons.Mail className="w-4 h-4 text-muted-foreground" />
                     <span className="text-muted-foreground">
                       {selectedCandidate.email || 'Email not found'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Icons.Phone className="w-4 h-4 text-gray-500" />
+                    <Icons.Phone className="w-4 h-4 text-muted-foreground" />
                     <span className="text-muted-foreground">
                       {selectedCandidate.phone || 'Phone not found'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Icons.MapPin className="w-4 h-4 text-gray-500" />
+                    <Icons.MapPin className="w-4 h-4 text-muted-foreground" />
                     <span className="text-muted-foreground">
                       {selectedCandidate.location || 'Location not specified'}
                     </span>
@@ -519,7 +519,7 @@ const BatchDetail = () => {
                                     ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
                                     : rank === 3
                                       ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300'
-                                      : 'bg-muted text-gray-800 border-2 border-gray-300'
+                                      : 'bg-muted text-foreground border-2 border-border'
                               }`}
                             >
                               #{rank} {rank === 1 && '🏆'}
@@ -550,7 +550,7 @@ const BatchDetail = () => {
                         </div>
                       );
                     } catch (error) {
-                      return <p className="text-gray-500 text-sm">Assessment not available</p>;
+                      return <p className="text-muted-foreground text-sm">Assessment not available</p>;
                     }
                   })()}
                 </div>
@@ -675,7 +675,7 @@ const BatchDetail = () => {
                           {matchedSkills.length === 0 &&
                             missingSkills.length === 0 &&
                             allSkills.length === 0 && (
-                              <p className="text-gray-500 text-sm">Skills analysis not available</p>
+                              <p className="text-muted-foreground text-sm">Skills analysis not available</p>
                             )}
 
                           {/* Skills Gap Chart */}
@@ -737,7 +737,7 @@ const BatchDetail = () => {
                         </>
                       );
                     } catch (e) {
-                      return <p className="text-gray-500 text-sm">Skills data parsing error</p>;
+                      return <p className="text-muted-foreground text-sm">Skills data parsing error</p>;
                     }
                   })()}
                 </div>
@@ -845,7 +845,7 @@ const BatchDetail = () => {
                                           </p>
                                         </div>
                                         <div className="text-right">
-                                          <div className="flex items-center space-x-1 text-xs text-gray-500 mb-1">
+                                          <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-1">
                                             <Icons.Calendar className="w-3 h-3" />
                                             <span>
                                               {exp.startDate || 'Start'} -{' '}
@@ -870,7 +870,7 @@ const BatchDetail = () => {
                           </div>
 
                           {experience.length === 0 && (
-                            <p className="text-gray-500 text-sm text-center py-4">
+                            <p className="text-muted-foreground text-sm text-center py-4">
                               Experience details not available
                             </p>
                           )}
@@ -878,7 +878,7 @@ const BatchDetail = () => {
                       );
                     } catch (e) {
                       return (
-                        <p className="text-gray-500 text-sm">Experience details not available</p>
+                        <p className="text-muted-foreground text-sm">Experience details not available</p>
                       );
                     }
                   })()}
@@ -902,7 +902,7 @@ const BatchDetail = () => {
                       // Show ALL education entries as cards
                       if (!Array.isArray(education) || education.length === 0) {
                         return (
-                          <p className="text-gray-500 text-sm">Education details not available</p>
+                          <p className="text-muted-foreground text-sm">Education details not available</p>
                         );
                       }
 
@@ -929,7 +929,7 @@ const BatchDetail = () => {
                                     <div className="flex items-center space-x-2">
                                       <Icons.Award className="w-4 h-4 text-indigo-600" />
                                       <div>
-                                        <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wide">
                                           Degree
                                         </span>
                                         <p className="font-semibold text-foreground">{degree}</p>
@@ -940,7 +940,7 @@ const BatchDetail = () => {
                                     <div className="flex items-center space-x-2">
                                       <Icons.Building className="w-4 h-4 text-indigo-600" />
                                       <div>
-                                        <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wide">
                                           Institution
                                         </span>
                                         <p className="font-medium text-foreground">{university}</p>
@@ -951,11 +951,11 @@ const BatchDetail = () => {
                                   <div className="flex items-center space-x-2">
                                     <Icons.BookOpen className="w-4 h-4 text-indigo-600" />
                                     <div>
-                                      <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                      <span className="text-xs text-muted-foreground uppercase tracking-wide">
                                         Field of Study
                                       </span>
                                       <p
-                                        className={`font-medium ${field === 'Not specified' ? 'text-gray-500 italic' : 'text-foreground'}`}
+                                        className={`font-medium ${field === 'Not specified' ? 'text-muted-foreground italic' : 'text-foreground'}`}
                                       >
                                         {field}
                                       </p>
@@ -965,7 +965,7 @@ const BatchDetail = () => {
                                     <div className="flex items-center space-x-2">
                                       <Icons.Calendar className="w-4 h-4 text-indigo-600" />
                                       <div>
-                                        <span className="text-xs text-gray-500 uppercase tracking-wide">
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wide">
                                           Year
                                         </span>
                                         <p className="font-medium text-foreground">
@@ -981,7 +981,7 @@ const BatchDetail = () => {
                         </div>
                       );
                     } catch (e) {
-                      return <p className="text-gray-500 text-sm">Education data parsing error</p>;
+                      return <p className="text-muted-foreground text-sm">Education data parsing error</p>;
                     }
                   })()}
                 </div>
@@ -1000,7 +1000,7 @@ const BatchDetail = () => {
                       const certifications = profileData.certifications || [];
 
                       if (!Array.isArray(certifications) || certifications.length === 0) {
-                        return <p className="text-gray-500 text-sm">No certifications listed</p>;
+                        return <p className="text-muted-foreground text-sm">No certifications listed</p>;
                       }
 
                       return (
@@ -1041,7 +1041,7 @@ const BatchDetail = () => {
                       );
                     } catch (e) {
                       return (
-                        <p className="text-gray-500 text-sm">Certifications data not available</p>
+                        <p className="text-muted-foreground text-sm">Certifications data not available</p>
                       );
                     }
                   })()}

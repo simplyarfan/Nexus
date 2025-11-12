@@ -68,7 +68,7 @@ export default function Features() {
                 <br />
                 <span className="text-white">For Every Department</span>
               </h1>
-              <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Automate workflows, analyze data, and make smarter decisions with AI agents built
                 for real business needs.
               </p>
@@ -156,7 +156,7 @@ export default function Features() {
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-400 text-sm">{feature.description}</p>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </motion.div>
               ))}
             </div>
@@ -175,7 +175,7 @@ export default function Features() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
                 Ready to Get Started?
               </h2>
-              <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                 Join thousands of businesses automating with AI.
               </p>
               <Link href="/auth/register">
@@ -198,7 +198,7 @@ export default function Features() {
                 </div>
                 <span className="text-lg font-bold">Nexus</span>
               </div>
-              <div className="text-sm text-gray-500">© 2025 Nexus. All rights reserved.</div>
+              <div className="text-sm text-muted-foreground">© 2025 Nexus. All rights reserved.</div>
             </div>
           </div>
         </footer>

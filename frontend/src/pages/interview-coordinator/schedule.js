@@ -168,7 +168,7 @@ ${user?.email || ''}`;
                   </div>
                   <div>
                     <h1 className="text-xl font-semibold text-foreground">Schedule Interview</h1>
-                    <p className="text-sm text-gray-500">Create and send interview invitations</p>
+                    <p className="text-sm text-muted-foreground">Create and send interview invitations</p>
                   </div>
                 </div>
               </div>
@@ -196,7 +196,7 @@ ${user?.email || ''}`;
                     value={formData.candidateName}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Enter candidate's full name"
                   />
                 </div>
@@ -210,7 +210,7 @@ ${user?.email || ''}`;
                     value={formData.candidateEmail}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="candidate@example.com"
                   />
                 </div>
@@ -234,7 +234,7 @@ ${user?.email || ''}`;
                     value={formData.title}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="e.g., Senior Software Engineer"
                   />
                 </div>
@@ -246,7 +246,7 @@ ${user?.email || ''}`;
                     name="type"
                     value={formData.type}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value="technical">Technical Interview</option>
                     <option value="behavioral">Behavioral Interview</option>
@@ -262,7 +262,7 @@ ${user?.email || ''}`;
                     name="duration"
                     value={formData.duration}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     <option value={30}>30 minutes</option>
                     <option value={45}>45 minutes</option>
@@ -285,7 +285,7 @@ ${user?.email || ''}`;
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Video Call, Office, etc."
                   />
                 </div>
@@ -298,7 +298,7 @@ ${user?.email || ''}`;
                     name="meetingLink"
                     value={formData.meetingLink}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="https://zoom.us/j/..."
                   />
                 </div>
@@ -311,7 +311,7 @@ ${user?.email || ''}`;
                     value={formData.notes}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Any additional information for the candidate..."
                   />
                 </div>
@@ -323,7 +323,7 @@ ${user?.email || ''}`;
               <button
                 type="button"
                 onClick={() => router.push('/interview-coordinator')}
-                className="px-6 py-2 border border-gray-300 text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
+                className="px-6 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
               >
                 Cancel
               </button>
@@ -354,7 +354,7 @@ ${user?.email || ''}`;
                   </div>
                   <button
                     onClick={() => setShowEmailPreview(false)}
-                    className="text-gray-400 hover:text-muted-foreground"
+                    className="text-muted-foreground hover:text-muted-foreground"
                   >
                     <Icons.X className="w-5 h-5" />
                   </button>
@@ -366,11 +366,11 @@ ${user?.email || ''}`;
                   <textarea
                     value={emailContent}
                     onChange={(e) => setEmailContent(e.target.value)}
-                    className="w-full h-64 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                    className="w-full h-64 p-3 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
                   />
                 ) : (
                   <div className="bg-secondary p-4 rounded-lg">
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800">
+                    <pre className="whitespace-pre-wrap font-sans text-sm text-foreground">
                       {emailContent}
                     </pre>
                   </div>
@@ -423,7 +423,7 @@ ${user?.email || ''}`;
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowCalendarConnection(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
+                  className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>

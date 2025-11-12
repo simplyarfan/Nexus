@@ -48,7 +48,7 @@ class ErrorBoundary extends React.Component {
               </div>
             </div>
 
-            <div className="text-sm text-gray-500 mb-4">
+            <div className="text-sm text-muted-foreground mb-4">
               We&apos;re sorry, but something unexpected happened. Please try refreshing the page.
             </div>
 
@@ -57,7 +57,7 @@ class ErrorBoundary extends React.Component {
                 <summary className="cursor-pointer text-sm font-medium text-muted-foreground mb-2">
                   Error Details (Development)
                 </summary>
-                <div className="bg-muted p-3 rounded text-xs font-mono text-gray-800 overflow-auto max-h-40">
+                <div className="bg-muted p-3 rounded text-xs font-mono text-foreground overflow-auto max-h-40">
                   <div className="mb-2">
                     <strong>Error:</strong> {this.state.error && this.state.error.toString()}
                   </div>
@@ -82,7 +82,7 @@ class ErrorBoundary extends React.Component {
               </button>
               <button
                 onClick={() => (window.location.href = '/')}
-                className="flex-1 bg-muted text-gray-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="flex-1 bg-muted text-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 Go Home
               </button>

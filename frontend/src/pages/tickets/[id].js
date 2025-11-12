@@ -63,9 +63,9 @@ export default function TicketDetailPage() {
       open: 'bg-blue-100 text-blue-800',
       'in-progress': 'bg-yellow-100 text-yellow-800',
       resolved: 'bg-green-100 text-green-800',
-      closed: 'bg-muted text-gray-800',
+      closed: 'bg-muted text-foreground',
     };
-    return colors[status] || 'bg-muted text-gray-800';
+    return colors[status] || 'bg-muted text-foreground';
   };
 
   const getPriorityColor = (priority) => {
@@ -167,7 +167,7 @@ export default function TicketDetailPage() {
                       <span className="text-sm font-medium text-foreground">
                         {c.user?.first_name} {c.user?.last_name}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {new Date(c.created_at).toLocaleString()}
                       </span>
                     </div>
@@ -190,7 +190,7 @@ export default function TicketDetailPage() {
                   rows="4"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-border rounded-md"
                   placeholder="Type your comment here..."
                 />
                 <div className="mt-4 flex justify-end">

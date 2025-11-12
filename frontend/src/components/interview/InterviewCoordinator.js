@@ -172,7 +172,7 @@ const InterviewCoordinator = () => {
       case 'rescheduled':
         return 'bg-yellow-100 text-yellow-800';
       default:
-        return 'bg-muted text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
@@ -264,7 +264,7 @@ const InterviewCoordinator = () => {
 
         {interviews.length === 0 ? (
           <div className="text-center py-12">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <Calendar className="w-16 h-16 text-border mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No interviews scheduled</h3>
             <p className="text-muted-foreground">Schedule your first interview to get started</p>
           </div>
@@ -300,7 +300,7 @@ const InterviewCoordinator = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => downloadICS(interview.id)}
-                      className="p-2 text-gray-400 hover:text-muted-foreground transition-colors"
+                      className="p-2 text-muted-foreground hover:text-muted-foreground transition-colors"
                       title="Download Calendar Invite"
                     >
                       <Download className="w-5 h-5" />
@@ -342,7 +342,7 @@ const InterviewCoordinator = () => {
                       generateQuestions(candidate.id);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Choose a candidate...</option>
                   {candidates.map((candidate) => (
@@ -366,7 +366,7 @@ const InterviewCoordinator = () => {
                         onChange={(e) =>
                           setInterviewForm({ ...interviewForm, type: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       >
                         <option value="technical">Technical</option>
                         <option value="behavioral">Behavioral</option>
@@ -384,7 +384,7 @@ const InterviewCoordinator = () => {
                         onChange={(e) =>
                           setInterviewForm({ ...interviewForm, duration: parseInt(e.target.value) })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       />
                     </div>
                   </div>
@@ -411,7 +411,7 @@ const InterviewCoordinator = () => {
                         setInterviewForm({ ...interviewForm, meeting_link: e.target.value })
                       }
                       placeholder="https://zoom.us/j/..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
 
@@ -430,7 +430,7 @@ const InterviewCoordinator = () => {
                               <span className="font-medium">Q{index + 1}:</span> {question}
                             </div>
                           ))}
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           Full question set will be available after scheduling
                         </p>
                       </div>
@@ -441,7 +441,7 @@ const InterviewCoordinator = () => {
                   <div className="flex items-center justify-end space-x-4 pt-6 border-t border-border">
                     <button
                       onClick={() => setShowScheduleModal(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
+                      className="px-4 py-2 border border-border rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
                     >
                       Cancel
                     </button>

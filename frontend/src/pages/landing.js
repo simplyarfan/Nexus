@@ -124,7 +124,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-xl md:text-2xl text-gray-300 mb-6 max-w-3xl mx-auto leading-relaxed font-medium"
+                className="text-xl md:text-2xl text-border mb-6 max-w-3xl mx-auto leading-relaxed font-medium"
               >
                 Get specialized AI agents for HR, Finance, and Sales that work 24/7 and never ask
                 for a raise.
@@ -134,7 +134,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
-                className="text-lg text-gray-400 mb-16 max-w-2xl mx-auto italic"
+                className="text-lg text-muted-foreground mb-16 max-w-2xl mx-auto italic"
               >
                 &quot;Wait, you fired the whole consulting team?&quot; - Your CFO, probably
               </motion.p>
@@ -165,7 +165,7 @@ export default function LandingPage() {
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-400">
+                    <span className="text-sm font-medium text-muted-foreground">
                       Question: &quot;Why would I even use Nexus?&quot;
                     </span>
                   </div>
@@ -182,7 +182,7 @@ export default function LandingPage() {
                       ].map((scenario, index) => (
                         <div key={index} className="flex items-start space-x-2">
                           <span className="text-red-500 mt-1">•</span>
-                          <span className="text-gray-300 font-medium">{scenario}</span>
+                          <span className="text-border font-medium">{scenario}</span>
                         </div>
                       ))}
                     </div>
@@ -271,7 +271,7 @@ export default function LandingPage() {
                     >
                       {useCase.subtitle}
                     </div>
-                    <div className="text-gray-400 text-sm leading-relaxed mb-4">
+                    <div className="text-muted-foreground text-sm leading-relaxed mb-4">
                       <BlurText text={useCase.description} delay={50} />
                     </div>
                     <div className="text-xs font-bold text-orange-400 bg-orange-400/10 px-3 py-1 rounded-full inline-block">
@@ -282,7 +282,7 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center">
-                <p className="text-gray-500 text-lg font-medium">
+                <p className="text-muted-foreground text-lg font-medium">
                   Join 10,000+ professionals who stopped playing fair
                 </p>
               </div>
@@ -312,7 +312,7 @@ export default function LandingPage() {
                     their AI agents.
                   </GradientText>
                 </h2>
-                <p className="text-xl text-gray-400 mb-8 font-medium">
+                <p className="text-xl text-muted-foreground mb-8 font-medium">
                   Stop waiting weeks for work AI can do in minutes.
                 </p>
 
@@ -320,7 +320,7 @@ export default function LandingPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                     <div>
                       <h4 className="font-bold text-red-500 mb-3">Without Nexus:</h4>
-                      <ul className="space-y-2 text-sm text-gray-400">
+                      <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• Hiring external consultants</li>
                         <li>• Waiting weeks for audits</li>
                         <li>• Manual CV screening forever</li>
@@ -329,7 +329,7 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <h4 className="font-bold text-green-500 mb-3">With Nexus:</h4>
-                      <ul className="space-y-2 text-sm text-gray-400">
+                      <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• AI agents working 24/7</li>
                         <li>• Instant fraud detection</li>
                         <li>• 100 CVs in seconds</li>
@@ -346,7 +346,7 @@ export default function LandingPage() {
                   </button>
                 </Link>
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Setup takes 5 minutes. Your first AI agent can be working today.
                 </p>
               </motion.div>
@@ -364,7 +364,7 @@ export default function LandingPage() {
                   <span className="text-lg font-bold text-white">Nexus</span>
                 </div>
 
-                <div className="text-sm text-gray-500">© 2025 Nexus. All rights reserved.</div>
+                <div className="text-sm text-muted-foreground">© 2025 Nexus. All rights reserved.</div>
               </div>
             </div>
           </footer>

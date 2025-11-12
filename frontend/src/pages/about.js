@@ -95,7 +95,7 @@ export default function About() {
                     />
                   </div>
                 </h1>
-                <p className="text-xl text-gray-400 max-w-4xl mx-auto">
+                <p className="text-xl text-muted-foreground max-w-4xl mx-auto">
                   We&apos;re on a mission to make advanced AI accessible to every business,
                   empowering innovation and driving positive change across industries.
                 </p>
@@ -115,13 +115,13 @@ export default function About() {
                   className="space-y-6"
                 >
                   <h2 className="text-4xl font-bold text-white mb-6">Our Mission</h2>
-                  <p className="text-lg text-gray-400 mb-6">
+                  <p className="text-lg text-muted-foreground mb-6">
                     We believe artificial intelligence has the power to solve humanity&apos;s
                     greatest challenges. Our mission is to democratize access to advanced AI
                     capabilities, making them simple, secure, and affordable for businesses of all
                     sizes.
                   </p>
-                  <p className="text-lg text-gray-400">
+                  <p className="text-lg text-muted-foreground">
                     From startups to Fortune 500 companies, we&apos;re empowering organizations to
                     harness the transformative power of AI, driving innovation and creating a better
                     future for everyone.
@@ -151,7 +151,7 @@ export default function About() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-16">
                 <h2 className="text-4xl font-bold text-white mb-4">Our Values</h2>
-                <p className="text-lg text-gray-400">The principles that guide everything we do</p>
+                <p className="text-lg text-muted-foreground">The principles that guide everything we do</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -204,7 +204,7 @@ export default function About() {
                       <value.icon className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed">{value.description}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{value.description}</p>
                   </motion.div>
                 ))}
               </div>
@@ -216,7 +216,7 @@ export default function About() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-16">
                 <h2 className="text-4xl font-bold text-white mb-4">Our Journey</h2>
-                <p className="text-lg text-gray-400">
+                <p className="text-lg text-muted-foreground">
                   Key milestones in our mission to democratize AI
                 </p>
               </div>
@@ -272,7 +272,7 @@ export default function About() {
                         <>
                           <div className="flex-1 text-right pr-8">
                             <h3 className="text-xl font-bold text-white">{milestone.title}</h3>
-                            <p className="text-gray-400">{milestone.description}</p>
+                            <p className="text-muted-foreground">{milestone.description}</p>
                           </div>
                           <div className="w-4 h-4 bg-orange-500 rounded-full relative z-10"></div>
                           <div className="flex-1 pl-8">
@@ -291,7 +291,7 @@ export default function About() {
                           <div className="w-4 h-4 bg-orange-500 rounded-full relative z-10"></div>
                           <div className="flex-1 pl-8">
                             <h3 className="text-xl font-bold text-white">{milestone.title}</h3>
-                            <p className="text-gray-400">{milestone.description}</p>
+                            <p className="text-muted-foreground">{milestone.description}</p>
                           </div>
                         </>
                       )}
@@ -308,7 +308,7 @@ export default function About() {
               <h2 className="text-4xl font-bold text-white mb-4">
                 Powered By Cutting-Edge Technology
               </h2>
-              <p className="text-lg text-gray-400">Built with the best tools and frameworks</p>
+              <p className="text-lg text-muted-foreground">Built with the best tools and frameworks</p>
             </div>
 
             <div className="max-w-6xl mx-auto px-6">
@@ -359,7 +359,7 @@ export default function About() {
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
                   Join Us on This Journey
                 </h2>
-                <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                   Be part of the AI revolution and transform your business today.
                 </p>
                 <Link href="/auth/register">
@@ -383,7 +383,7 @@ export default function About() {
                   <span className="text-lg font-bold text-white">Nexus</span>
                 </div>
 
-                <div className="text-sm text-gray-500">© 2025 Nexus. All rights reserved.</div>
+                <div className="text-sm text-muted-foreground">© 2025 Nexus. All rights reserved.</div>
               </div>
             </div>
           </footer>

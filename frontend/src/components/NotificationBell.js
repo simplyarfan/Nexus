@@ -185,9 +185,9 @@ export default function NotificationBell() {
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center">
-                <Bell className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No notifications</p>
-                <p className="text-sm text-gray-500 mt-1">You&apos;re all caught up!</p>
+                <p className="text-sm text-muted-foreground mt-1">You&apos;re all caught up!</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -209,7 +209,7 @@ export default function NotificationBell() {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         {timeAgo(notification.created_at)}
                       </p>
                     </div>
@@ -220,7 +220,7 @@ export default function NotificationBell() {
                           e.stopPropagation();
                           markAsRead(notification.id);
                         }}
-                        className="ml-2 p-1 text-gray-400 hover:text-muted-foreground rounded"
+                        className="ml-2 p-1 text-muted-foreground hover:text-muted-foreground rounded"
                         title="Mark as read"
                       >
                         <Check className="w-4 h-4" />

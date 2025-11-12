@@ -95,7 +95,7 @@ export default function FinanceDashboard() {
         <nav className="mt-6 px-3">
           <div className="space-y-1">
             <div className="px-3 py-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 AI Agents
               </p>
             </div>
@@ -112,9 +112,9 @@ export default function FinanceDashboard() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{agent.name}</p>
-                  <p className="text-xs text-gray-500">{agent.description}</p>
+                  <p className="text-xs text-muted-foreground">{agent.description}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-muted-foreground" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-muted-foreground" />
               </button>
             ))}
           </div>
@@ -134,7 +134,7 @@ export default function FinanceDashboard() {
                     }}
                     className="w-full flex items-center px-4 py-2 text-left text-muted-foreground hover:bg-muted transition-colors"
                   >
-                    <action.icon className="w-4 h-4 mr-3 text-gray-400" />
+                    <action.icon className="w-4 h-4 mr-3 text-muted-foreground" />
                     <span className="text-sm font-medium">{action.name}</span>
                   </button>
                 ))}
@@ -162,10 +162,10 @@ export default function FinanceDashboard() {
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">Finance Department</p>
+                <p className="text-xs text-muted-foreground truncate">Finance Department</p>
               </div>
               <ChevronUp
-                className={`w-4 h-4 text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-muted-foreground transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
               />
             </button>
           </div>
@@ -186,19 +186,19 @@ export default function FinanceDashboard() {
               </button>
               <div>
                 <h1 className="text-xl font-semibold text-foreground">Finance Dashboard</h1>
-                <p className="text-sm text-gray-500">Welcome back, {user?.first_name}!</p>
+                <p className="text-sm text-muted-foreground">Welcome back, {user?.first_name}!</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-              <button className="p-2 text-gray-400 hover:text-muted-foreground rounded-lg hover:bg-muted">
+              <button className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted">
                 <Bell className="w-5 h-5" />
               </button>
             </div>

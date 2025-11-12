@@ -78,7 +78,7 @@ export default function Contact() {
                   Get in Touch
                 </GradientText>
               </h1>
-              <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 Have questions? We&apos;d love to hear from you. Send us a message and we&apos;ll
                 respond as soon as possible.
               </p>
@@ -100,7 +100,7 @@ export default function Contact() {
                 <h2 className="text-2xl font-bold text-white mb-6">Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-border mb-2">Name</label>
                     <input
                       type="text"
                       value={formData.name}
@@ -112,7 +112,7 @@ export default function Contact() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                    <label className="block text-sm font-medium text-border mb-2">Email</label>
                     <input
                       type="email"
                       value={formData.email}
@@ -124,7 +124,7 @@ export default function Contact() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                    <label className="block text-sm font-medium text-border mb-2">Subject</label>
                     <input
                       type="text"
                       value={formData.subject}
@@ -136,7 +136,7 @@ export default function Contact() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Message</label>
+                    <label className="block text-sm font-medium text-border mb-2">Message</label>
                     <textarea
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -165,7 +165,7 @@ export default function Contact() {
               >
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-6">Contact Information</h2>
-                  <p className="text-gray-400 mb-8">
+                  <p className="text-muted-foreground mb-8">
                     Choose your preferred way to get in touch with us. We&apos;re here to help you
                     succeed with AI.
                   </p>
@@ -222,7 +222,7 @@ export default function Contact() {
                       <div>
                         <h3 className="text-lg font-bold text-white mb-1">{item.title}</h3>
                         <p className="text-orange-400 font-medium mb-1">{item.content}</p>
-                        <p className="text-sm text-gray-400">{item.description}</p>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -242,7 +242,7 @@ export default function Contact() {
                 </div>
                 <span className="text-lg font-bold">Nexus</span>
               </div>
-              <div className="text-sm text-gray-500">© 2025 Nexus. All rights reserved.</div>
+              <div className="text-sm text-muted-foreground">© 2025 Nexus. All rights reserved.</div>
             </div>
           </div>
         </footer>

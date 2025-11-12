@@ -242,7 +242,7 @@ export default function NotificationsPage() {
                             {notification.title}
                           </p>
                           <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-muted-foreground">
                             {new Date(notification.created_at).toLocaleString()}
                           </p>
                         </div>
@@ -257,7 +257,7 @@ export default function NotificationsPage() {
                           )}
                           <button
                             onClick={() => handleDelete(notification.id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            className="text-muted-foreground hover:text-red-600 transition-colors"
                           >
                             <svg
                               className="w-5 h-5"

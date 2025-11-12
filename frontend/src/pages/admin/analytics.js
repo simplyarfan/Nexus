@@ -151,7 +151,7 @@ export default function AnalyticsDashboard() {
             >
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <span className="text-xs font-medium text-gray-500">{stat.trend}</span>
+                <span className="text-xs font-medium text-muted-foreground">{stat.trend}</span>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-3xl font-bold text-foreground">{stat.value}</p>

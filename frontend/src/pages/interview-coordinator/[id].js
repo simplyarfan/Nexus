@@ -297,7 +297,7 @@ const InterviewDetailPage = () => {
             ? 'bg-green-100 text-green-800 border-green-200'
             : outcome === 'rejected'
               ? 'bg-red-100 text-red-800 border-red-200'
-              : 'bg-muted text-gray-800 border-border',
+              : 'bg-muted text-foreground border-border',
         icon:
           outcome === 'selected' ? CheckCircle2 : outcome === 'rejected' ? XCircle : CheckCircle2,
         text:
@@ -312,7 +312,7 @@ const InterviewDetailPage = () => {
 
     return (
       statusConfig[status] || {
-        color: 'bg-muted text-gray-800 border-border',
+        color: 'bg-muted text-foreground border-border',
         icon: AlertCircle,
         text: status,
       }
@@ -354,7 +354,7 @@ const InterviewDetailPage = () => {
                 </button>
                 <div>
                   <h1 className="text-xl font-semibold text-foreground">Interview Details</h1>
-                  <p className="text-sm text-gray-500">Manage and track interview progress</p>
+                  <p className="text-sm text-muted-foreground">Manage and track interview progress</p>
                 </div>
               </div>
             </div>
@@ -393,13 +393,13 @@ const InterviewDetailPage = () => {
 
                 <div className="px-6 py-6 space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500 block mb-1">Position</label>
+                    <label className="text-sm font-medium text-muted-foreground block mb-1">Position</label>
                     <p className="text-lg font-semibold text-foreground">{interview.job_title}</p>
                   </div>
 
                   {interview.interview_type && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">
                         Interview Type
                       </label>
                       <p className="text-foreground capitalize">{interview.interview_type}</p>
@@ -409,11 +409,11 @@ const InterviewDetailPage = () => {
                   {interview.scheduled_time && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">
+                        <label className="text-sm font-medium text-muted-foreground block mb-1">
                           Scheduled Date & Time
                         </label>
                         <p className="text-foreground flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                          <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
                           {new Date(interview.scheduled_time).toLocaleString('en-US', {
                             dateStyle: 'medium',
                             timeStyle: 'short',
@@ -421,11 +421,11 @@ const InterviewDetailPage = () => {
                         </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">
+                        <label className="text-sm font-medium text-muted-foreground block mb-1">
                           Duration
                         </label>
                         <p className="text-foreground flex items-center">
-                          <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                          <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
                           {interview.duration || 60} minutes
                         </p>
                       </div>
@@ -434,11 +434,11 @@ const InterviewDetailPage = () => {
 
                   {interview.platform && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">
                         Platform
                       </label>
                       <p className="text-foreground flex items-center">
-                        <Video className="w-4 h-4 mr-2 text-gray-400" />
+                        <Video className="w-4 h-4 mr-2 text-muted-foreground" />
                         {interview.platform}
                       </p>
                     </div>
@@ -446,7 +446,7 @@ const InterviewDetailPage = () => {
 
                   {interview.meeting_link && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">
                         Meeting Link
                       </label>
                       <a
@@ -463,7 +463,7 @@ const InterviewDetailPage = () => {
 
                   {interview.google_form_link && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">
                         Google Form
                       </label>
                       <a
@@ -480,7 +480,7 @@ const InterviewDetailPage = () => {
 
                   {interview.notes && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500 block mb-1">Notes</label>
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">Notes</label>
                       <p className="text-muted-foreground whitespace-pre-wrap bg-secondary p-4 rounded-lg border border-border">
                         {interview.notes}
                       </p>
@@ -594,7 +594,7 @@ const InterviewDetailPage = () => {
 
               {/* Metadata */}
               <div className="bg-secondary rounded-xl border border-border p-6">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                   Metadata
                 </h3>
                 <div className="space-y-2 text-sm">
@@ -631,7 +631,7 @@ const InterviewDetailPage = () => {
                   <h3 className="text-xl font-bold text-foreground">Schedule Interview</h3>
                   <button
                     onClick={() => setShowScheduleForm(false)}
-                    className="text-gray-400 hover:text-muted-foreground"
+                    className="text-muted-foreground hover:text-muted-foreground"
                   >
                     ✕
                   </button>
@@ -648,7 +648,7 @@ const InterviewDetailPage = () => {
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, interviewType: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                         required
                       >
                         <option value="technical">Technical</option>
@@ -670,7 +670,7 @@ const InterviewDetailPage = () => {
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, duration: parseInt(e.target.value) })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                         required
                       />
                     </div>
@@ -686,7 +686,7 @@ const InterviewDetailPage = () => {
                       onChange={(e) =>
                         setScheduleForm({ ...scheduleForm, scheduledTime: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   </div>
@@ -700,7 +700,7 @@ const InterviewDetailPage = () => {
                       onChange={(e) =>
                         setScheduleForm({ ...scheduleForm, platform: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="Microsoft Teams">Microsoft Teams</option>
@@ -719,7 +719,7 @@ const InterviewDetailPage = () => {
                       value={scheduleForm.notes}
                       onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
                       rows="3"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="Add any notes or instructions..."
                     />
                   </div>
@@ -735,7 +735,7 @@ const InterviewDetailPage = () => {
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, ccEmails: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                         placeholder="email1@example.com, email2@example.com"
                       />
                     </div>
@@ -750,7 +750,7 @@ const InterviewDetailPage = () => {
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, bccEmails: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                         placeholder="email1@example.com, email2@example.com"
                       />
                     </div>
@@ -766,7 +766,7 @@ const InterviewDetailPage = () => {
                       onChange={(e) =>
                         setScheduleForm({ ...scheduleForm, cvFile: e.target.files[0] })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -774,7 +774,7 @@ const InterviewDetailPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowScheduleForm(false)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
+                      className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
                     >
                       Cancel
                     </button>
@@ -802,7 +802,7 @@ const InterviewDetailPage = () => {
                 </h3>
                 <button
                   onClick={() => setShowRescheduleModal(false)}
-                  className="text-gray-400 hover:text-muted-foreground"
+                  className="text-muted-foreground hover:text-muted-foreground"
                 >
                   ✕
                 </button>
@@ -819,7 +819,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, scheduledTime: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </div>
@@ -836,7 +836,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, duration: parseInt(e.target.value) })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -849,7 +849,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, notes: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
                     rows="3"
                     placeholder="Optional notes about the reschedule..."
                   />
@@ -867,7 +867,7 @@ const InterviewDetailPage = () => {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowRescheduleModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
+                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>
@@ -905,7 +905,7 @@ const InterviewDetailPage = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
+                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>
@@ -946,7 +946,7 @@ const InterviewDetailPage = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowCancelModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-secondary transition-colors"
+                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
                 >
                   Go Back
                 </button>

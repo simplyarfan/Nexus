@@ -429,7 +429,7 @@ export default function AdminDashboard() {
                           </div>
                           <div className="max-h-96 overflow-y-auto">
                             {notifications.length === 0 ? (
-                              <div className="p-8 text-center text-gray-500">
+                              <div className="p-8 text-center text-muted-foreground">
                                 <p className="text-sm">No unread notifications</p>
                               </div>
                             ) : (

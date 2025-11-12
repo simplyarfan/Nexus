@@ -393,7 +393,7 @@ export default function SupportManagement() {
                 </div>
                 <button
                   onClick={() => setShowTicketModal(false)}
-                  className="text-gray-400 hover:text-muted-foreground"
+                  className="text-muted-foreground hover:text-muted-foreground"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -413,7 +413,7 @@ export default function SupportManagement() {
                   {selectedTicket.user?.first_name} {selectedTicket.user?.last_name} (
                   {selectedTicket.user?.email})
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {new Date(selectedTicket.created_at).toLocaleString()}
                 </p>
               </div>
@@ -441,7 +441,7 @@ export default function SupportManagement() {
                             <span className="ml-2 text-xs text-green-600">({comment.role})</span>
                           )}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {new Date(comment.created_at).toLocaleString()}
                         </p>
                       </div>

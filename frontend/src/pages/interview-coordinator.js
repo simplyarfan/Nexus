@@ -117,9 +117,12 @@ export default function InterviewsPage() {
 
         const response = await api.get('/interview-coordinator/interviews');
 
+        console.log('Raw interviews from API:', response.data.data);
         const transformedInterviews = (response.data.data || []).map(transformInterview);
+        console.log('Transformed interviews:', transformedInterviews);
         setInterviews(transformedInterviews);
       } catch (error) {
+        console.error('Error fetching interviews:', error);
         setInterviews([]);
       } finally {
         setLoadingInterviews(false);

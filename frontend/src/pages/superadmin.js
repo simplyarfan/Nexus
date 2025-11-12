@@ -215,7 +215,7 @@ export default function SuperAdminDashboard() {
                   className="absolute bottom-full left-4 right-4 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
                 >
                   <button
-                    onClick={() => router.push('/support')}
+                    onClick={() => router.push('/support/create-ticket')}
                     className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-center gap-3"
                   >
                     <svg
@@ -234,7 +234,7 @@ export default function SuperAdminDashboard() {
                     <span className="text-sm text-foreground">Create Ticket</span>
                   </button>
                   <button
-                    onClick={() => router.push('/support')}
+                    onClick={() => router.push('/support/my-tickets')}
                     className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-center gap-3"
                   >
                     <svg

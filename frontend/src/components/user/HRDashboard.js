@@ -213,8 +213,12 @@ export default function HRDashboard() {
               </svg>
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-foreground">HR Test</p>
-              <p className="text-xs text-muted-foreground">HR Department</p>
+              <p className="text-sm font-medium text-foreground">
+                {user?.first_name && user?.last_name
+                  ? `${user.first_name} ${user.last_name}`
+                  : user?.email || 'User'}
+              </p>
+              <p className="text-xs text-muted-foreground">{user?.department || 'HR Department'}</p>
             </div>
             <svg
               className="w-4 h-4 text-sidebar-foreground"

@@ -7,25 +7,36 @@ const { verifyAccessToken } = require('../lib/auth');
 
 /**
  * CORS Configuration
+ * IMPORTANT: Use ALLOWED_ORIGINS environment variable to set allowed domains
+ * Example: ALLOWED_ORIGINS=https://your-app.com,https://staging.your-app.com
  */
 const getCorsHeaders = (origin) => {
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-    : [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-      ];
+  if (!process.env.ALLOWED_ORIGINS) {
+    console.error('ALLOWED_ORIGINS environment variable is not set');
+    return {
+      'Access-Control-Allow-Origin': 'null',
+      'Access-Control-Allow-Credentials': 'false',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
+      'Access-Control-Allow-Headers': 'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID',
+      'Access-Control-Expose-Headers': 'Content-Length,X-Request-ID',
+    };
+  }
 
+  const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
+
+  // Allow configured origins and preview deployments (Netlify/Vercel)
   const isAllowed =
     allowedOrigins.includes(origin) ||
-    (origin && (origin.includes('netlify.app') || origin.includes('vercel.app')));
+    (process.env.NODE_ENV === 'production' &&
+      origin &&
+      (origin.includes('netlify.app') || origin.includes('vercel.app')));
 
   return {
     'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
     'Access-Control-Allow-Headers':
-      'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Admin-Secret',
+      'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID',
     'Access-Control-Expose-Headers': 'Content-Length,X-Request-ID',
   };
 };
@@ -126,8 +137,6 @@ const withErrorHandling = (handler) => async (req, res) => {
   try {
     return await handler(req, res);
   } catch (error) {
-    console.error('API Error:', error);
-
     const statusCode = error.statusCode || 500;
     const isDevelopment = process.env.NODE_ENV === 'development';
 

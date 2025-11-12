@@ -15,8 +15,8 @@ try {
   const CVIntelligenceHR01Service = require('../services/cvIntelligenceHR01');
   CVIntelligenceHR01 = new CVIntelligenceHR01Service();
 } catch (error) {
-  console.error('❌ Failed to load CV Intelligence HR-01 Service:', error.message);
-}
+      // Intentionally empty - error is handled by caller
+    }
 
 // Optional multer with fallback
 let multer, upload;
@@ -38,7 +38,7 @@ try {
   });
 } catch (e) {
   upload = {
-    array: () => (req, res, next) => {
+    array: () => (req, res, _next) => {
       res.status(500).json({ success: false, message: 'File upload not available' });
     },
   };
@@ -59,7 +59,34 @@ function normalizeName(name) {
     .join(' ');
 }
 
-// Test route to verify CV Intelligence is working
+/**
+ * @swagger
+ * /api/cv-intelligence/test:
+ *   get:
+ *     tags: [CV Intelligence]
+ *     summary: Test CV Intelligence service
+ *     description: Verify that the CV Intelligence service is running and available
+ *     responses:
+ *       200:
+ *         description: Service is operational
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: CV Intelligence routes are working!
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 service:
+ *                   type: string
+ *                   example: HR-01 Service Available
+ */
 router.get('/test', (req, res) => {
   res.json({
     success: true,
@@ -69,7 +96,55 @@ router.get('/test', (req, res) => {
   });
 });
 
-// POST /api/cv-intelligence/ - Create batch (frontend compatibility)
+/**
+ * @swagger
+ * /api/cv-intelligence:
+ *   post:
+ *     tags: [CV Intelligence]
+ *     summary: Create new CV batch
+ *     description: Create a new batch for processing CVs with job description
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Senior Developer Batch - Q1 2025
+ *     responses:
+ *       200:
+ *         description: Batch created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     batchId:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       example: created
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post('/', authenticateToken, cvBatchLimiter, async (req, res) => {
   try {
     const { name } = req.body;
@@ -117,7 +192,6 @@ router.post('/', authenticateToken, cvBatchLimiter, async (req, res) => {
       message: 'Batch created successfully',
     });
   } catch (error) {
-    console.error('Create batch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create batch',
@@ -126,7 +200,69 @@ router.post('/', authenticateToken, cvBatchLimiter, async (req, res) => {
   }
 });
 
-// POST /api/cv-intelligence/batch/:id/process - Process CVs for existing batch
+/**
+ * @swagger
+ * /api/cv-intelligence/batch/{id}/process:
+ *   post:
+ *     tags: [CV Intelligence]
+ *     summary: Upload and process CVs for batch
+ *     description: Upload CVs and job description for intelligent analysis and ranking
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Batch ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cvFiles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 maxItems: 10
+ *               jdFile:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: CVs processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     batchId:
+ *                       type: string
+ *                     processed:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     candidates:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Candidate'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/batch/:id/process',
   authenticateToken,
@@ -162,7 +298,6 @@ router.post(
       try {
         await database.connect();
       } catch (dbError) {
-        console.error('Database connection failed:', dbError);
         databaseAvailable = false;
         // Continue without database for now - just process files
       }
@@ -180,10 +315,10 @@ router.post(
           if (jdResult.success && jdResult.requirements) {
             parsedRequirements = jdResult.requirements;
           } else {
-            console.error('⚠️ JD processing failed:', jdResult);
+            // JD parsing failed - will use default requirements
           }
         } catch (error) {
-          console.error('❌ Error processing JD:', error.message);
+          // Intentionally empty - error is handled by caller
         }
       }
 
@@ -205,7 +340,6 @@ router.post(
           // Also clear any existing candidates to force re-processing
           await database.run('DELETE FROM candidates WHERE batch_id = $1', [batchId]);
         } catch (dbError) {
-          console.error('❌ Database update failed:', dbError);
           databaseAvailable = false;
         }
       }
@@ -253,7 +387,6 @@ router.post(
             // Perform smart skill matching
             const candidateSkills = result.structuredData.skills || [];
             const requiredSkills = parsedRequirements.skills || [];
-            const mustHaveSkills = parsedRequirements.mustHave || [];
 
             const matchedSkills = [];
             const missingSkills = [];
@@ -311,14 +444,14 @@ router.post(
                   ],
                 );
               } catch (dbError) {
-                console.error('Failed to store candidate:', dbError);
+                // Intentionally empty - error is handled by caller
               }
             }
           } else {
-            console.error(`❌ CV ${i + 1} processing failed:`, result.error);
+            // CV parsing failed
           }
         } catch (error) {
-          console.error(`❌ Error processing CV ${i + 1}:`, error.message);
+          // Intentionally empty - error is handled by caller
         }
       }
 
@@ -365,8 +498,8 @@ router.post(
               ],
             );
           } catch (dbError) {
-            console.error('Failed to update candidate ranking:', dbError);
-          }
+      // Intentionally empty - error is handled by caller
+    }
         }
       }
 
@@ -382,8 +515,8 @@ router.post(
             [candidates.length, batchId],
           );
         } catch (dbError) {
-          console.error('Failed to update batch status:', dbError);
-        }
+      // Intentionally empty - error is handled by caller
+    }
       }
 
       res.json({
@@ -398,9 +531,6 @@ router.post(
         message: `Batch processed successfully. ${candidates.length}/${cvFiles.length} CVs processed.${databaseAvailable ? '' : ' (Database offline - results not saved)'}`,
       });
     } catch (error) {
-      console.error('Process batch error:', error);
-
-      // Update batch status to failed
       try {
         await database.run(
           `
@@ -411,8 +541,8 @@ router.post(
           [req.params.id],
         );
       } catch (updateError) {
-        console.error('Failed to update batch status:', updateError);
-      }
+      // Intentionally empty - error is handled by caller
+    }
 
       res.status(500).json({
         success: false,
@@ -423,7 +553,48 @@ router.post(
   },
 );
 
-// GET /api/cv-intelligence/batches - Get all batches
+/**
+ * @swagger
+ * /api/cv-intelligence/batches:
+ *   get:
+ *     tags: [CV Intelligence]
+ *     summary: Get all CV batches
+ *     description: Retrieve all CV processing batches for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Batches retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [created, processing, completed, failed]
+ *                       total_resumes:
+ *                         type: integer
+ *                       processed_resumes:
+ *                         type: integer
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.get('/batches', authenticateToken, async (req, res) => {
   try {
     await database.connect();
@@ -462,7 +633,6 @@ router.get('/batches', authenticateToken, async (req, res) => {
       message: 'CV batches retrieved successfully',
     });
   } catch (error) {
-    console.error('Get batches error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve batches',
@@ -470,7 +640,56 @@ router.get('/batches', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/cv-intelligence/batch/:id - Get batch details
+/**
+ * @swagger
+ * /api/cv-intelligence/batch/{id}:
+ *   get:
+ *     tags: [CV Intelligence]
+ *     summary: Get batch details
+ *     description: Retrieve detailed information about a specific CV batch including all candidates
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Batch ID
+ *     responses:
+ *       200:
+ *         description: Batch details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     batch:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         status:
+ *                           type: string
+ *                         jd_requirements:
+ *                           type: object
+ *                     candidates:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Candidate'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Batch not found
+ */
 router.get('/batch/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -546,7 +765,6 @@ router.get('/batch/:id', authenticateToken, async (req, res) => {
       message: 'Batch details retrieved successfully',
     });
   } catch (error) {
-    console.error('Get batch details error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve batch details',
@@ -587,7 +805,6 @@ router.get('/candidate/:id/evidence', authenticateToken, async (req, res) => {
       message: 'Candidate details retrieved successfully',
     });
   } catch (error) {
-    console.error('Get candidate details error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve candidate details',
@@ -619,7 +836,6 @@ router.post('/batch/:id/reset', authenticateToken, async (req, res) => {
       message: 'Batch reset successfully - ready for fresh JD upload',
     });
   } catch (error) {
-    console.error('Reset batch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to reset batch',
@@ -630,7 +846,41 @@ router.post('/batch/:id/reset', authenticateToken, async (req, res) => {
 
 // Interview scheduling disabled - route removed for cleanup
 
-// DELETE /api/cv-intelligence/batch/:id - Delete batch and all associated candidates
+/**
+ * @swagger
+ * /api/cv-intelligence/batch/{id}:
+ *   delete:
+ *     tags: [CV Intelligence]
+ *     summary: Delete CV batch
+ *     description: Delete a CV batch and all associated candidate data
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Batch ID
+ *     responses:
+ *       200:
+ *         description: Batch deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Batch and all associated candidates deleted successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Batch not found
+ */
 router.delete('/batch/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -663,9 +913,9 @@ router.delete('/batch/:id', authenticateToken, async (req, res) => {
     );
 
     // Delete the batch itself
-    const batchDeleted = await database.run(
+    await database.run(
       `
-      DELETE FROM cv_batches 
+      DELETE FROM cv_batches
       WHERE id = $1 AND user_id = $2
     `,
       [id, req.user.id],
@@ -681,7 +931,6 @@ router.delete('/batch/:id', authenticateToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Delete batch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete batch',

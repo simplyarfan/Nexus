@@ -438,6 +438,50 @@ const validatePasswordResetConfirm = [
   }),
 ];
 
+// Interview scheduling validation
+const validateInterviewScheduling = [
+  body('interviewId').notEmpty().withMessage('Interview ID is required'),
+  body('scheduledTime').isISO8601().withMessage('Scheduled time must be a valid date'),
+  body('duration')
+    .optional()
+    .isInt({ min: 15, max: 480 })
+    .withMessage('Duration must be between 15-480 minutes'),
+  body('platform')
+    .notEmpty()
+    .isIn(['Microsoft Teams', 'Zoom', 'Google Meet', 'Phone', 'In-Person'])
+    .withMessage('Platform must be a valid option'),
+  body('notes')
+    .optional()
+    .isLength({ max: 2000 })
+    .withMessage('Notes must be under 2000 characters'),
+];
+
+// Interview update validation
+const validateInterviewUpdate = [
+  body('status')
+    .optional()
+    .isIn(['scheduled', 'completed', 'cancelled', 'rescheduled'])
+    .withMessage('Status must be a valid option'),
+  body('outcome')
+    .optional()
+    .isIn(['passed', 'failed', 'pending'])
+    .withMessage('Outcome must be a valid option'),
+  body('notes')
+    .optional()
+    .isLength({ max: 2000 })
+    .withMessage('Notes must be under 2000 characters'),
+];
+
+// Phone validation
+const validatePhone = [
+  body('phone')
+    .optional()
+    .matches(/^[\d\s\-+()]+$/)
+    .withMessage('Phone number can only contain digits, spaces, dashes, plus, and parentheses')
+    .isLength({ min: 10, max: 20 })
+    .withMessage('Phone number must be between 10-20 characters'),
+];
+
 module.exports = {
   validateLogin,
   validateRegistration,
@@ -472,4 +516,7 @@ module.exports = {
   validateUserPreferences,
   validateUUID,
   validateId,
+  validateInterviewScheduling,
+  validateInterviewUpdate,
+  validatePhone,
 };

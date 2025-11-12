@@ -145,12 +145,7 @@ export default function ForgotPasswordPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={() => setIsSubmitted(false)}
-              >
+              <Button variant="primary" size="lg" fullWidth onClick={() => setIsSubmitted(false)}>
                 Try another email
               </Button>
             </motion.div>

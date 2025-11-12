@@ -18,7 +18,6 @@ export default function Contact() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission
-    console.warn('Form submitted:', formData);
   };
 
   return (

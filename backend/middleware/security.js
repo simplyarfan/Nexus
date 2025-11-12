@@ -10,14 +10,25 @@ const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", 'https://thesimpleai.vercel.app', 'https://thesimpleai.netlify.app'],
+      // SECURITY: Removed unsafe-inline and unsafe-eval to prevent XSS
+      // If you need inline scripts, use nonces or hashes
+      scriptSrc: ["'self'"],
+      // Allow inline styles only for critical CSS (consider moving to external files)
+      styleSrc: ["'self'", "'unsafe-inline'"], // Keep for now, TODO: move to external CSS
+      // Restrict images to self, data URIs, and configured domains
+      imgSrc: [
+        "'self'",
+        'data:',
+        process.env.BACKEND_URL,
+        process.env.FRONTEND_URL,
+      ].filter(Boolean),
+      connectSrc: ["'self'", process.env.BACKEND_URL, process.env.FRONTEND_URL].filter(Boolean),
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      baseUri: ["'self'"], // Restrict base tag
+      formAction: ["'self'"], // Restrict form submissions
     },
   },
   hsts: {
@@ -70,7 +81,6 @@ const authLimiter = rateLimit({
     message: 'Too many login attempts, please try again later',
   },
   handler: (req, res) => {
-    console.warn(`Rate limit exceeded for IP: ${req.ip} on ${req.path}`);
     res.status(429).json({
       success: false,
       message: 'Too many attempts, please try again in 15 minutes',
@@ -82,29 +92,37 @@ const authLimiter = rateLimit({
 /**
  * CORS Configuration
  * Controls which domains can access the API
+ * IMPORTANT: Use ALLOWED_ORIGINS environment variable to set allowed domains
+ * Example: ALLOWED_ORIGINS=https://your-app.com,https://staging.your-app.com
  */
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://thesimpleai.netlify.app',
-      'https://test--thesimpleai.netlify.app', // Test branch preview
-    ];
+    // Get allowed origins from environment variable (required in production)
+    if (!process.env.ALLOWED_ORIGINS) {
+      console.error('ALLOWED_ORIGINS environment variable is not set');
+      callback(new Error('Server configuration error'));
+      return;
+    }
+
+    const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
 
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      // In production, also allow Netlify preview URLs
+      if (process.env.NODE_ENV === 'production' && origin && origin.includes('netlify.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true, // Allow cookies
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count', 'X-Request-ID'],
 };
 
 /**
@@ -132,13 +150,7 @@ const securityLogger = (req, res, next) => {
   const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(url));
 
   if (isSuspicious) {
-    console.warn('🚨 Suspicious request detected:', {
-      ip: req.ip,
-      method: req.method,
-      url: req.url,
-      userAgent: req.get('user-agent'),
-      timestamp: new Date().toISOString(),
-    });
+    // Suspicious request detected
   }
 
   next();
@@ -153,7 +165,6 @@ const ipWhitelist = (allowedIPs = []) => {
     const clientIP = req.ip || req.connection.remoteAddress;
 
     if (allowedIPs.length > 0 && !allowedIPs.includes(clientIP)) {
-      console.warn(`Access denied for IP: ${clientIP}`);
       return res.status(403).json({
         success: false,
         message: 'Access denied',

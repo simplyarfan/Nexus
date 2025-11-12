@@ -67,7 +67,6 @@ async function handler(req, res) {
         },
       });
     } catch (error) {
-      console.error('List users error:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch users',
@@ -120,7 +119,6 @@ async function handler(req, res) {
           data: { user },
         });
       } catch (error) {
-        console.error('Get user error:', error);
         return res.status(500).json({
           success: false,
           message: 'Failed to fetch user',
@@ -158,7 +156,6 @@ async function handler(req, res) {
           data: { user: updatedUser },
         });
       } catch (error) {
-        console.error('Update user error:', error);
         return res.status(500).json({
           success: false,
           message: 'Failed to update user',
@@ -179,7 +176,6 @@ async function handler(req, res) {
           message: 'User deactivated successfully',
         });
       } catch (error) {
-        console.error('Deactivate user error:', error);
         return res.status(500).json({
           success: false,
           message: 'Failed to deactivate user',

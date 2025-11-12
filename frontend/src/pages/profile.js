@@ -1,16 +1,16 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useAuth } from '../contexts/AuthContext';
+import { profileAPI } from '../utils/profileAPI';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -18,6 +18,7 @@ export default function ProfilePage() {
     last_name: '',
     email: '',
     phone: '',
+    department: '',
     job_title: '',
     bio: '',
   });
@@ -30,7 +31,8 @@ export default function ProfilePage() {
         last_name: user.last_name || '',
         email: user.email || '',
         phone: user.phone || '',
-        job_title: user.job_title || user.department || '',
+        department: user.department || '',
+        job_title: user.job_title || '',
         bio: user.bio || '',
       });
       setLoading(false);
@@ -38,32 +40,21 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleChange = (field, value) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
+    setProfileData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(profileData),
-      });
+      const result = await profileAPI.updateProfile(profileData);
 
-      if (response.ok) {
-        const result = await response.json();
+      if (result.success) {
         alert('Profile updated successfully!');
       } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to update profile');
+        alert(result.message || 'Failed to update profile');
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Error updating profile');
+      alert(error.response?.data?.message || 'Error updating profile');
     } finally {
       setIsSaving(false);
     }
@@ -75,16 +66,26 @@ export default function ProfilePage() {
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a
+              href="/dashboard"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Back to Dashboard
             </a>
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-            <p className="text-muted-foreground mt-1">Manage your account&apos;settings and preferences</p>
+            <p className="text-muted-foreground mt-1">
+              Manage your account&apos;settings and preferences
+            </p>
           </div>
         </div>
       </div>
@@ -110,7 +111,12 @@ export default function ProfilePage() {
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                   Profile
                 </button>
@@ -123,7 +129,12 @@ export default function ProfilePage() {
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                   Security
                 </button>
@@ -136,7 +147,12 @@ export default function ProfilePage() {
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
                   </svg>
                   Notifications
                 </button>
@@ -149,8 +165,18 @@ export default function ProfilePage() {
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                   Preferences
                 </button>
@@ -171,7 +197,9 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold text-foreground mb-2">Profile Information</h2>
-                    <p className="text-muted-foreground">Update your account&apos;s profile information</p>
+                    <p className="text-muted-foreground">
+                      Update your account&apos;s profile information
+                    </p>
                   </div>
 
                   {loading ? (
@@ -184,20 +212,26 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-6">
                         <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-3xl font-bold">
                           {profileData.first_name?.charAt(0) || user?.name?.charAt(0) || 'U'}
-                          {profileData.last_name?.charAt(0) || user?.name?.split(' ')[1]?.charAt(0) || ''}
+                          {profileData.last_name?.charAt(0) ||
+                            user?.name?.split(' ')[1]?.charAt(0) ||
+                            ''}
                         </div>
                         <div>
                           <Button variant="secondary" size="md">
                             Change Photo
                           </Button>
-                          <p className="text-xs text-muted-foreground mt-2">JPG, GIF or PNG. Max size 2MB</p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            JPG, GIF or PNG. Max size 2MB
+                          </p>
                         </div>
                       </div>
 
                       {/* Form */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">First Name</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            First Name
+                          </label>
                           <input
                             type="text"
                             value={profileData.first_name}
@@ -207,7 +241,9 @@ export default function ProfilePage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">Last Name</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Last Name
+                          </label>
                           <input
                             type="text"
                             value={profileData.last_name}
@@ -217,7 +253,9 @@ export default function ProfilePage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">Email</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Email
+                          </label>
                           <input
                             type="email"
                             value={profileData.email}
@@ -226,10 +264,14 @@ export default function ProfilePage() {
                             className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                             disabled
                           />
-                          <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Email cannot be changed
+                          </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">Phone</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Phone
+                          </label>
                           <input
                             type="tel"
                             value={profileData.phone}
@@ -238,8 +280,26 @@ export default function ProfilePage() {
                             className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                           />
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Department
+                          </label>
+                          <input
+                            type="text"
+                            value={profileData.department}
+                            onChange={(e) => handleChange('department', e.target.value)}
+                            placeholder="Human Resources"
+                            className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                            disabled
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Department can only be changed by administrators
+                          </p>
+                        </div>
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-foreground mb-2">Job Title</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Job Title
+                          </label>
                           <input
                             type="text"
                             value={profileData.job_title}
@@ -251,7 +311,9 @@ export default function ProfilePage() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Bio</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Bio
+                        </label>
                         <textarea
                           rows={4}
                           value={profileData.bio}
@@ -266,9 +328,6 @@ export default function ProfilePage() {
                   <div className="flex gap-3">
                     <Button variant="primary" size="lg" isLoading={isSaving} onClick={handleSave}>
                       Save Changes
-                    </Button>
-                    <Button variant="secondary" size="lg">
-                      Cancel
                     </Button>
                   </div>
                 </div>
@@ -291,12 +350,7 @@ export default function ProfilePage() {
                       placeholder="••••••••"
                       fullWidth
                     />
-                    <Input
-                      label="New Password"
-                      type="password"
-                      placeholder="••••••••"
-                      fullWidth
-                    />
+                    <Input label="New Password" type="password" placeholder="••••••••" fullWidth />
                     <Input
                       label="Confirm New Password"
                       type="password"
@@ -307,16 +361,30 @@ export default function ProfilePage() {
 
                   {/* 2FA */}
                   <div className="border-t border-border pt-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4">Two-Factor Authentication</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Two-Factor Authentication
+                    </h3>
                     <div className="flex items-center gap-3 p-4 bg-accent rounded-lg">
                       <div className="w-10 h-10 bg-ring/10 rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6 text-ring" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        <svg
+                          className="w-6 h-6 text-ring"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                          />
                         </svg>
                       </div>
                       <div>
                         <p className="font-medium text-foreground">2FA is Enabled</p>
-                        <p className="text-sm text-muted-foreground">Extra security for your account - Required for all users</p>
+                        <p className="text-sm text-muted-foreground">
+                          Extra security for your account - Required for all users
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -333,24 +401,45 @@ export default function ProfilePage() {
               {activeTab === 'notifications' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">Notification Preferences</h2>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      Notification Preferences
+                    </h2>
                     <p className="text-muted-foreground">Configure how you receive notifications</p>
                   </div>
 
                   <div className="space-y-4">
                     {[
-                      { label: 'Email Notifications', description: 'Receive email updates for important events' },
-                      { label: 'Interview Reminders', description: 'Get notified before scheduled interviews' },
-                      { label: 'New Applications', description: 'Alerts when new candidates apply' },
-                      { label: 'System Updates', description: 'Important platform updates and announcements' },
+                      {
+                        label: 'Email Notifications',
+                        description: 'Receive email updates for important events',
+                      },
+                      {
+                        label: 'Interview Reminders',
+                        description: 'Get notified before scheduled interviews',
+                      },
+                      {
+                        label: 'New Applications',
+                        description: 'Alerts when new candidates apply',
+                      },
+                      {
+                        label: 'System Updates',
+                        description: 'Important platform updates and announcements',
+                      },
                     ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-accent rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-accent rounded-lg"
+                      >
                         <div>
                           <p className="font-medium text-foreground">{item.label}</p>
                           <p className="text-sm text-muted-foreground">{item.description}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" defaultChecked={index < 2} />
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            defaultChecked={index < 2}
+                          />
                           <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ring rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                       </div>
@@ -375,7 +464,9 @@ export default function ProfilePage() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Language</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Language
+                      </label>
                       <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>English (US)</option>
                         <option>English (UK)</option>
@@ -385,7 +476,9 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Timezone</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Timezone
+                      </label>
                       <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>Pacific Time (PT)</option>
                         <option>Mountain Time (MT)</option>
@@ -395,7 +488,9 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Date Format</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Date Format
+                      </label>
                       <select className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>MM/DD/YYYY</option>
                         <option>DD/MM/YYYY</option>

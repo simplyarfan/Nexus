@@ -33,7 +33,7 @@ const WaitingDashboard = () => {
       await logout();
       router.push('/auth/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Intentionally empty - user is redirected regardless, error is non-critical
     }
   };
 

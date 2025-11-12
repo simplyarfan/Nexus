@@ -31,7 +31,7 @@ export default function MyTickets() {
       await logout();
       router.push('/landing');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Silent failure
     }
   };
 
@@ -50,7 +50,6 @@ export default function MyTickets() {
         toast.error('Failed to load tickets');
       }
     } catch (error) {
-      console.error('Error fetching tickets:', error);
       toast.error('Failed to load tickets');
     } finally {
       setLoading(false);

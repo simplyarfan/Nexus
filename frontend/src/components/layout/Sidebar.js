@@ -23,7 +23,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const [hoveredItem, setHoveredItem] = useState(null);
 
-  const isSuperAdmin = user?.email === 'syedarfan@securemaxtech.com';
+  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
 
   const navigationItems = isSuperAdmin
     ? [
@@ -36,8 +36,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     : [
         { name: 'Dashboard', href: '/', icon: Home },
         { name: 'CV Intelligence', href: '/cv-intelligence', icon: Brain },
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Interview Coordinator', href: '/interviews', icon: Calendar },
+        { name: 'Interview Coordinator', href: '/interview-coordinator', icon: Calendar },
         { name: 'Support', href: '/support/my-tickets', icon: MessageSquare },
       ];
 

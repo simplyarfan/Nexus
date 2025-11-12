@@ -62,7 +62,6 @@ export async function authenticateRequest(req) {
       };
     }
 
-    console.error('Authentication error:', error);
     return {
       error: 'Authentication failed',
       status: 500,

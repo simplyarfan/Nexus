@@ -36,14 +36,9 @@ class MicrosoftAuthService {
       },
     };
 
-    try {
-      this.msalInstance = new window.msal.PublicClientApplication(msalConfig);
-      await this.msalInstance.initialize();
-      this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize MSAL:', error);
-      throw error;
-    }
+    this.msalInstance = new window.msal.PublicClientApplication(msalConfig);
+    await this.msalInstance.initialize();
+    this.initialized = true;
   }
 
   /**
@@ -91,7 +86,6 @@ class MicrosoftAuthService {
         name: result.account.name,
       };
     } catch (error) {
-      console.error('Microsoft login failed:', error);
       return {
         success: false,
         error: error.message || 'Microsoft login failed',
@@ -103,18 +97,13 @@ class MicrosoftAuthService {
    * Initiate Microsoft login redirect
    */
   async loginWithRedirect() {
-    try {
-      await this.initialize();
+    await this.initialize();
 
-      const loginRequest = {
-        scopes: ['User.Read', 'email', 'profile', 'openid'],
-      };
+    const loginRequest = {
+      scopes: ['User.Read', 'email', 'profile', 'openid'],
+    };
 
-      await this.msalInstance.loginRedirect(loginRequest);
-    } catch (error) {
-      console.error('Microsoft login redirect failed:', error);
-      throw error;
-    }
+    await this.msalInstance.loginRedirect(loginRequest);
   }
 
   /**
@@ -138,7 +127,6 @@ class MicrosoftAuthService {
 
       return { success: false };
     } catch (error) {
-      console.error('Handle redirect failed:', error);
       return {
         success: false,
         error: error.message || 'Handle redirect failed',
@@ -165,7 +153,7 @@ class MicrosoftAuthService {
     try {
       await this.msalInstance.logoutPopup();
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Silent failure
     }
   }
 
@@ -173,7 +161,12 @@ class MicrosoftAuthService {
    * Validate email domain
    */
   validateEmailDomain(email) {
-    const allowedDomain = '@securemaxtech.com';
+    const companyDomain = process.env.NEXT_PUBLIC_COMPANY_DOMAIN;
+    if (!companyDomain) {
+      console.error('NEXT_PUBLIC_COMPANY_DOMAIN environment variable is not set');
+      return false;
+    }
+    const allowedDomain = `@${companyDomain}`;
     return email && email.toLowerCase().endsWith(allowedDomain);
   }
 
@@ -182,8 +175,15 @@ class MicrosoftAuthService {
    */
   async checkUserExists(email) {
     try {
+      // Use environment variable for API URL (required)
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        console.error('NEXT_PUBLIC_API_URL environment variable is not set');
+        return { exists: false, user: null };
+      }
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/check-user`,
+        `${apiUrl}/api/auth/check-user`,
         {
           method: 'POST',
           headers: {
@@ -199,7 +199,6 @@ class MicrosoftAuthService {
         user: data.user || null,
       };
     } catch (error) {
-      console.error('Check user exists failed:', error);
       return { exists: false, user: null };
     }
   }

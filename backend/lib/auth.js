@@ -15,19 +15,15 @@ const generateTokens = (userId, email, role, rememberMe = false) => {
 
   const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
 
-  const accessToken = jwt.sign(
-    { userId, email, role, type: 'access' },
-    process.env.JWT_SECRET,
-    { expiresIn: '24h' }
-  );
+  const accessToken = jwt.sign({ userId, email, role, type: 'access' }, process.env.JWT_SECRET, {
+    expiresIn: '24h',
+  });
 
   const refreshTokenExpiry = rememberMe ? '90d' : '30d';
 
-  const refreshToken = jwt.sign(
-    { userId, type: 'refresh' },
-    refreshSecret,
-    { expiresIn: refreshTokenExpiry }
-  );
+  const refreshToken = jwt.sign({ userId, type: 'refresh' }, refreshSecret, {
+    expiresIn: refreshTokenExpiry,
+  });
 
   return {
     accessToken,

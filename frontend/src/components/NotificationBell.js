@@ -22,7 +22,7 @@ export default function NotificationBell() {
         setUnreadCount(response.data.data.unread_count);
       }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+      // Intentionally empty - silently fail on background polling, user can manually check
     }
   };
 
@@ -39,7 +39,7 @@ export default function NotificationBell() {
         setNotifications(response.data.data.notifications);
       }
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      // Intentionally empty - loading state handled by finally block, UI shows empty state
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +56,7 @@ export default function NotificationBell() {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      // Intentionally empty - local state already updated optimistically
     }
   };
 
@@ -70,7 +70,6 @@ export default function NotificationBell() {
       setUnreadCount(0);
       toast.success('All notifications marked as read');
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
       toast.error('Failed to mark all as read');
     }
   };

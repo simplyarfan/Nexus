@@ -36,7 +36,6 @@ class EmailService {
 
             // Check if the stored data has expired
             if (storedData.expiresAt && new Date() > new Date(storedData.expiresAt)) {
-              console.log('🔄 Email connection expired, removing...');
               localStorage.removeItem(storageKey);
               this.connectedEmail = {};
               return;
@@ -45,14 +44,12 @@ class EmailService {
             // Remove expiration metadata before using
             const { savedAt, expiresAt, persistAcrossSessions, ...emailData } = storedData;
             this.connectedEmail = emailData;
-            console.log('✅ Loaded email connection for user:', this.currentUserId);
           }
         } catch (decodeError) {
-          console.error('Failed to decode access token:', decodeError);
+          // Silent failure
         }
       }
     } catch (e) {
-      console.error('Failed to load user email connection:', e);
       this.connectedEmail = {};
     }
   }
@@ -61,8 +58,6 @@ class EmailService {
   async connectOutlook() {
     try {
       const { api } = await import('../utils/api');
-
-      console.log('🔐 Starting Outlook OAuth flow...');
 
       // Get OAuth authorization URL from backend
       const response = await api.get('/auth/outlook/auth');
@@ -75,7 +70,6 @@ class EmailService {
       }
 
       const authUrl = response.data.authUrl;
-      console.log('✅ Authorization URL received, redirecting...');
 
       // Redirect to Microsoft OAuth page
       // The backend will handle the callback and store tokens securely
@@ -84,7 +78,6 @@ class EmailService {
       // Return pending status (page will redirect)
       return { success: true, pending: true };
     } catch (error) {
-      console.error('❌ Outlook connection failed:', error);
       return {
         success: false,
         error: error.response?.data?.message || error.message,
@@ -115,7 +108,6 @@ class EmailService {
 
       return { isConnected: false };
     } catch (error) {
-      console.error('Failed to check Outlook status:', error);
       return { isConnected: false };
     }
   }
@@ -131,7 +123,6 @@ class EmailService {
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to disconnect Outlook:', error);
       return { success: false, error: error.message };
     }
   }
@@ -271,7 +262,6 @@ class EmailService {
         persistAcrossSessions: true,
       };
       localStorage.setItem(storageKey, JSON.stringify(dataToStore));
-      console.log('✅ Email connection saved with 90-day expiration and session persistence');
     }
   }
 
@@ -287,11 +277,9 @@ class EmailService {
       script.src = 'https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js';
       script.crossOrigin = 'anonymous';
       script.onload = () => {
-        console.log('✅ MSAL loaded successfully');
         resolve();
       };
       script.onerror = (error) => {
-        console.error('❌ Failed to load MSAL:', error);
         reject(new Error('Failed to load Microsoft MSAL'));
       };
       document.head.appendChild(script);

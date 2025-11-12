@@ -58,7 +58,6 @@ router.post('/test-email', async (req, res) => {
       recipient: email,
     });
   } catch (error) {
-    console.error('❌ [DEBUG] Test email failed:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to send test email',

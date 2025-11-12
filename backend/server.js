@@ -1,13 +1,10 @@
 const express = require('express');
-const cors = require('cors');
+const compression = require('compression');
 require('dotenv').config();
 
 // Import security middleware
 const {
   securityHeaders,
-  cors: corsMiddleware,
-  securityLogger,
-  requestSizeLimiter,
 } = require('./middleware/security');
 
 // Import logger
@@ -15,6 +12,7 @@ const logger = require('./utils/logger');
 
 // Import database
 const database = require('./models/database');
+const { prisma } = require('./lib/prisma');
 // Load routes with error handling
 let authRoutes,
   analyticsRoutes,
@@ -28,34 +26,34 @@ let authRoutes,
 // Load each route individually with error handling
 try {
   authRoutes = require('./routes/auth');
-  console.log('✅ Auth routes loaded successfully');
 } catch (error) {
-  console.error('❌ FATAL: Error loading auth routes:', error.message);
-  console.error('❌ Stack trace:', error.stack);
-  console.error('❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
   // Make sure route still loads without auth
   authRoutes = null;
 }
 
 try {
   cvRoutes = require('./routes/cv-intelligence-clean');
-  console.log('✅ CV Intelligence routes loaded successfully (HR-01 Blueprint)');
 } catch (error) {
-  console.error('❌ Error loading CV Intelligence routes:', error.message);
-  console.error('❌ Full error details:', error);
+  // Error loading CV Intelligence routes
 }
 
 try {
   analyticsRoutes = require('./routes/analytics');
 } catch (error) {
-  console.error('❌ Error loading analytics routes:', error.message);
+  // Error loading analytics routes
 }
 
 try {
   ticketsRoutes = require('./routes/tickets');
-  console.log('✅ Tickets routes loaded successfully (Prisma)');
 } catch (error) {
-  console.error('❌ Error loading tickets routes:', error.message);
+  // Error loading tickets routes
+}
+
+let usersRoutes;
+try {
+  usersRoutes = require('./routes/users');
+} catch (error) {
+  // Error loading users routes
 }
 
 // CV Intelligence routes already loaded above
@@ -63,27 +61,32 @@ try {
 try {
   notificationRoutes = require('./routes/notifications');
 } catch (error) {
-  console.error('❌ Error loading notification routes:', error.message);
+  // Error loading notification routes
 }
 
 try {
   initRoutes = require('./routes/init');
 } catch (error) {
-  console.error('❌ Error loading init routes:', error.message);
+  // Error loading init routes
 }
 
 try {
   interviewRoutes = require('./routes/interview-coordinator');
-  console.log('✅ Interview Coordinator routes loaded successfully');
 } catch (error) {
-  console.error('❌ Error loading interview coordinator routes:', error.message);
+  // Error loading interview coordinator routes
 }
 
 try {
   debugEmailRoutes = require('./routes/debug-email');
-  console.log('✅ Debug email routes loaded successfully');
 } catch (error) {
-  console.error('❌ Error loading debug email routes:', error.message);
+  // Error loading debug email routes
+}
+
+let swaggerRoutes;
+try {
+  swaggerRoutes = require('./routes/swagger');
+} catch (error) {
+  // Error loading swagger routes
 }
 
 // Optimized conditional request logger
@@ -111,7 +114,6 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', true);
 
 // Compression middleware (gzip)
-const compression = require('compression');
 app.use(
   compression({
     filter: (req, res) => {
@@ -127,21 +129,26 @@ app.use(
 // Apply security headers
 app.use(securityHeaders);
 
-// CORS Configuration - Environment-driven
+// CORS Configuration - Environment-driven with exact origin matching
+// IMPORTANT: Use ALLOWED_ORIGINS environment variable to set allowed domains
+// Example: ALLOWED_ORIGINS=https://your-app.com,https://staging.your-app.com
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  // Get allowed origins from environment or use defaults
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-    : ['https://thesimpleai.netlify.app', 'http://localhost:3000', 'http://127.0.0.1:3000'];
+  // Get allowed origins from environment (required)
+  if (!process.env.ALLOWED_ORIGINS) {
+    console.error('ALLOWED_ORIGINS environment variable is not set');
+    return res.status(500).json({
+      success: false,
+      message: 'Server configuration error',
+    });
+  }
 
-  // Allow Netlify and Vercel preview deployments
-  const isNetlifyDomain =
-    origin && (origin.includes('thesimpleai.netlify.app') || origin.includes('netlify.app'));
-  const isVercelDomain = origin && origin.includes('vercel.app');
+  const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
 
-  if (allowedOrigins.includes(origin) || isNetlifyDomain || isVercelDomain) {
+  // SECURITY: Only allow exact origin matches (no wildcard subdomain matching)
+  // If you need to allow specific preview deployments, add them to ALLOWED_ORIGINS env var
+  if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
   }
 
@@ -149,7 +156,8 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
   res.header(
     'Access-Control-Allow-Headers',
-    'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Admin-Secret,Cache-Control,Pragma',
+    // SECURITY: Removed X-Admin-Secret from allowed headers (keep it internal only)
+    'Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,Cache-Control,Pragma',
   );
   res.header('Access-Control-Expose-Headers', 'Content-Length,X-Request-ID');
 
@@ -163,21 +171,19 @@ app.use((req, res, next) => {
 
 // Validate required environment variables
 if (!process.env.JWT_SECRET) {
-  console.error('❌ Missing JWT_SECRET environment variable');
-  console.error('❌ Application cannot start without JWT_SECRET');
+  console.error('Missing JWT_SECRET environment variable - Application cannot start');
   process.exit(1);
 }
 
-// JWT_REFRESH_SECRET is optional - will use JWT_SECRET as fallback
+// JWT_REFRESH_SECRET is REQUIRED - using same secret defeats the purpose
 if (!process.env.JWT_REFRESH_SECRET) {
-  console.warn('⚠️ SECURITY WARNING: JWT_REFRESH_SECRET not set, using JWT_SECRET as fallback');
-  console.warn('⚠️ For production, set separate JWT_REFRESH_SECRET for better security');
-  process.env.JWT_REFRESH_SECRET = process.env.JWT_SECRET;
+  console.error('Missing JWT_REFRESH_SECRET environment variable - Security risk');
+  process.exit(1);
 }
 
 // Initialize database connection (non-blocking)
 database.connect().catch((error) => {
-  console.error('❌ Database connection failed:', error);
+  console.error('Database connection failed:', error);
   // Don't exit process, let it continue for health checks
 });
 
@@ -192,6 +198,20 @@ if (process.env.NODE_ENV === 'production') {
     next();
   });
 }
+
+// Response compression middleware
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    level: 6,
+    threshold: 1024,
+  }),
+);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -307,7 +327,6 @@ app.get('/api/test', async (req, res) => {
 
     res.json(results);
   } catch (error) {
-    console.error('Health check error:', error);
     res.status(500).json({
       success: false,
       message: 'Health check failed',
@@ -338,7 +357,6 @@ app.post('/api/admin/seed-database', async (req, res) => {
       message: 'Database seeded successfully',
     });
   } catch (error) {
-    console.error('Database seeding error:', error);
     res.status(500).json({
       success: false,
       message: 'Database seeding failed',
@@ -355,12 +373,15 @@ app.get('/', (req, res) => {
     message: 'SimpleAI Enterprise Backend API',
     status: 'running',
     version: '2.0.0',
+    documentation: '/api-docs',
     endpoints: {
       health: '/health',
+      docs: '/api-docs',
       auth: '/api/auth/*',
       analytics: '/api/analytics/*',
       cvIntelligence: '/api/cv-intelligence/*',
       notifications: '/api/notifications/*',
+      interviews: '/api/interview-coordinator/*',
     },
     routesLoaded: {
       auth: !!authRoutes,
@@ -369,6 +390,7 @@ app.get('/', (req, res) => {
       notifications: !!notificationRoutes,
       init: !!initRoutes,
       interview: !!interviewRoutes,
+      swagger: !!swaggerRoutes,
     },
   });
 });
@@ -382,27 +404,9 @@ const {
   cacheInvalidationMiddleware,
 } = require('./middleware/cache');
 
-// DIRECT AUTH ENDPOINT - BYPASS ROUTE LOADING
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password required' });
-    }
-    const AuthController = require('./controllers/AuthController');
-    await AuthController.login(req, res);
-  } catch (error) {
-    console.error('Direct login error:', error.message);
-    res.status(500).json({ success: false, message: 'Login failed', error: error.message });
-  }
-});
-
 // API Routes with caching (conditional)
 if (authRoutes) {
   app.use('/api/auth', authRoutes);
-  console.log('✅ Auth routes mounted at /api/auth (cache middleware temporarily removed)');
-} else {
-  console.error('❌ Auth routes NOT mounted - authRoutes is falsy');
 }
 
 if (analyticsRoutes) {
@@ -410,11 +414,6 @@ if (analyticsRoutes) {
 }
 if (cvRoutes) {
   app.use('/api/cv-intelligence', cvRoutes);
-  console.log('✅ CV Intelligence routes mounted at /api/cv-intelligence');
-  console.log('✅ CV Routes object type:', typeof cvRoutes);
-  console.log('✅ CV Routes available:', Object.getOwnPropertyNames(cvRoutes));
-} else {
-  console.error('❌ CV Intelligence routes failed to load - cvRoutes is:', cvRoutes);
 }
 if (notificationRoutes) {
   app.use(
@@ -429,23 +428,26 @@ if (initRoutes) {
 }
 if (interviewRoutes) {
   app.use('/api/interview-coordinator', interviewRoutes);
-  console.log('✅ Interview Coordinator routes mounted at /api/interview-coordinator');
-} else {
-  console.error('❌ Interview Coordinator routes failed to load');
 }
 
 // Tickets routes (Prisma-based support system)
 if (ticketsRoutes) {
   app.use('/api/tickets', ticketsRoutes);
-  console.log('✅ Tickets routes mounted at /api/tickets (Prisma)');
-} else {
-  console.error('❌ Tickets routes failed to load');
+}
+
+// Users management routes (admin/superadmin only)
+if (usersRoutes) {
+  app.use('/api/users', usersRoutes);
 }
 
 // Debug email routes (temporary, for diagnosing email issues)
 if (debugEmailRoutes && process.env.NODE_ENV !== 'production') {
   app.use('/api/debug/email', debugEmailRoutes);
-  console.log('✅ Debug email routes mounted at /api/debug/email (development only)');
+}
+
+// API Documentation (Swagger)
+if (swaggerRoutes) {
+  app.use('/api-docs', swaggerRoutes);
 }
 
 // Debug user endpoint removed - security risk in production
@@ -457,7 +459,7 @@ if (debugEmailRoutes && process.env.NODE_ENV !== 'production') {
 app.get('/api/system/health', async (req, res) => {
   try {
     await database.connect();
-    const dbTest = await database.get('SELECT 1 as test');
+    await database.get('SELECT 1 as test');
 
     res.json({
       success: true,
@@ -523,7 +525,6 @@ app.get('/api/system/metrics', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('System metrics error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch system metrics',
@@ -533,8 +534,8 @@ app.get('/api/system/metrics', async (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('❌ Server Error:', err);
+app.use((err, req, res, _next) => {
+  console.error('Server Error:', err);
 
   // SECURITY: Never expose stack traces in production
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -557,10 +558,52 @@ app.use('*', (req, res) => {
 });
 
 // Start server (only in non-Vercel environments)
+let server;
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`SimpleAI Enterprise Backend running on port ${PORT}`);
+  server = app.listen(PORT, () => {
+    // Server started
   });
 }
+
+// Graceful shutdown handler
+async function gracefulShutdown(_signal) {
+  if (server) {
+    server.close(() => {
+      // HTTP server closed
+    });
+  }
+
+  try {
+    // Close database connections
+    if (database && database.pool) {
+      await database.disconnect();
+    }
+
+    // Close Prisma connection
+    if (prisma) {
+      await prisma.$disconnect();
+    }
+
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+// Handle graceful shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, _promise) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  gracefulShutdown('uncaughtException');
+});
 
 module.exports = app;

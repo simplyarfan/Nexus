@@ -4,8 +4,9 @@
  * Updated for multi-stage interview workflow
  */
 
-const axios = require('axios');
+const { graphAPI: axios } = require('../utils/axios');
 const { prisma } = require('../lib/prisma');
+const cryptoUtil = require('../utils/crypto');
 
 class OutlookEmailService {
   constructor() {
@@ -41,21 +42,17 @@ class OutlookEmailService {
         if (!user.outlook_refresh_token) {
           throw new Error('Outlook token expired. Please reconnect your Outlook account.');
         }
+        // Decrypt refresh token before using it
+        const decryptedRefreshToken = cryptoUtil.decrypt(user.outlook_refresh_token);
         // Token expired, need to refresh
-        return await this.refreshAccessToken(userId, user.outlook_refresh_token);
+        return await this.refreshAccessToken(userId, decryptedRefreshToken);
       }
 
-      return user.outlook_access_token;
+      // SECURITY: Decrypt token before returning (tokens are stored encrypted with AES-256)
+      return cryptoUtil.decrypt(user.outlook_access_token);
     } catch (error) {
-      console.error('Error getting access token:', error);
-      // If columns don't exist, provide helpful error
       if (error.message.includes('Unknown field')) {
-        console.error(
-          '❌ Outlook integration columns not found in User model. Please add: outlook_access_token, outlook_refresh_token, outlook_token_expires_at',
-        );
-        throw new Error(
-          'Outlook integration not configured. Please contact system administrator.',
-        );
+        throw new Error('Outlook integration not configured. Please contact system administrator.');
       }
       throw error;
     }
@@ -67,7 +64,6 @@ class OutlookEmailService {
   async refreshAccessToken(userId, refreshToken) {
     // Check if OAuth credentials are configured
     if (!process.env.OUTLOOK_CLIENT_ID || !process.env.OUTLOOK_CLIENT_SECRET) {
-      console.error('❌ Outlook OAuth credentials not configured');
       throw new Error('Outlook OAuth is not configured. Please reconnect your Outlook account.');
     }
 
@@ -92,19 +88,22 @@ class OutlookEmailService {
       const { access_token, refresh_token, expires_in } = response.data;
       const expiresAt = new Date(Date.now() + expires_in * 1000);
 
+      // SECURITY: Encrypt tokens before storing
+      const encryptedAccessToken = cryptoUtil.encrypt(access_token);
+      const encryptedRefreshToken = cryptoUtil.encrypt(refresh_token || refreshToken);
+
       // Update tokens in database
       await prisma.user.update({
         where: { id: userId },
         data: {
-          outlook_access_token: access_token,
-          outlook_refresh_token: refresh_token || refreshToken,
+          outlook_access_token: encryptedAccessToken,
+          outlook_refresh_token: encryptedRefreshToken,
           outlook_token_expires_at: expiresAt,
         },
       });
 
       return access_token;
     } catch (error) {
-      console.error('Error refreshing token:', error.response?.data || error.message);
       throw new Error('Failed to refresh access token. Please reconnect your Outlook account.');
     }
   }
@@ -138,8 +137,6 @@ class OutlookEmailService {
         allowAttendeeToEnableMic: true,
       };
 
-      console.log('🎥 Creating Teams meeting via Graph API...');
-
       const response = await axios.post(`${this.graphApiUrl}/me/onlineMeetings`, meetingPayload, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -149,15 +146,12 @@ class OutlookEmailService {
 
       const { joinWebUrl, id } = response.data;
 
-      console.log('✅ Teams meeting created successfully:', joinWebUrl);
-
       return {
         joinUrl: joinWebUrl,
         meetingId: id,
         success: true,
       };
     } catch (error) {
-      console.error('❌ Failed to create Teams meeting:', error.response?.data || error.message);
       throw new Error(
         `Failed to create Teams meeting: ${error.response?.data?.error?.message || error.message}`,
       );
@@ -280,7 +274,7 @@ class OutlookEmailService {
   generateInterviewConfirmationHTML(data) {
     const platformIcons = { teams: '👥', meet: '📹', zoom: '🎥' };
     const icon = platformIcons[data.platform?.toLowerCase()] || '📹';
-    
+
     // Simplified version - keeping core structure
     return `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px"><h2>✅ Interview Confirmed</h2><p>Dear <strong>${data.candidateName}</strong>,</p><p>Your interview for the <strong>${data.position}</strong> position has been scheduled.</p><div style="background:#f9fafb;padding:20px;border-radius:8px;margin:20px 0"><h3>📅 Interview Details</h3><p><strong>Date & Time:</strong> ${new Date(data.scheduledTime).toLocaleString()}</p><p><strong>Duration:</strong> ${data.duration} minutes</p><p><strong>Platform:</strong> ${icon} ${data.platform}</p>${data.meetingLink ? `<p><a href="${data.meetingLink}" style="color:#3b82f6">Join Meeting →</a></p>` : ''}</div><p>Best regards,<br><strong>HR Team</strong></p></body></html>`;
   }
@@ -300,8 +294,12 @@ class OutlookEmailService {
             content: emailData.htmlBody,
           },
           toRecipients: emailData.to.map((email) => ({ emailAddress: { address: email } })),
-          ccRecipients: emailData.cc ? emailData.cc.map((email) => ({ emailAddress: { address: email } })) : [],
-          bccRecipients: emailData.bcc ? emailData.bcc.map((email) => ({ emailAddress: { address: email } })) : [],
+          ccRecipients: emailData.cc
+            ? emailData.cc.map((email) => ({ emailAddress: { address: email } }))
+            : [],
+          bccRecipients: emailData.bcc
+            ? emailData.bcc.map((email) => ({ emailAddress: { address: email } }))
+            : [],
           attachments: emailData.attachments || [],
         },
         saveToSentItems: true,
@@ -320,8 +318,9 @@ class OutlookEmailService {
         message: 'Email sent successfully',
       };
     } catch (error) {
-      console.error('❌ Failed to send email:', error.response?.data || error.message);
-      throw new Error(`Failed to send email: ${error.response?.data?.error?.message || error.message}`);
+      throw new Error(
+        `Failed to send email: ${error.response?.data?.error?.message || error.message}`,
+      );
     }
   }
 
@@ -359,9 +358,34 @@ class OutlookEmailService {
   generateRescheduleNotificationHTML(data) {
     const oldDate = new Date(data.oldScheduledTime);
     const newDate = new Date(data.newScheduledTime);
-    
+
     // Simplified version
     return `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px"><h2>🔄 Interview Rescheduled</h2><p>Dear <strong>${data.candidateName}</strong>,</p><p>Your interview has been rescheduled.</p><div style="background:#fef3c7;padding:16px;border-left:4px solid #f59e0b;margin:20px 0"><p><strong>Original:</strong> <span style="text-decoration:line-through;color:#dc2626">${oldDate.toLocaleString()}</span></p><p><strong>New:</strong> <span style="color:#16a34a;font-weight:600">${newDate.toLocaleString()}</span></p></div><p>Please update your calendar accordingly.</p><p>Best regards,<br><strong>HR Team</strong></p></body></html>`;
+  }
+
+  /**
+   * Cancel a Microsoft Teams meeting
+   * @param {string} userId - User ID
+   * @param {string} teamsMeetingId - Teams meeting ID to cancel
+   */
+  async cancelTeamsMeeting(userId, teamsMeetingId) {
+    try {
+      const accessToken = await this.getAccessToken(userId);
+
+      // Delete the calendar event (which also cancels the Teams meeting)
+      await axios.delete(`https://graph.microsoft.com/v1.0/me/events/${teamsMeetingId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return { success: true };
+    } catch (error) {
+      throw new Error(
+        `Failed to cancel Teams meeting: ${error.response?.data?.error?.message || error.message}`,
+      );
+    }
   }
 }
 

@@ -7,7 +7,7 @@ export default function DateTimePicker({
   label,
   required = false,
   minDate,
-  className
+  className,
 }) {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -44,7 +44,7 @@ export default function DateTimePicker({
           {required && <span className="text-destructive ml-1">*</span>}
         </label>
       )}
-      
+
       <div className="flex gap-2">
         <motion.input
           type="date"
@@ -54,7 +54,7 @@ export default function DateTimePicker({
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
         />
-        
+
         <motion.input
           type="time"
           value={selectedTime}

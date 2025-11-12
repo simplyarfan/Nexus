@@ -43,7 +43,7 @@ const InterviewCoordinator = () => {
         setInterviews(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching interviews:', error);
+      // Intentionally empty - loading state handled, empty array shown on failure
     }
   };
 
@@ -74,7 +74,7 @@ const InterviewCoordinator = () => {
         setCandidates(allCandidates);
       }
     } catch (error) {
-      console.error('Error fetching candidates:', error);
+      // Intentionally empty - loading state handled by finally block, empty array shown on failure
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,7 @@ const InterviewCoordinator = () => {
         setGeneratedQuestions(data.data);
       }
     } catch (error) {
-      console.error('Error generating questions:', error);
+      // Intentionally empty - question generation is optional, failure won't block scheduling
     }
   };
 
@@ -131,7 +131,6 @@ const InterviewCoordinator = () => {
         alert('Interview scheduled successfully!');
       }
     } catch (error) {
-      console.error('Error scheduling interview:', error);
       alert('Failed to schedule interview');
     }
   };
@@ -157,7 +156,7 @@ const InterviewCoordinator = () => {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Error downloading ICS:', error);
+      // Intentionally empty - calendar download is optional feature, silent failure is acceptable
     }
   };
 

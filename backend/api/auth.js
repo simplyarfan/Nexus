@@ -370,7 +370,6 @@ async function handler(req, res) {
           },
         });
       } catch (error) {
-        console.error('Get profile error:', error);
         return res.status(500).json({
           success: false,
           message: 'Failed to fetch profile',
@@ -429,7 +428,6 @@ async function handler(req, res) {
           },
         });
       } catch (error) {
-        console.error('Update profile error:', error);
         return res.status(500).json({
           success: false,
           message: 'Failed to update profile',

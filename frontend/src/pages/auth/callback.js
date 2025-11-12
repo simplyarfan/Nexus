@@ -33,7 +33,7 @@ export default function AuthCallback() {
       // Validate email domain
       if (!microsoftAuthService.validateEmailDomain(email)) {
         setStatus('error');
-        setMessage('Invalid email domain. Please use your @securemaxtech.com email.');
+        setMessage(`Invalid email domain. Please use your @${process.env.NEXT_PUBLIC_COMPANY_DOMAIN} email.`);
         setTimeout(() => router.push('/auth/login'), 3000);
         return;
       }
@@ -103,7 +103,6 @@ export default function AuthCallback() {
         setTimeout(() => router.push('/auth/register'), 1500);
       }
     } catch (error) {
-      console.error('OAuth callback error:', error);
       setStatus('error');
       setMessage(error.message || 'Authentication failed. Please try again.');
       setTimeout(() => router.push('/auth/login'), 3000);

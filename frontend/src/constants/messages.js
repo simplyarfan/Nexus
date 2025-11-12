@@ -85,9 +85,9 @@ export const INFO_MESSAGES = {
 };
 
 export const APP_CONFIG = {
-  APP_NAME: 'Enterprise AI Hub',
-  COMPANY_DOMAIN: 'securemaxtech.com',
-  SUPPORT_EMAIL: 'support@securemaxtech.com',
+  APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'Enterprise AI Hub',
+  COMPANY_DOMAIN: process.env.NEXT_PUBLIC_COMPANY_DOMAIN,
+  SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   SESSION_TIMEOUT: 24 * 60 * 60 * 1000, // 24 hours
   OTP_LENGTH: 6,

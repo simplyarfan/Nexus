@@ -39,14 +39,12 @@ class CacheService {
       this.isConnected = true;
 
       // Handle connection events
-      this.redis.on('error', (error) => {
-        console.error('❌ Redis connection error:', error.message);
+      this.redis.on('error', (_error) => {
         this.isConnected = false;
       });
 
       return this.redis;
     } catch (error) {
-      console.error('❌ Redis connection failed:', error.message);
       this.isConnected = false;
       return null;
     }
@@ -66,7 +64,6 @@ class CacheService {
       await this.redis.setex(cacheKey, ttl, JSON.stringify(analysisResult));
       return true;
     } catch (error) {
-      console.error('❌ Cache write failed:', error.message);
       return false;
     }
   }
@@ -90,7 +87,6 @@ class CacheService {
 
       return null;
     } catch (error) {
-      console.error('❌ Cache read failed:', error.message);
       return null;
     }
   }
@@ -109,7 +105,6 @@ class CacheService {
       await this.redis.setex(cacheKey, ttl, JSON.stringify(response));
       return true;
     } catch (error) {
-      console.error('❌ API cache write failed:', error.message);
       return false;
     }
   }
@@ -133,7 +128,6 @@ class CacheService {
 
       return null;
     } catch (error) {
-      console.error('❌ API cache read failed:', error.message);
       return null;
     }
   }
@@ -152,7 +146,6 @@ class CacheService {
       await this.redis.setex(cacheKey, ttl, JSON.stringify(sessionData));
       return true;
     } catch (error) {
-      console.error('❌ Session cache failed:', error.message);
       return false;
     }
   }
@@ -171,7 +164,6 @@ class CacheService {
       const cached = await this.redis.get(cacheKey);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('❌ Session cache read failed:', error.message);
       return null;
     }
   }
@@ -192,7 +184,6 @@ class CacheService {
       }
       return true;
     } catch (error) {
-      console.error('❌ Cache clear failed:', error.message);
       return false;
     }
   }
@@ -216,7 +207,6 @@ class CacheService {
         memoryInfo: info,
       };
     } catch (error) {
-      console.error('❌ Cache stats failed:', error.message);
       return null;
     }
   }
@@ -234,7 +224,6 @@ class CacheService {
       const cached = await this.redis.get(key);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('❌ Cache get failed:', error.message);
       return null;
     }
   }
@@ -252,7 +241,6 @@ class CacheService {
       await this.redis.setex(key, ttl, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.error('❌ Cache set failed:', error.message);
       return false;
     }
   }

@@ -124,7 +124,6 @@ ${user?.email || ''}`;
         toast.error('Failed to send availability request');
       }
     } catch (error) {
-      console.error('Error scheduling interview:', error);
       toast.error('Failed to schedule interview. Please try again.');
     } finally {
       setLoading(false);

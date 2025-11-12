@@ -38,9 +38,6 @@ async function handler(req, res) {
         },
       });
     } catch (error) {
-      console.error('Get interviews error:', error);
-
-      // If file doesn't exist, return empty array
       if (error.code === 'ENOENT') {
         return res.status(200).json({
           success: true,
@@ -92,9 +89,6 @@ async function handler(req, res) {
         },
       });
     } catch (error) {
-      console.error('Get interview error:', error);
-
-      // If file doesn't exist
       if (error.code === 'ENOENT') {
         return res.status(404).json({
           success: false,

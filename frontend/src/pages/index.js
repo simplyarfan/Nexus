@@ -10,7 +10,7 @@ import LandingPage from './landing';
 import ClientOnly from '../components/shared/ClientOnly';
 
 const Dashboard = () => {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated, isSuperAdmin, isAdmin, isUser, hasDepartment } = useAuth();
   const router = useRouter();
 
   // Dashboard mapping for cleaner code
@@ -20,12 +20,19 @@ const Dashboard = () => {
     'Sales & Marketing': SalesDashboard,
   };
 
-  // Redirect superadmin users to /superadmin route
+  // Redirect superadmin to /superadmin route
   useEffect(() => {
-    if (!loading && isAuthenticated && user?.email === 'syedarfan@securemaxtech.com') {
+    if (!loading && isAuthenticated && isSuperAdmin) {
       router.push('/superadmin');
     }
-  }, [user, loading, isAuthenticated, router]);
+  }, [isSuperAdmin, loading, isAuthenticated, router]);
+
+  // Redirect admin to /admin route
+  useEffect(() => {
+    if (!loading && isAuthenticated && isAdmin) {
+      router.push('/admin');
+    }
+  }, [isAdmin, loading, isAuthenticated, router]);
 
   // Show loading state
   if (loading) {
@@ -45,7 +52,19 @@ const Dashboard = () => {
   }
 
   // If superadmin, show loading while redirecting (prevents flash)
-  if (user?.email === 'syedarfan@securemaxtech.com') {
+  if (isSuperAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground text-sm">Redirecting to superadmin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If admin, show loading while redirecting (prevents flash)
+  if (isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -56,16 +75,15 @@ const Dashboard = () => {
     );
   }
 
-  // Route users based on their department
-  if (user?.role === 'user') {
-    // Get dashboard component from mapping or use WaitingDashboard
+  // Route regular users based on their department
+  if (isUser) {
+    // If user has no department, show waiting dashboard
+    if (!hasDepartment) {
+      return <WaitingDashboard />;
+    }
+    // Get dashboard component from mapping or use WaitingDashboard as fallback
     const DashboardComponent = DASHBOARD_MAP[user?.department] || WaitingDashboard;
     return <DashboardComponent />;
-  }
-
-  // Admin role gets admin dashboard
-  if (user?.role === 'admin') {
-    return <AdminDashboard />;
   }
 
   // Fallback - show waiting dashboard

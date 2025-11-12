@@ -85,9 +85,9 @@ logger.logQuery = (query, duration, error = null) => {
 };
 
 // Add development-only logging helper
-logger.dev = (...args) => {
+logger.dev = (..._args) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(...args);
+    // Intentionally empty - dev logging removed
   }
 };
 

@@ -1,0 +1,142 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm-up"
+
+    # Ramp-up phase
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp-up"
+
+    # Sustained load phase
+    - duration: 180
+      arrivalRate: 50
+      name: "Sustained load"
+
+    # Spike phase
+    - duration: 60
+      arrivalRate: 100
+      name: "Spike"
+
+    # Cool-down phase
+    - duration: 60
+      arrivalRate: 10
+      name: "Cool-down"
+
+  http:
+    timeout: 10
+
+  processor: "./load-test-processor.js"
+
+  variables:
+    testEmail: "loadtest@example.com"
+    testPassword: "LoadTest123!@#"
+
+scenarios:
+  - name: "Health Check"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+
+  - name: "Authentication Flow"
+    weight: 30
+    flow:
+      # Register new user
+      - post:
+          url: "/api/auth/register"
+          json:
+            email: "{{ $randomEmail() }}"
+            password: "{{ testPassword }}"
+            firstName: "Load"
+            lastName: "Test"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      # Login
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "loginToken"
+
+  - name: "Interview Coordinator - List"
+    weight: 20
+    flow:
+      # Login first
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "token"
+
+      # Get interviews list
+      - get:
+          url: "/api/interview-coordinator/interviews?page=1&limit=20"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+  - name: "Interview Coordinator - Schedule"
+    weight: 15
+    flow:
+      # Login first
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "token"
+
+      # Schedule interview
+      - post:
+          url: "/api/interview-coordinator/schedule"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            candidateEmail: "{{ $randomEmail() }}"
+            candidateName: "Load Test Candidate"
+            interviewDateTime: "{{ $futureDate() }}"
+            duration: 60
+            position: "Software Engineer"
+
+  - name: "Static Files & Assets"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/health"
+      - think: 2
+      - get:
+          url: "/api/health"
+
+  - name: "Error Scenarios"
+    weight: 10
+    flow:
+      # Invalid login
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "invalid@example.com"
+            password: "WrongPassword"
+          expect:
+            - statusCode: 401
+
+      # Unauthorized access
+      - get:
+          url: "/api/interview-coordinator/interviews"
+          expect:
+            - statusCode: 401

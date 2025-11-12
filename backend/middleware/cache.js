@@ -42,9 +42,9 @@ const cacheMiddleware = (ttl = 3600) => {
       res.json = function (data) {
         // Only cache successful responses
         if (res.statusCode === 200 && data) {
-          cacheService
-            .cacheAPIResponse(endpoint, params, data, ttl)
-            .catch((error) => console.error('Cache write failed:', error.message));
+          cacheService.cacheAPIResponse(endpoint, params, data, ttl).catch((_error) => {
+            /* Cache write failed */
+          });
         }
 
         // Call original send method
@@ -53,7 +53,6 @@ const cacheMiddleware = (ttl = 3600) => {
 
       next();
     } catch (error) {
-      console.error('❌ Cache middleware error:', error.message);
       next();
     }
   };
@@ -85,9 +84,9 @@ const cacheInvalidationMiddleware = (patterns = []) => {
 
         // Invalidate cache patterns
         allPatterns.forEach((pattern) => {
-          cacheService
-            .clearCache(pattern)
-            .catch((error) => console.error('Cache invalidation failed:', error.message));
+          cacheService.clearCache(pattern).catch((_error) => {
+            /* Cache invalidation failed */
+          });
         });
       }
 
@@ -119,7 +118,9 @@ const sessionCacheMiddleware = async (req, res, next) => {
       if (data && data.user && res.statusCode === 200) {
         cacheService
           .cacheUserSession(req.user.id, data.user, 604800) // 7 days
-          .catch((error) => console.error('Session cache failed:', error.message));
+          .catch((_error) => {
+            /* Session cache failed */
+          });
       }
 
       originalSend.call(this, data);
@@ -127,7 +128,6 @@ const sessionCacheMiddleware = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('❌ Session cache middleware error:', error.message);
     next();
   }
 };

@@ -34,7 +34,6 @@ export default function TicketsPage() {
       const data = await get('/api/tickets');
       setTickets(data.tickets || []);
     } catch (error) {
-      console.error('Failed to fetch tickets:', error);
       toast.error('Failed to load tickets');
     }
   };

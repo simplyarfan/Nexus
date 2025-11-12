@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const database = require('../models/database');
+const cryptoUtil = require('../utils/crypto');
 
 // JWT Authentication Middleware - Enterprise Grade
 const authenticateToken = async (req, res, next) => {
@@ -7,11 +8,7 @@ const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'] || req.headers['Authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-    console.log(`🔐 [AUTH] ${req.method} ${req.path}`);
-    console.log(`🔐 [AUTH] Authorization header:`, authHeader ? `${authHeader.substring(0, 30)}...` : 'missing');
-
     if (!token) {
-      console.error('❌ [AUTH] No token provided');
       return res.status(401).json({
         success: false,
         message: 'Access token required',
@@ -24,12 +21,8 @@ const authenticateToken = async (req, res, next) => {
       if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET environment variable is required');
       }
-      console.log('🔑 [AUTH] Verifying token with JWT_SECRET:', process.env.JWT_SECRET.substring(0, 20) + '...');
       decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log('✅ [AUTH] Token verified for user ID:', decoded.userId);
     } catch (jwtError) {
-      console.error('❌ [AUTH] Token verification failed:', jwtError.message);
-      console.error('🔑 [AUTH] JWT_SECRET used for verification:', process.env.JWT_SECRET.substring(0, 20) + '...');
       return res.status(401).json({
         success: false,
         message: 'Invalid or expired token',
@@ -59,13 +52,38 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    // SECURITY: Validate session exists in database and is not expired
+    // Hash the token before comparing with database (tokens are stored as SHA256 hashes)
+    const hashedToken = cryptoUtil.hash(token);
+
+    const session = await database.get(
+      'SELECT id, expires_at FROM user_sessions WHERE session_token = $1 AND user_id = $2',
+      [hashedToken, decoded.userId],
+    );
+
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        message: 'Session expired or invalid. Please login again.',
+      });
+    }
+
+    // Check if session has expired
+    const sessionExpiry = new Date(session.expires_at);
+    if (sessionExpiry < new Date()) {
+      // Clean up expired session
+      await database.run('DELETE FROM user_sessions WHERE id = $1', [session.id]);
+      return res.status(401).json({
+        success: false,
+        message: 'Session expired. Please login again.',
+      });
+    }
+
     // Add user to request object
     req.user = user;
 
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
@@ -128,8 +146,15 @@ const validateCompanyDomain = (req, res, next) => {
     });
   }
 
+  if (!process.env.COMPANY_DOMAIN) {
+    return res.status(500).json({
+      success: false,
+      message: 'Server configuration error: COMPANY_DOMAIN environment variable is required',
+    });
+  }
+
   const emailDomain = email.split('@')[1];
-  const allowedDomain = process.env.COMPANY_DOMAIN || 'securemaxtech.com';
+  const allowedDomain = process.env.COMPANY_DOMAIN;
 
   if (emailDomain !== allowedDomain) {
     return res.status(403).json({
@@ -163,7 +188,6 @@ const trackActivity = (action, agent_id = null) => {
           [req.user.id, action, agent_id, JSON.stringify(metadata)],
         );
       } catch (error) {
-        console.error('Error tracking activity:', error);
         // Don't fail the request if analytics fails
       }
     }

@@ -15,7 +15,7 @@ const {
   getBatchById,
   deleteBatch,
   getCandidateById,
-} = require('../services/cv.service');
+} = require('../services/cvIntelligenceHR01');
 
 async function handler(req, res) {
   const { method } = req;
@@ -33,7 +33,6 @@ async function handler(req, res) {
         message: 'CV batches retrieved successfully',
       });
     } catch (error) {
-      console.error('Get batches error:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to retrieve batches',

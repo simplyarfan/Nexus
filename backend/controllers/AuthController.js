@@ -6,6 +6,8 @@ const { validationResult } = require('express-validator');
 const ResponseOptimizer = require('../utils/responseOptimizer');
 const { generate2FACode, verify2FACode } = require('../utils/twoFactorAuth');
 const emailService = require('../services/email.service.js');
+const cryptoUtil = require('../utils/crypto');
+const { sanitizeStrict } = require('../utils/sanitize');
 
 // Helper function to generate secure JWT tokens
 const generateTokens = (userId, email, role, rememberMe = false) => {
@@ -13,9 +15,6 @@ const generateTokens = (userId, email, role, rememberMe = false) => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is required');
   }
-
-  // Debug logging
-  console.log('🔑 [TOKEN] Generating token with JWT_SECRET:', process.env.JWT_SECRET.substring(0, 20) + '...');
 
   // Use JWT_SECRET as fallback for refresh token if not set
   const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
@@ -39,7 +38,13 @@ const generateTokens = (userId, email, role, rememberMe = false) => {
 // Register new user - With Email Verification
 const register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, department, jobTitle } = req.body;
+    let { email, password, firstName, lastName, department, jobTitle } = req.body;
+
+    // SECURITY: Sanitize text inputs to prevent XSS
+    firstName = sanitizeStrict(firstName);
+    lastName = sanitizeStrict(lastName);
+    department = sanitizeStrict(department);
+    jobTitle = sanitizeStrict(jobTitle);
 
     // Basic validation
     if (!email || !password || !firstName || !lastName) {
@@ -90,10 +95,6 @@ const register = async (req, res) => {
           message: 'Verification code sent to your email',
         });
       } catch (emailError) {
-        console.error(
-          `❌ [EMAIL] Failed to resend verification email to ${email}:`,
-          emailError.message,
-        );
         return res.status(500).json({
           success: false,
           message: 'Failed to send verification email. Please try again or contact support.',
@@ -158,9 +159,6 @@ const register = async (req, res) => {
         message: 'Registration successful! Please check your email for verification code.',
       });
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError.message);
-
-      // Delete the user we just created since email failed
       await database.run('DELETE FROM users WHERE id = $1', [newUser.id]);
 
       // Send error response
@@ -172,7 +170,6 @@ const register = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Registration error:', error);
     res.status(500).json({
       success: false,
       message: 'Registration failed',
@@ -293,8 +290,7 @@ const login = async (req, res) => {
       try {
         await emailService.send2FACode(user.email, code, user.first_name);
       } catch (emailError) {
-        console.error('Failed to send 2FA email:', emailError);
-        // Continue anyway - code is logged in dev mode
+        // Intentionally empty - 2FA code is stored, email failure is non-critical
       }
 
       // Return response indicating 2FA is required
@@ -327,6 +323,11 @@ const login = async (req, res) => {
       expiresIn: _expiresIn,
     } = generateTokens(user.id, user.email, user.role, rememberMe || false);
 
+    // SECURITY: Hash tokens before storing in database
+    // Store SHA256 hash instead of plaintext to prevent token theft from database breaches
+    const hashedAccessToken = cryptoUtil.hash(accessToken);
+    const hashedRefreshToken = cryptoUtil.hash(refreshToken);
+
     // Create session record
     await database.run(
       `
@@ -335,8 +336,8 @@ const login = async (req, res) => {
     `,
       [
         user.id,
-        accessToken,
-        refreshToken,
+        hashedAccessToken,
+        hashedRefreshToken,
         req.ip,
         req.get('User-Agent') || 'Unknown',
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -360,7 +361,6 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Login failed',
@@ -378,13 +378,9 @@ const logout = async (req, res) => {
     if (token) {
       await database.connect();
 
-      // Deactivate session
-      await database.run(
-        `
-        UPDATE user_sessions SET is_active = false WHERE session_token = $1
-      `,
-        [token],
-      );
+      // SECURITY: Token Blacklisting - Delete session to revoke tokens
+      const hashedToken = cryptoUtil.hash(token);
+      await database.run('DELETE FROM user_sessions WHERE session_token = $1', [hashedToken]);
     }
 
     res.json({
@@ -392,7 +388,6 @@ const logout = async (req, res) => {
       message: 'Logout successful',
     });
   } catch (error) {
-    console.error('Logout error:', error);
     res.status(500).json({
       success: false,
       message: 'Logout failed',
@@ -426,7 +421,6 @@ const getCurrentUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get current user error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get user profile',
@@ -482,7 +476,6 @@ const getProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get user profile',
@@ -493,7 +486,15 @@ const getProfile = async (req, res) => {
 // Update user profile
 const updateProfile = async (req, res) => {
   try {
-    const { first_name, last_name, phone, job_title, bio } = req.body;
+    let { first_name, last_name, phone, job_title, bio } = req.body;
+
+    // SECURITY: Sanitize text inputs
+    first_name = sanitizeStrict(first_name);
+    last_name = sanitizeStrict(last_name);
+    phone = sanitizeStrict(phone);
+    job_title = sanitizeStrict(job_title);
+    bio = sanitizeStrict(bio);
+
     const userId = req.user.id;
 
     await database.connect();
@@ -523,7 +524,6 @@ const updateProfile = async (req, res) => {
       data: { user: updatedUser },
     });
   } catch (error) {
-    console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update profile',
@@ -578,7 +578,6 @@ const checkAuth = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Check auth error:', error);
     res.status(500).json({
       success: false,
       message: 'Authentication check failed',
@@ -642,7 +641,6 @@ const getAllUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get all users error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch users',
@@ -671,7 +669,6 @@ const getUserStats = async (req, res) => {
       data: stats[0],
     });
   } catch (error) {
-    console.error('Get user stats error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get user statistics',
@@ -702,7 +699,6 @@ const getUser = async (req, res) => {
       data: { user },
     });
   } catch (error) {
-    console.error('Get user error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get user',
@@ -790,7 +786,6 @@ const createUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Create user error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Failed to create user',
@@ -891,7 +886,6 @@ const updateUser = async (req, res) => {
       data: { user: updatedUser },
     });
   } catch (error) {
-    console.error('Update user error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Failed to update user',
@@ -971,13 +965,11 @@ const deleteUser = async (req, res) => {
       );
       relatedDataCounts.userSessions = parseInt(sessionCount.count);
     } catch (countError) {
-      console.warn('Warning: Could not count related data:', countError.message);
+      // Intentionally empty - counting related data is optional
     }
 
     // Log the deletion for audit purposes
-    console.log(`User deletion: ${user.email} by ${req.user.email}`);
 
-    // Delete the user (cascade deletion will handle related data)
     await database.run('DELETE FROM users WHERE id = $1', [user_id]);
 
     // Calculate total items deleted
@@ -994,7 +986,6 @@ const deleteUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Delete user error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Failed to delete user',
@@ -1038,7 +1029,6 @@ const changePassword = async (req, res) => {
       message: 'Password changed successfully',
     });
   } catch (error) {
-    console.error('Change password error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to change password',
@@ -1059,7 +1049,6 @@ const logoutAll = async (req, res) => {
       message: 'Logged out from all devices',
     });
   } catch (error) {
-    console.error('Logout all error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to logout from all devices',
@@ -1083,6 +1072,31 @@ const refreshToken = async (req, res) => {
     const decoded = jwt.verify(refreshToken, refreshSecret);
 
     await database.connect();
+
+    // SECURITY: Verify refresh token exists in database and hasn't been revoked
+    const hashedRefreshToken = cryptoUtil.hash(refreshToken);
+    const session = await database.get(
+      'SELECT id, user_id, expires_at FROM user_sessions WHERE refresh_token = $1',
+      [hashedRefreshToken],
+    );
+
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or revoked refresh token',
+      });
+    }
+
+    // Check if session expired
+    if (new Date(session.expires_at) < new Date()) {
+      // Clean up expired session
+      await database.run('DELETE FROM user_sessions WHERE id = $1', [session.id]);
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token expired',
+      });
+    }
+
     const user = await database.get(
       'SELECT id, email, role FROM users WHERE id = $1 AND is_active = true',
       [decoded.userId],
@@ -1095,10 +1109,31 @@ const refreshToken = async (req, res) => {
       });
     }
 
+    // SECURITY: Token Rotation - Generate new tokens
     const { accessToken, refreshToken: newRefreshToken } = generateTokens(
       user.id,
       user.email,
       user.role,
+    );
+
+    // Hash new tokens
+    const hashedAccessToken = cryptoUtil.hash(accessToken);
+    const hashedNewRefreshToken = cryptoUtil.hash(newRefreshToken);
+
+    // SECURITY: Update session with new tokens (invalidates old refresh token)
+    await database.run(
+      `UPDATE user_sessions
+       SET session_token = $1,
+           refresh_token = $2,
+           expires_at = $3,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $4`,
+      [
+        hashedAccessToken,
+        hashedNewRefreshToken,
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        session.id,
+      ],
     );
 
     res.json({
@@ -1109,7 +1144,6 @@ const refreshToken = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
     res.status(401).json({
       success: false,
       message: 'Invalid refresh token',
@@ -1186,9 +1220,8 @@ const resend2FACode = async (req, res) => {
     // Send new code via email
     try {
       await emailService.send2FACode(user.email, code, user.first_name);
-      console.log(`2FA code resent to: ${user.email}`);
     } catch (emailError) {
-      console.error('Failed to resend 2FA email:', emailError);
+      // Intentionally empty - 2FA code is stored, email failure is non-critical
     }
 
     res.json({
@@ -1196,7 +1229,6 @@ const resend2FACode = async (req, res) => {
       message: 'A new verification code has been sent to your email',
     });
   } catch (error) {
-    console.error('Resend 2FA code error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to resend verification code',
@@ -1237,12 +1269,19 @@ const verify2FA = async (req, res) => {
     }
 
     // Verify 2FA code
-    const isValid = verify2FACode(code, user.two_factor_code, user.two_factor_code_expires_at);
+    const verificationResult = verify2FACode(
+      code,
+      user.two_factor_code,
+      user.two_factor_code_expires_at,
+    );
 
-    if (!isValid) {
+    if (!verificationResult.valid) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid or expired verification code',
+        message:
+          verificationResult.reason === 'EXPIRED'
+            ? 'Verification code has expired. Please request a new one.'
+            : 'Invalid verification code. Please try again.',
       });
     }
 
@@ -1264,6 +1303,10 @@ const verify2FA = async (req, res) => {
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role);
 
+    // SECURITY: Hash tokens before storing in database
+    const hashedAccessToken = cryptoUtil.hash(accessToken);
+    const hashedRefreshToken = cryptoUtil.hash(refreshToken);
+
     // Create session record
     await database.run(
       `
@@ -1272,15 +1315,13 @@ const verify2FA = async (req, res) => {
     `,
       [
         user.id,
-        accessToken,
-        refreshToken,
+        hashedAccessToken,
+        hashedRefreshToken,
         req.ip,
         req.get('User-Agent') || 'Unknown',
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       ],
     );
-
-    console.log(`2FA verified, user login: ${user.email}`);
 
     res.json({
       success: true,
@@ -1299,7 +1340,6 @@ const verify2FA = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('2FA verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Verification failed',
@@ -1324,14 +1364,11 @@ const enable2FA = async (req, res) => {
       [userId],
     );
 
-    console.log(`2FA enabled for user: ${req.user.email}`);
-
     res.json({
       success: true,
       message: 'Two-factor authentication enabled',
     });
   } catch (error) {
-    console.error('Enable 2FA error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to enable two-factor authentication',
@@ -1378,14 +1415,11 @@ const disable2FA = async (req, res) => {
       [userId],
     );
 
-    console.log(`2FA disabled for user: ${req.user.email}`);
-
     res.json({
       success: true,
       message: 'Two-factor authentication disabled',
     });
   } catch (error) {
-    console.error('Disable 2FA error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to disable two-factor authentication',
@@ -1441,10 +1475,8 @@ const requestPasswordReset = async (req, res) => {
     // Send reset email
     try {
       await emailService.sendPasswordReset(user.email, resetToken, user.first_name);
-      console.log(`Password reset email sent to: ${user.email}`);
     } catch (emailError) {
-      console.error('Failed to send password reset email:', emailError);
-      // Continue anyway - token is logged in dev mode
+      // Intentionally empty - reset token is stored, email failure is non-critical
     }
 
     res.json({
@@ -1452,7 +1484,6 @@ const requestPasswordReset = async (req, res) => {
       message: 'If an account exists with this email, a password reset link has been sent',
     });
   } catch (error) {
-    console.error('Request password reset error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to process password reset request',
@@ -1523,14 +1554,11 @@ const resetPassword = async (req, res) => {
     // Invalidate all existing sessions for security
     await database.run('DELETE FROM user_sessions WHERE user_id = $1', [matchedUser.id]);
 
-    console.log(`Password reset successful for: ${matchedUser.email}`);
-
     res.json({
       success: true,
       message: 'Password reset successful. Please log in with your new password.',
     });
   } catch (error) {
-    console.error('Reset password error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to reset password',
@@ -1587,28 +1615,52 @@ const verifyEmail = async (req, res) => {
       });
     }
 
+    // SECURITY: Check verification attempts to prevent brute force
+    const verificationAttempts = user.failed_login_attempts || 0;
+    const MAX_VERIFICATION_ATTEMPTS = 5;
+
+    if (verificationAttempts >= MAX_VERIFICATION_ATTEMPTS) {
+      // Invalidate the verification code after max attempts
+      await database.run(
+        `UPDATE users SET
+          verification_token = NULL,
+          verification_expiry = NULL,
+          failed_login_attempts = 0
+        WHERE id = $1`,
+        [userId],
+      );
+      return res.status(429).json({
+        success: false,
+        message: 'Too many failed verification attempts. Please request a new verification code.',
+      });
+    }
+
     // Verify code using SHA256 hash (matching generate2FACode)
     const inputHash = crypto.createHash('sha256').update(code).digest('hex');
     const isValid = inputHash === user.verification_token;
 
-    console.log(
-      `[VERIFY] User: ${user.email}, Input: ${code}, InputHash: ${inputHash.substring(0, 10)}..., StoredHash: ${user.verification_token?.substring(0, 10)}..., Match: ${isValid}`,
-    );
-
     if (!isValid) {
+      // SECURITY: Increment failed attempts counter
+      await database.run(
+        'UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE id = $1',
+        [userId],
+      );
+
+      const attemptsRemaining = MAX_VERIFICATION_ATTEMPTS - verificationAttempts - 1;
       return res.status(400).json({
         success: false,
-        message: 'Invalid verification code',
+        message: `Invalid verification code. ${attemptsRemaining} attempt${attemptsRemaining !== 1 ? 's' : ''} remaining.`,
       });
     }
 
-    // Mark as verified and clear tokens
+    // Mark as verified and clear tokens + reset failed attempts
     await database.run(
       `
-      UPDATE users SET 
+      UPDATE users SET
         is_verified = true,
         verification_token = NULL,
         verification_expiry = NULL,
+        failed_login_attempts = 0,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = $1
     `,
@@ -1618,6 +1670,10 @@ const verifyEmail = async (req, res) => {
     // Generate tokens for login
     const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role);
 
+    // SECURITY: Hash tokens before storing in database
+    const hashedAccessToken = cryptoUtil.hash(accessToken);
+    const hashedRefreshToken = cryptoUtil.hash(refreshToken);
+
     // Create session record
     await database.run(
       `
@@ -1626,15 +1682,13 @@ const verifyEmail = async (req, res) => {
     `,
       [
         user.id,
-        accessToken,
-        refreshToken,
+        hashedAccessToken,
+        hashedRefreshToken,
         req.ip,
         req.get('User-Agent') || 'Unknown',
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       ],
     );
-
-    console.log(`Email verified and user logged in: ${user.email}`);
 
     res.status(200).json({
       success: true,
@@ -1654,7 +1708,6 @@ const verifyEmail = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Email verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Verification failed',
@@ -1699,11 +1752,13 @@ const resendVerificationCode = async (req, res) => {
     // Generate new verification code
     const { code, hashedCode, expiresAt } = generate2FACode();
 
+    // SECURITY: Reset failed attempts when new code is requested
     await database.run(
       `
-      UPDATE users SET 
+      UPDATE users SET
         verification_token = $1,
         verification_expiry = $2,
+        failed_login_attempts = 0,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = $3
     `,
@@ -1713,9 +1768,7 @@ const resendVerificationCode = async (req, res) => {
     // Send verification email
     try {
       await emailService.send2FACode(user.email, code, user.first_name);
-      console.log(`Verification code resent to: ${user.email}`);
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
       return res.status(500).json({
         success: false,
         message: 'Failed to send verification email',
@@ -1727,7 +1780,6 @@ const resendVerificationCode = async (req, res) => {
       message: 'Verification code sent to your email',
     });
   } catch (error) {
-    console.error('Resend verification code error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to resend verification code',

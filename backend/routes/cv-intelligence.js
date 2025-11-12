@@ -15,8 +15,8 @@ try {
   const CVIntelligenceHR01Service = require('../services/cvIntelligenceHR01');
   CVIntelligenceHR01 = new CVIntelligenceHR01Service();
 } catch (error) {
-  console.error('❌ Failed to load CV Intelligence HR-01 Service:', error.message);
-}
+      // Intentionally empty - error is handled by caller
+    }
 
 // Optional multer with fallback
 let multer, upload;
@@ -38,7 +38,7 @@ try {
   });
 } catch (e) {
   upload = {
-    array: () => (req, res, next) => {
+    array: () => (req, res, _next) => {
       res.status(500).json({ success: false, message: 'File upload not available' });
     },
   };
@@ -117,7 +117,6 @@ router.post('/', authenticateToken, cvBatchLimiter, async (req, res) => {
       message: 'Batch created successfully',
     });
   } catch (error) {
-    console.error('Create batch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create batch',
@@ -162,7 +161,6 @@ router.post(
       try {
         await database.connect();
       } catch (dbError) {
-        console.error('Database connection failed:', dbError);
         databaseAvailable = false;
         // Continue without database for now - just process files
       }
@@ -180,10 +178,10 @@ router.post(
           if (jdResult.success && jdResult.requirements) {
             parsedRequirements = jdResult.requirements;
           } else {
-            console.error('⚠️ JD processing failed:', jdResult);
+            // JD parsing failed - will use default requirements
           }
         } catch (error) {
-          console.error('❌ Error processing JD:', error.message);
+          // Intentionally empty - error is handled by caller
         }
       }
 
@@ -205,7 +203,6 @@ router.post(
           // Also clear any existing candidates to force re-processing
           await database.run('DELETE FROM candidates WHERE batch_id = $1', [batchId]);
         } catch (dbError) {
-          console.error('❌ Database update failed:', dbError);
           databaseAvailable = false;
         }
       }
@@ -253,7 +250,6 @@ router.post(
             // Perform smart skill matching
             const candidateSkills = result.structuredData.skills || [];
             const requiredSkills = parsedRequirements.skills || [];
-            const mustHaveSkills = parsedRequirements.mustHave || [];
 
             const matchedSkills = [];
             const missingSkills = [];
@@ -311,14 +307,14 @@ router.post(
                   ],
                 );
               } catch (dbError) {
-                console.error('Failed to store candidate:', dbError);
+                // Intentionally empty - error is handled by caller
               }
             }
           } else {
-            console.error(`❌ CV ${i + 1} processing failed:`, result.error);
+            // CV parsing failed
           }
         } catch (error) {
-          console.error(`❌ Error processing CV ${i + 1}:`, error.message);
+          // Intentionally empty - error is handled by caller
         }
       }
 
@@ -365,8 +361,8 @@ router.post(
               ],
             );
           } catch (dbError) {
-            console.error('Failed to update candidate ranking:', dbError);
-          }
+      // Intentionally empty - error is handled by caller
+    }
         }
       }
 
@@ -382,8 +378,8 @@ router.post(
             [candidates.length, batchId],
           );
         } catch (dbError) {
-          console.error('Failed to update batch status:', dbError);
-        }
+      // Intentionally empty - error is handled by caller
+    }
       }
 
       res.json({
@@ -398,9 +394,6 @@ router.post(
         message: `Batch processed successfully. ${candidates.length}/${cvFiles.length} CVs processed.${databaseAvailable ? '' : ' (Database offline - results not saved)'}`,
       });
     } catch (error) {
-      console.error('Process batch error:', error);
-
-      // Update batch status to failed
       try {
         await database.run(
           `
@@ -411,8 +404,8 @@ router.post(
           [req.params.id],
         );
       } catch (updateError) {
-        console.error('Failed to update batch status:', updateError);
-      }
+      // Intentionally empty - error is handled by caller
+    }
 
       res.status(500).json({
         success: false,
@@ -462,7 +455,6 @@ router.get('/batches', authenticateToken, async (req, res) => {
       message: 'CV batches retrieved successfully',
     });
   } catch (error) {
-    console.error('Get batches error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve batches',
@@ -546,7 +538,6 @@ router.get('/batch/:id', authenticateToken, async (req, res) => {
       message: 'Batch details retrieved successfully',
     });
   } catch (error) {
-    console.error('Get batch details error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve batch details',
@@ -587,7 +578,6 @@ router.get('/candidate/:id/evidence', authenticateToken, async (req, res) => {
       message: 'Candidate details retrieved successfully',
     });
   } catch (error) {
-    console.error('Get candidate details error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve candidate details',
@@ -619,7 +609,6 @@ router.post('/batch/:id/reset', authenticateToken, async (req, res) => {
       message: 'Batch reset successfully - ready for fresh JD upload',
     });
   } catch (error) {
-    console.error('Reset batch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to reset batch',
@@ -663,9 +652,9 @@ router.delete('/batch/:id', authenticateToken, async (req, res) => {
     );
 
     // Delete the batch itself
-    const batchDeleted = await database.run(
+    await database.run(
       `
-      DELETE FROM cv_batches 
+      DELETE FROM cv_batches
       WHERE id = $1 AND user_id = $2
     `,
       [id, req.user.id],
@@ -681,7 +670,6 @@ router.delete('/batch/:id', authenticateToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Delete batch error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete batch',

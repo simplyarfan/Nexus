@@ -7,21 +7,15 @@
 let nodemailer;
 try {
   nodemailer = require('nodemailer');
-  console.log('[EMAIL] nodemailer loaded, type:', typeof nodemailer);
-  console.log('[EMAIL] nodemailer has createTransport:', typeof nodemailer?.createTransport);
 
-  // Handle ESM vs CommonJS (nodemailer v7 should be CommonJS)
   if (
     nodemailer &&
     nodemailer.default &&
     typeof nodemailer.default.createTransport === 'function'
   ) {
-    console.log('[EMAIL] Using nodemailer.default (ESM)');
     nodemailer = nodemailer.default;
   }
 } catch (e) {
-  console.error('[EMAIL] Failed to load nodemailer:', e.message);
-  console.error('[EMAIL] Error stack:', e.stack);
   nodemailer = null;
 }
 
@@ -44,29 +38,17 @@ class EmailService {
 
     this.initializationAttempted = true;
 
-    console.log('🔍 [EMAIL] Initializing email service (lazy)...');
-    console.log('🔍 [EMAIL] EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'MISSING');
-    console.log('🔍 [EMAIL] EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'MISSING');
-    console.log('🔍 [EMAIL] EMAIL_HOST:', process.env.EMAIL_HOST || 'smtp.gmail.com (default)');
-
     if (!nodemailer) {
-      console.error('❌ [EMAIL] nodemailer package not available');
       return false;
     }
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error('❌ [EMAIL] CRITICAL: Email credentials not configured');
-      console.error('❌ [EMAIL] Set EMAIL_USER and EMAIL_PASS in Vercel environment variables');
-      console.error('❌ [EMAIL] Email sending will FAIL until credentials are added');
       return false;
     }
 
     try {
       // Check if createTransport exists (note: it's createTransport, not createTransporter)
       if (typeof nodemailer.createTransport !== 'function') {
-        console.error('❌ [EMAIL] nodemailer.createTransport is not a function');
-        console.error('❌ [EMAIL] nodemailer type:', typeof nodemailer);
-        console.error('❌ [EMAIL] nodemailer keys:', Object.keys(nodemailer || {}));
         return false;
       }
 
@@ -83,11 +65,8 @@ class EmailService {
         maxConnections: 1,
       });
 
-      console.log('✅ [EMAIL] SMTP transporter created successfully');
-      console.log('✅ [EMAIL] Using:', process.env.EMAIL_USER);
       return true;
     } catch (error) {
-      console.error('❌ [EMAIL] Failed to create SMTP transporter:', error.message);
       this.transporter = null;
       return false;
     }
@@ -130,35 +109,22 @@ class EmailService {
   async sendEmail(to, subject, html) {
     // Lazy initialization: try to initialize transporter if not already done
     if (!this.transporter) {
-      console.log('🔄 [EMAIL] Transporter not initialized, attempting lazy initialization...');
       const initialized = this.initializeTransporter();
       if (!initialized || !this.transporter) {
         const error = new Error('Email service not initialized - missing credentials');
-        console.error('❌ [EMAIL] Cannot send email - transporter initialization failed');
+
         throw error;
       }
     }
 
-    try {
-      console.log(`📧 [EMAIL] Sending to: ${to}`);
-      console.log(`📧 [EMAIL] Subject: ${subject}`);
+    const info = await this.transporter.sendMail({
+      from: `"Enterprise AI Hub" <${this.from}>`,
+      to,
+      subject,
+      html,
+    });
 
-      const info = await this.transporter.sendMail({
-        from: `"Enterprise AI Hub" <${this.from}>`,
-        to,
-        subject,
-        html,
-      });
-
-      console.log('✅ [EMAIL] Successfully sent:', info.messageId);
-      console.log('✅ [EMAIL] Response:', info.response);
-      return { success: true, messageId: info.messageId };
-    } catch (error) {
-      console.error('❌ [EMAIL] FAILED to send email:', error.message);
-      console.error('❌ [EMAIL] Error details:', error);
-      // Throw the error - let the caller handle it
-      throw error;
-    }
+    return { success: true, messageId: info.messageId };
   }
 
   /**

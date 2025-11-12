@@ -77,7 +77,6 @@ class NotificationController {
         },
       });
     } catch (error) {
-      console.error('Get notifications error:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -120,7 +119,6 @@ class NotificationController {
         message: 'Notification marked as read',
       });
     } catch (error) {
-      console.error('Mark notification as read error:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -145,7 +143,6 @@ class NotificationController {
         message: 'All notifications marked as read',
       });
     } catch (error) {
-      console.error('Mark all notifications as read error:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -180,7 +177,6 @@ class NotificationController {
         },
       });
     } catch (error) {
-      console.error('Get unread count error:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -190,130 +186,115 @@ class NotificationController {
 
   // Create notification (internal use)
   static async createNotification(userId, type, title, message, metadata = {}) {
-    try {
-      const result = await database.run(
-        `
-        INSERT INTO notifications (user_id, type, title, message, metadata)
-        VALUES ($1, $2, $3, $4, $5) RETURNING id
-      `,
-        [userId, type, title, message, JSON.stringify(metadata)],
-      );
+    const result = await database.run(
+      `
+      INSERT INTO notifications (user_id, type, title, message, metadata)
+      VALUES ($1, $2, $3, $4, $5) RETURNING id
+    `,
+      [userId, type, title, message, JSON.stringify(metadata)],
+    );
 
-      return result.rows?.[0]?.id || result.id;
-    } catch (error) {
-      console.error('Create notification error:', error);
-      throw error;
-    }
+    return result.rows?.[0]?.id || result.id;
   }
 
   // Create ticket response notification
   static async createTicketResponseNotification(ticketId, responderId, message) {
-    try {
-      // Get ticket details
-      const ticket = await database.get(
-        `
-        SELECT st.*, u.first_name, u.last_name 
-        FROM support_tickets st
-        JOIN users u ON st.user_id = u.id
-        WHERE st.id = $1
-      `,
-        [ticketId],
-      );
+    // Get ticket details
+    const ticket = await database.get(
+      `
+      SELECT st.*, u.first_name, u.last_name
+      FROM support_tickets st
+      JOIN users u ON st.user_id = u.id
+      WHERE st.id = $1
+    `,
+      [ticketId],
+    );
 
-      if (!ticket) {
-        throw new Error('Ticket not found');
-      }
-
-      // Get responder details
-      const responder = await database.get(
-        `
-        SELECT first_name, last_name FROM users WHERE id = $1
-      `,
-        [responderId],
-      );
-
-      if (!responder) {
-        throw new Error('Responder not found');
-      }
-
-      const title = `Response to your ticket: ${ticket.subject}`;
-      const notificationMessage = `${responder.first_name} ${responder.last_name} responded to your support ticket.`;
-
-      const metadata = {
-        ticket_id: ticketId,
-        responder_id: responderId,
-        response_message: message,
-        ticket_subject: ticket.subject,
-      };
-
-      return await this.createNotification(
-        ticket.user_id,
-        'ticket_response',
-        title,
-        notificationMessage,
-        metadata,
-      );
-    } catch (error) {
-      console.error('Create ticket response notification error:', error);
-      throw error;
+    if (!ticket) {
+      throw new Error('Ticket not found');
     }
+
+    // Get responder details
+    const responder = await database.get(
+      `
+      SELECT first_name, last_name FROM users WHERE id = $1
+    `,
+      [responderId],
+    );
+
+    if (!responder) {
+      throw new Error('Responder not found');
+    }
+
+    const title = `Response to your ticket: ${ticket.subject}`;
+    const notificationMessage = `${responder.first_name} ${responder.last_name} responded to your support ticket.`;
+
+    const metadata = {
+      ticket_id: ticketId,
+      responder_id: responderId,
+      response_message: message,
+      ticket_subject: ticket.subject,
+    };
+
+    return await this.createNotification(
+      ticket.user_id,
+      'ticket_response',
+      title,
+      notificationMessage,
+      metadata,
+    );
   }
 
   // Create ticket status change notification
   static async createTicketStatusNotification(ticketId, newStatus, updatedBy) {
-    try {
-      // Get ticket details
-      const ticket = await database.get(
-        `
-        SELECT st.*, u.first_name, u.last_name 
-        FROM support_tickets st
-        JOIN users u ON st.user_id = u.id
-        WHERE st.id = $1
-      `,
-        [ticketId],
-      );
+    // Get ticket details
+    const ticket = await database.get(
+      `
+      SELECT st.*, u.first_name, u.last_name
+      FROM support_tickets st
+      JOIN users u ON st.user_id = u.id
+      WHERE st.id = $1
+    `,
+      [ticketId],
+    );
 
-      if (!ticket) {
-        throw new Error('Ticket not found');
-      }
-
-      // Get updater details
-      const _updater = await database.get(
-        `
-        SELECT first_name, last_name FROM users WHERE id = $1
-      `,
-        [updatedBy],
-      );
-
-      const statusMessages = {
-        open: 'reopened',
-        in_progress: 'is now being worked on',
-        resolved: 'has been resolved',
-        closed: 'has been closed',
-      };
-
-      const title = `Ticket Status Update: ${ticket.subject}`;
-      const notificationMessage = `Your support ticket ${statusMessages[newStatus] || `status changed to ${newStatus}`}.`;
-
-      const metadata = {
-        ticket_id: ticketId,
-        old_status: ticket.status,
-        new_status: newStatus,
-        updated_by: updatedBy,
-        ticket_subject: ticket.subject,
-      };
-
-      return await this.createNotification(
-        ticket.user_id,
-        'ticket_status_change',
-        title,
-        notificationMessage,
-        metadata,
-      );
-    } catch (error) {
-      console.error('Create ticket status notification error:', error);
-      throw error;
+    if (!ticket) {
+      throw new Error('Ticket not found');
     }
+
+    // Get updater details
+    const _updater = await database.get(
+      `
+      SELECT first_name, last_name FROM users WHERE id = $1
+    `,
+      [updatedBy],
+    );
+
+    const statusMessages = {
+      open: 'reopened',
+      in_progress: 'is now being worked on',
+      resolved: 'has been resolved',
+      closed: 'has been closed',
+    };
+
+    const title = `Ticket Status Update: ${ticket.subject}`;
+    const notificationMessage = `Your support ticket ${statusMessages[newStatus] || `status changed to ${newStatus}`}.`;
+
+    const metadata = {
+      ticket_id: ticketId,
+      old_status: ticket.status,
+      new_status: newStatus,
+      updated_by: updatedBy,
+      ticket_subject: ticket.subject,
+    };
+
+    return await this.createNotification(
+      ticket.user_id,
+      'ticket_status_change',
+      title,
+      notificationMessage,
+      metadata,
+    );
   }
 
   // Delete notification
@@ -344,7 +325,6 @@ class NotificationController {
         message: 'Notification deleted successfully',
       });
     } catch (error) {
-      console.error('Delete notification error:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',

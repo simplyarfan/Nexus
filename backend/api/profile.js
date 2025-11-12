@@ -42,7 +42,6 @@ async function handler(req, res) {
         user,
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch profile',
@@ -92,7 +91,6 @@ async function handler(req, res) {
         user: updatedUser,
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to update profile',
@@ -169,7 +167,6 @@ async function handler(req, res) {
         message: 'Password updated successfully',
       });
     } catch (error) {
-      console.error('Error changing password:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to change password',

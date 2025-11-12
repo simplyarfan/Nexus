@@ -25,133 +25,96 @@ class Database {
       return this.pool;
     }
 
-    try {
-      // Use Vercel's database environment variables
-      // IMPORTANT: Prioritize unpooled connections for read-after-write consistency
-      // Neon automatically provides these variables:
-      // - POSTGRES_URL_NON_POOLING (official Neon unpooled connection)
-      // - DATABASE_URL_UNPOOLED (alternative unpooled connection)
-      // - DATABASE_URL / POSTGRES_URL (pooled with pgBouncer - causes read-after-write issues)
-      const connectionString =
-        process.env.POSTGRES_URL_NON_POOLING ||
-        process.env.DATABASE_URL_UNPOOLED ||
-        process.env.DATABASE_URL ||
-        process.env.POSTGRES_URL;
+    // Use Vercel's database environment variables
+    // IMPORTANT: Prioritize unpooled connections for read-after-write consistency
+    // Neon automatically provides these variables:
+    // - POSTGRES_URL_NON_POOLING (official Neon unpooled connection)
+    // - DATABASE_URL_UNPOOLED (alternative unpooled connection)
+    // - DATABASE_URL / POSTGRES_URL (pooled with pgBouncer - causes read-after-write issues)
+    // IMPORTANT: Only use unpooled connections to avoid read-after-write inconsistency
+    // Pooled connections with pgBouncer cause race conditions where you write data
+    // but immediately reading it returns no results
+    const connectionString =
+      process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED;
 
-      if (!connectionString) {
-        throw new Error(
-          'No database connection string found. Please set POSTGRES_URL_NON_POOLING, DATABASE_URL_UNPOOLED, DATABASE_URL, or POSTGRES_URL environment variable.',
-        );
-      }
-
-      const isUnpooled =
-        connectionString.includes('UNPOOLED') ||
-        connectionString.includes('NON_POOLING') ||
-        connectionString.includes('pooler=false') ||
-        !connectionString.includes('pooler');
-
-      const connectionType = isUnpooled ? 'UNPOOLED (direct)' : 'POOLED (pgBouncer)';
-
-      console.log('🔌 Connecting to Neon with:', connectionType);
-      console.log(
-        '📋 Using connection from:',
-        process.env.POSTGRES_URL_NON_POOLING
-          ? 'POSTGRES_URL_NON_POOLING (Neon official) ✅'
-          : process.env.DATABASE_URL_UNPOOLED
-            ? 'DATABASE_URL_UNPOOLED ⚠️'
-            : 'DATABASE_URL or POSTGRES_URL (pooled) ❌',
+    if (!connectionString) {
+      throw new Error(
+        '❌ CRITICAL: Unpooled database connection required for data consistency.\n' +
+          'Please set POSTGRES_URL_NON_POOLING or DATABASE_URL_UNPOOLED environment variable.\n' +
+          'Pooled connections (DATABASE_URL, POSTGRES_URL) cause read-after-write issues and are not allowed.',
       );
-
-      // Connecting to PostgreSQL database
-
-      this.pool = new Pool({
-        connectionString,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-        max: 1, // Single connection for serverless
-        min: 0,
-        idleTimeoutMillis: 1000, // Very short for serverless
-        connectionTimeoutMillis: 10000, // Shorter timeout
-        acquireTimeoutMillis: 10000,
-        createTimeoutMillis: 10000,
-        destroyTimeoutMillis: 1000,
-        allowExitOnIdle: true,
-        statement_timeout: 5000, // 5 second query timeout
-        query_timeout: 5000,
-      });
-
-      // Test connection
-      const testResult = await this.pool.query('SELECT NOW() as current_time');
-      this.isConnected = true;
-
-      // Initialize tables ONLY ONCE globally (not every request)
-      if (!GLOBAL_TABLES_INITIALIZED) {
-        const shouldBootstrap = process.env.DB_BOOTSTRAP !== 'false';
-        if (shouldBootstrap) {
-          console.log('🔧 First connection - checking database schema (DB_BOOTSTRAP enabled)...');
-          await this.initializeTables();
-        } else {
-          console.log('⏭️  DB bootstrap disabled by env (DB_BOOTSTRAP=false)');
-        }
-        GLOBAL_TABLES_INITIALIZED = true;
-      }
-
-      return this.pool;
-    } catch (error) {
-      console.error('❌ Database connection failed:', error.message);
-      console.error('❌ Full error:', error);
-      throw error;
     }
+
+    const isUnpooled =
+      connectionString.includes('UNPOOLED') ||
+      connectionString.includes('NON_POOLING') ||
+      connectionString.includes('pooler=false') ||
+      !connectionString.includes('pooler');
+
+    const _connectionType = isUnpooled ? 'UNPOOLED (direct)' : 'POOLED (pgBouncer)';
+
+    // Connecting to PostgreSQL database
+
+    this.pool = new Pool({
+      connectionString,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      max: 1, // Single connection for serverless
+      min: 0,
+      idleTimeoutMillis: 1000, // Very short for serverless
+      connectionTimeoutMillis: 10000, // Shorter timeout
+      acquireTimeoutMillis: 10000,
+      createTimeoutMillis: 10000,
+      destroyTimeoutMillis: 1000,
+      allowExitOnIdle: true,
+      statement_timeout: 5000, // 5 second query timeout
+      query_timeout: 5000,
+    });
+
+    // Test connection
+    const _testResult = await this.pool.query('SELECT NOW() as current_time');
+    this.isConnected = true;
+
+    // Initialize tables ONLY ONCE globally (not every request)
+    if (!GLOBAL_TABLES_INITIALIZED) {
+      const shouldBootstrap = process.env.DB_BOOTSTRAP !== 'false';
+      if (shouldBootstrap) {
+        await this.initializeTables();
+      }
+      GLOBAL_TABLES_INITIALIZED = true;
+    }
+
+    return this.pool;
   }
 
   async disconnect() {
     if (this.pool) {
-      try {
-        await this.pool.end();
-        console.log('🔌 Database connection closed');
-        this.pool = null;
-        this.isConnected = false;
-      } catch (error) {
-        console.error('Error closing database:', error.message);
-        throw error;
-      }
+      await this.pool.end();
+
+      this.pool = null;
+      this.isConnected = false;
     }
   }
 
   // Query methods
   async run(sql, params = []) {
-    try {
-      const result = await this.pool.query(sql, params);
-      return {
-        id: result.rows[0]?.id || null,
-        changes: result.rowCount || 0,
-        rows: result.rows,
-      };
-    } catch (error) {
-      console.error('Database run error:', error.message, '\nSQL:', sql);
-      throw error;
-    }
+    const result = await this.pool.query(sql, params);
+    return {
+      id: result.rows[0]?.id || null,
+      changes: result.rowCount || 0,
+      rows: result.rows,
+    };
   }
 
   async get(sql, params = []) {
-    try {
-      const result = await this.pool.query(sql, params);
-      return result.rows[0] || null;
-    } catch (error) {
-      console.error('Database get error:', error.message, '\nSQL:', sql);
-      throw error;
-    }
+    const result = await this.pool.query(sql, params);
+    return result.rows[0] || null;
   }
 
   async all(sql, params = []) {
-    try {
-      const result = await this.pool.query(sql, params);
-      return result.rows;
-    } catch (error) {
-      console.error('Database all error:', error.message, '\nSQL:', sql);
-      throw error;
-    }
+    const result = await this.pool.query(sql, params);
+    return result.rows;
   }
 
   async transaction(callback) {
@@ -170,11 +133,10 @@ class Database {
   }
 
   async initializeTables() {
-    try {
-      console.log('🔧 Initializing PostgreSQL schema (one-time check)...');
+    // Initializing PostgreSQL schema
 
-      // Users table
-      await this.run(`
+    // Users table
+    await this.run(`
         CREATE TABLE IF NOT EXISTS users (
           id SERIAL PRIMARY KEY,
           email VARCHAR(255) NOT NULL,
@@ -234,9 +196,7 @@ class Database {
       await this.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)');
       await this.run('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
       await this.run('CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active)');
-      console.log('✅ User table indexes verified');
 
-      // User sessions table
       await this.run(`
         CREATE TABLE IF NOT EXISTS user_sessions (
           id SERIAL PRIMARY KEY,
@@ -258,9 +218,7 @@ class Database {
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at)',
       );
-      console.log('✅ User sessions indexes verified');
 
-      // User preferences table
       await this.run(`
         CREATE TABLE IF NOT EXISTS user_preferences (
           id SERIAL PRIMARY KEY,
@@ -310,9 +268,6 @@ class Database {
       // SIMPLIFIED CV INTELLIGENCE SCHEMA - NO FOREIGN KEY CONSTRAINTS
       // This will prevent the foreign key constraint errors
 
-      console.log('🔧 Creating simplified CV Intelligence tables...');
-
-      // Simple CV batches table
       await this.run(`
         CREATE TABLE IF NOT EXISTS cv_batches (
           id VARCHAR(255) PRIMARY KEY,
@@ -330,9 +285,7 @@ class Database {
       // Create essential indexes only
       await this.run('CREATE INDEX IF NOT EXISTS idx_cv_batches_user_id ON cv_batches(user_id)');
       await this.run('CREATE INDEX IF NOT EXISTS idx_cv_batches_status ON cv_batches(status)');
-      console.log('✅ CV batches indexes verified');
 
-      // Add jd_requirements column if it doesn't exist (for existing databases)
       try {
         await this.run('ALTER TABLE cv_batches ADD COLUMN jd_requirements TEXT');
       } catch (e) {
@@ -356,9 +309,7 @@ class Database {
 
       // Create essential indexes only
       await this.run('CREATE INDEX IF NOT EXISTS idx_candidates_batch_id ON candidates(batch_id)');
-      console.log('✅ Candidates indexes verified');
 
-      // Support tickets table
       await this.run(`
         CREATE TABLE IF NOT EXISTS support_tickets (
           id SERIAL PRIMARY KEY,
@@ -385,9 +336,7 @@ class Database {
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status)',
       );
-      console.log('✅ Support tickets indexes verified');
 
-      // Ticket comments table
       await this.run(`
         CREATE TABLE IF NOT EXISTS ticket_comments (
           id SERIAL PRIMARY KEY,
@@ -430,7 +379,6 @@ class Database {
       `);
 
       // Interview Coordinator tables (HR-02)
-      console.log('🔧 Creating Interview Coordinator tables...');
 
       await this.run(`
         CREATE TABLE IF NOT EXISTS interviews (
@@ -476,10 +424,9 @@ class Database {
         await this.run(
           'ALTER TABLE interviews ADD COLUMN IF NOT EXISTS teams_meeting_id VARCHAR(255)',
         );
-        console.log('✅ Added missing columns to interviews table');
       } catch (error) {
-        console.log('ℹ️  Interview columns already exist or error:', error.message);
-      }
+      // Intentionally empty - error is handled by caller
+    }
 
       await this.run(`
         CREATE TABLE IF NOT EXISTS interview_reminders (
@@ -506,14 +453,9 @@ class Database {
         'CREATE INDEX IF NOT EXISTS idx_interview_reminders_sent ON interview_reminders(sent)',
       );
 
-      console.log('✅ Interview Coordinator tables initialized successfully');
-
-      // ============================================
       // PERFORMANCE OPTIMIZATION INDEXES
       // ============================================
-      console.log('🔧 Creating performance optimization indexes...');
 
-      // Support tickets performance indexes
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_tickets_status_created ON support_tickets(status, created_at DESC)',
       );
@@ -523,51 +465,37 @@ class Database {
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_tickets_user_status ON support_tickets(user_id, status)',
       );
-      console.log('✅ Support tickets performance indexes created');
 
-      // Comments performance indexes
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_comments_ticket_created ON ticket_comments(ticket_id, created_at)',
       );
-      console.log('✅ Comments performance indexes created');
 
-      // Analytics performance indexes
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_analytics_user_action_date ON user_analytics(user_id, action, created_at DESC)',
       );
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_analytics_agent_date ON agent_usage_stats(agent_id, date DESC)',
       );
-      console.log('✅ Analytics performance indexes created');
 
-      // CV Intelligence performance indexes
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_candidates_batch_score ON candidates(batch_id, overall_score DESC)',
       );
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_batches_user_status ON cv_batches(user_id, status, created_at DESC)',
       );
-      console.log('✅ CV Intelligence performance indexes created');
 
-      // Interview Coordinator additional performance indexes
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_time_status ON interviews(scheduled_time, status)',
       );
       await this.run(
         'CREATE INDEX IF NOT EXISTS idx_reminders_send_at_sent ON interview_reminders(send_at, sent)',
       );
-      console.log('✅ Interview Coordinator performance indexes created');
 
-      console.log('✅ All PostgreSQL tables and indexes initialized successfully');
-      await this.createDefaultAdmin();
-      this.tablesInitialized = true;
+    await this.createDefaultAdmin();
+    this.tablesInitialized = true;
 
-      // Start session cleanup routine (only once globally)
-      this.startSessionCleanup();
-    } catch (error) {
-      console.error('❌ Error initializing database tables:', error);
-      throw error;
-    }
+    // Start session cleanup routine (only once globally)
+    this.startSessionCleanup();
   }
 
   startSessionCleanup() {
@@ -586,10 +514,10 @@ class Database {
         `);
 
         if (result.changes > 0) {
-          console.log(`🧹 Cleaned up ${result.changes} expired sessions`);
+          // Sessions cleaned up
         }
       } catch (error) {
-        console.error('Session cleanup error:', error.message);
+        // Intentionally empty - error is handled by caller
       }
     };
 
@@ -599,27 +527,24 @@ class Database {
     // Also run cleanup on startup
     runCleanup();
 
-    console.log('🔄 Session cleanup routine started (daily at 3 AM)');
+    // Session cleanup routine started
   }
 
   async createDefaultAdmin() {
     try {
       // SECURITY: Never create default admin in production
       if (process.env.NODE_ENV === 'production') {
-        console.log('ℹ️ Skipping default admin creation (production environment)');
         return;
       }
 
       // Only create in development with explicit environment variable
       if (!process.env.CREATE_DEFAULT_ADMIN || process.env.CREATE_DEFAULT_ADMIN !== 'true') {
-        console.log('ℹ️ Default admin creation disabled (set CREATE_DEFAULT_ADMIN=true to enable)');
         return;
       }
 
       const adminEmail = process.env.ADMIN_EMAIL;
 
       if (!adminEmail) {
-        console.log('⚠️ ADMIN_EMAIL not set, skipping default admin creation');
         return;
       }
 
@@ -651,14 +576,11 @@ class Database {
             true,
           ],
         );
-
-        console.log(`✅ Default admin created in development: ${adminEmail}`);
-        console.log('⚠️ Temporary password generated - check secure logs');
       } else {
-        console.log('ℹ️ Admin user already exists');
+        // Admin user already exists
       }
     } catch (error) {
-      console.error('Error creating default admin:', error.message);
+      // Intentionally empty - error is handled by caller
     }
   }
 }

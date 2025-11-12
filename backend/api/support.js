@@ -33,7 +33,6 @@ async function handler(req, res) {
         tickets,
       });
     } catch (error) {
-      console.error('Error fetching support tickets:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch support tickets',
@@ -77,7 +76,6 @@ async function handler(req, res) {
         message: 'Support ticket created successfully',
       });
     } catch (error) {
-      console.error('Error creating support ticket:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to create support ticket',
@@ -134,7 +132,6 @@ async function handler(req, res) {
         message: 'Ticket updated successfully',
       });
     } catch (error) {
-      console.error('Error updating support ticket:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to update support ticket',

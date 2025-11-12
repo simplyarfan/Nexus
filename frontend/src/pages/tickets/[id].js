@@ -37,7 +37,6 @@ export default function TicketDetailPage() {
       const data = await get(`/api/tickets/${id}`);
       setTicket(data.ticket);
     } catch (error) {
-      console.error('Failed to fetch ticket:', error);
       toast.error('Failed to load ticket');
     }
   };
@@ -53,7 +52,6 @@ export default function TicketDetailPage() {
       setComment('');
       fetchTicket(); // Refresh ticket data
     } catch (error) {
-      console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');
     } finally {
       setSubmitting(false);

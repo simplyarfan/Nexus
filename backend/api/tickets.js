@@ -6,7 +6,14 @@
  */
 
 const { withProtectedRoute } = require('../middleware/serverless');
-const { getUserTickets, createTicket, getTicketById, updateTicket, deleteTicket, addComment } = require('../services/tickets.service');
+const {
+  getUserTickets,
+  createTicket,
+  getTicketById,
+  updateTicket,
+  deleteTicket,
+  addComment,
+} = require('../services/tickets.service');
 
 async function handler(req, res) {
   const { method } = req;
@@ -21,7 +28,9 @@ async function handler(req, res) {
       return res.status(200).json({ success: true, data: result });
     } catch (error) {
       const statusCode = error.statusCode || 500;
-      return res.status(statusCode).json({ success: false, error: 'Failed to fetch tickets', message: error.message });
+      return res
+        .status(statusCode)
+        .json({ success: false, error: 'Failed to fetch tickets', message: error.message });
     }
   }
 
@@ -30,10 +39,14 @@ async function handler(req, res) {
     try {
       const { subject, description, priority, category } = req.body;
       const ticket = await createTicket(userId, { subject, description, priority, category });
-      return res.status(201).json({ success: true, message: 'Ticket created successfully', data: { ticket } });
+      return res
+        .status(201)
+        .json({ success: true, message: 'Ticket created successfully', data: { ticket } });
     } catch (error) {
       const statusCode = error.statusCode || 500;
-      return res.status(statusCode).json({ success: false, error: 'Failed to create ticket', message: error.message });
+      return res
+        .status(statusCode)
+        .json({ success: false, error: 'Failed to create ticket', message: error.message });
     }
   }
 
@@ -58,7 +71,9 @@ async function handler(req, res) {
       try {
         const updates = req.body;
         const ticket = await updateTicket(ticketId, userId, updates);
-        return res.status(200).json({ success: true, message: 'Ticket updated successfully', data: { ticket } });
+        return res
+          .status(200)
+          .json({ success: true, message: 'Ticket updated successfully', data: { ticket } });
       } catch (error) {
         const statusCode = error.statusCode || 500;
         return res.status(statusCode).json({ success: false, message: error.message });
@@ -81,7 +96,11 @@ async function handler(req, res) {
       try {
         const { comment, is_internal } = req.body;
         const newComment = await addComment(ticketId, userId, comment, is_internal);
-        return res.status(201).json({ success: true, message: 'Comment added successfully', data: { comment: newComment } });
+        return res.status(201).json({
+          success: true,
+          message: 'Comment added successfully',
+          data: { comment: newComment },
+        });
       } catch (error) {
         const statusCode = error.statusCode || 500;
         return res.status(statusCode).json({ success: false, message: error.message });

@@ -11,8 +11,6 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('🚨 Error Boundary caught an error:', error, errorInfo);
-
     this.setState({
       error: error,
       errorInfo: errorInfo,
@@ -21,11 +19,6 @@ class ErrorBoundary extends React.Component {
     // Log to external service in production
     if (process.env.NODE_ENV === 'production') {
       // TODO: Send to error reporting service
-      console.error('Production error:', {
-        error: error.toString(),
-        stack: error.stack,
-        componentStack: errorInfo?.componentStack || 'No stack trace available',
-      });
     }
   }
 

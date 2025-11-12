@@ -11,6 +11,10 @@ const authenticateToken = auth.authenticateToken;
 const { generalLimiter } = require('../middleware/rateLimiting');
 const fs = require('fs').promises;
 const path = require('path');
+const { sanitizeBasic } = require('../utils/sanitize');
+const InterviewCoordinatorService = require('../services/interview-coordinator.service');
+
+const interviewService = new InterviewCoordinatorService();
 
 // Configure multer for CV file uploads (memory storage)
 const upload = multer({
@@ -34,61 +38,100 @@ const upload = multer({
   },
 });
 
-// Load Interview Coordinator Service
-let InterviewCoordinatorService = null;
-try {
-  const InterviewCoordinatorServiceClass = require('../services/interview-coordinator.service');
-  InterviewCoordinatorService = new InterviewCoordinatorServiceClass();
-  console.log('✅ Interview Coordinator Service loaded successfully');
-} catch (error) {
-  console.error('❌ Failed to load Interview Coordinator Service:', error.message);
-}
-
 // Load Outlook Email Service
 let OutlookEmailService = null;
 try {
   const OutlookEmailServiceClass = require('../services/outlook-email.service.js');
   OutlookEmailService = new OutlookEmailServiceClass();
-  console.log('✅ Outlook Email Service loaded successfully');
 } catch (error) {
-  console.error('❌ Failed to load Outlook Email Service:', error.message);
-}
+      // Intentionally empty - error is handled by caller
+    }
 
 const router = express.Router();
 
 /**
- * GET /interviews - Get all interviews for the user
+ * @swagger
+ * /api/interview-coordinator/interviews:
+ *   get:
+ *     tags: [Interview Coordinator]
+ *     summary: Get all interviews
+ *     description: Retrieve paginated list of interviews for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: Interviews retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Interview'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/interviews', authenticateToken, generalLimiter, async (req, res) => {
   try {
-    console.log('📋 Getting interviews for user:', req.user.id);
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
     await database.connect();
 
-    // Try to query interviews directly (table should already exist from initializeTables)
-    const interviews = await database.all(
-      `
-      SELECT * FROM interviews 
-      WHERE scheduled_by = $1 
-      ORDER BY created_at DESC
-    `,
+    // Get total count
+    const countResult = await database.get(
+      'SELECT COUNT(*) as total FROM interviews WHERE scheduled_by = $1',
       [req.user.id],
     );
+    const total = countResult?.total || 0;
 
-    console.log('📋 Found interviews:', interviews?.length || 0);
+    // Get paginated interviews
+    const interviews = await database.all(
+      `
+      SELECT * FROM interviews
+      WHERE scheduled_by = $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+    `,
+      [req.user.id, parseInt(limit), offset],
+    );
+
+    const totalPages = Math.ceil(total / parseInt(limit));
 
     res.json({
       success: true,
       data: interviews || [],
+      pagination: {
+        currentPage: parseInt(page),
+        pageSize: parseInt(limit),
+        totalItems: total,
+        totalPages,
+        hasNextPage: parseInt(page) < totalPages,
+        hasPreviousPage: parseInt(page) > 1,
+      },
       message: 'Interviews retrieved successfully',
     });
   } catch (error) {
-    console.error('❌ Get interviews error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      userId: req.user?.id,
-    });
-
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve interviews',
@@ -99,7 +142,38 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
 });
 
 /**
- * GET /interview/:id - Get single interview details
+ * @swagger
+ * /api/interview-coordinator/interview/{id}:
+ *   get:
+ *     tags: [Interview Coordinator]
+ *     summary: Get interview details
+ *     description: Retrieve detailed information about a specific interview
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Interview ID
+ *     responses:
+ *       200:
+ *         description: Interview retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Interview'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Interview not found
  */
 router.get('/interview/:id', authenticateToken, async (req, res) => {
   try {
@@ -127,7 +201,6 @@ router.get('/interview/:id', authenticateToken, async (req, res) => {
       message: 'Interview retrieved successfully',
     });
   } catch (error) {
-    console.error('Get interview error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve interview',
@@ -137,13 +210,82 @@ router.get('/interview/:id', authenticateToken, async (req, res) => {
 });
 
 /**
- * POST /request-availability - Stage 1: Send availability request email
+ * @swagger
+ * /api/interview-coordinator/request-availability:
+ *   post:
+ *     tags: [Interview Coordinator]
+ *     summary: Request candidate availability
+ *     description: Send availability request email to candidate for interview scheduling
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - candidateName
+ *               - candidateEmail
+ *               - position
+ *             properties:
+ *               candidateId:
+ *                 type: string
+ *               candidateName:
+ *                 type: string
+ *                 example: John Doe
+ *               candidateEmail:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               position:
+ *                 type: string
+ *                 example: Senior Developer
+ *               googleFormLink:
+ *                 type: string
+ *                 format: uri
+ *               emailSubject:
+ *                 type: string
+ *               emailContent:
+ *                 type: string
+ *               ccEmails:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: email
+ *               bccEmails:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: email
+ *     responses:
+ *       200:
+ *         description: Availability request sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     interviewId:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       example: awaiting_response
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
  */
 router.post('/request-availability', authenticateToken, generalLimiter, async (req, res) => {
   try {
-    console.log('📧 Sending availability request for user:', req.user.id);
-
-    // Check if user has connected Google Calendar
     // Do not require Google Calendar for availability emails; just warn optionally elsewhere
 
     const {
@@ -174,9 +316,7 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
     }
 
     await database.connect();
-    console.log('✅ Database connected');
 
-    // Get user's Outlook tokens from database FIRST
     const user = await database.get(
       `
       SELECT outlook_access_token, outlook_email 
@@ -187,7 +327,6 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
     );
 
     if (!user || !user.outlook_access_token) {
-      console.log('⚠️ No Outlook token found');
       return res.status(400).json({
         success: false,
         message: 'Please connect your Outlook account first to send emails',
@@ -201,16 +340,6 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
     const generatedCandidateId =
       candidateId || `candidate_${candidateEmail.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
 
-    console.log('📝 Preparing to send email and create interview:', {
-      interviewId,
-      candidateId: generatedCandidateId,
-      candidateName,
-      candidateEmail,
-      position,
-      userId: req.user.id,
-    });
-
-    // Send email FIRST using OutlookEmailService
     try {
       // Use the proper email service which handles token refresh
       await OutlookEmailService.sendAvailabilityRequest(req.user.id, candidateEmail, {
@@ -223,9 +352,6 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
         bccEmails: bccEmails || [],
       });
 
-      console.log('✅ Email sent successfully via Outlook');
-
-      // NOW create the interview record AFTER email is sent
       await database.run(
         `
         INSERT INTO interviews (
@@ -245,17 +371,12 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
         ],
       );
 
-      console.log('✅ Interview record created after successful email');
-
       res.json({
         success: true,
         data: { interviewId, status: 'awaiting_response' },
         message: 'Availability request sent successfully!',
       });
     } catch (emailError) {
-      console.error('❌ Email sending failed:', emailError.response?.data || emailError.message);
-
-      // Don't create interview if email fails
       return res.status(500).json({
         success: false,
         message: 'Failed to send email. Interview not created.',
@@ -263,16 +384,6 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
       });
     }
   } catch (error) {
-    console.error('❌ Request availability error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      detail: error.detail,
-      userId: req.user?.id,
-      body: req.body,
-    });
-
     res.status(500).json({
       success: false,
       message: 'Failed to send availability request',
@@ -289,8 +400,80 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
 });
 
 /**
- * POST /schedule-interview - Stage 2: Schedule interview with specific time
- * Now accepts multipart/form-data with optional CV file
+ * @swagger
+ * /api/interview-coordinator/schedule-interview:
+ *   post:
+ *     tags: [Interview Coordinator]
+ *     summary: Schedule interview
+ *     description: Schedule an interview with specific time, create calendar event, and send confirmation
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - candidateName
+ *               - candidateEmail
+ *               - position
+ *               - interviewDate
+ *               - interviewTime
+ *             properties:
+ *               candidateId:
+ *                 type: string
+ *               candidateName:
+ *                 type: string
+ *                 example: John Doe
+ *               candidateEmail:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               position:
+ *                 type: string
+ *                 example: Senior Developer
+ *               interviewDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-02-15"
+ *               interviewTime:
+ *                 type: string
+ *                 example: "14:00"
+ *               duration:
+ *                 type: integer
+ *                 example: 60
+ *               meetingLink:
+ *                 type: string
+ *                 format: uri
+ *               cvFile:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Interview scheduled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     interviewId:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       example: scheduled
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
  */
 router.post(
   '/schedule-interview',
@@ -299,9 +482,10 @@ router.post(
   upload.single('cvFile'),
   async (req, res) => {
     try {
-      console.log('📅 Scheduling interview for user:', req.user.id);
+      let { interviewId, interviewType, scheduledTime, duration, platform, notes } = req.body;
 
-      const { interviewId, interviewType, scheduledTime, duration, platform, notes } = req.body;
+      // SECURITY: Sanitize text inputs
+      notes = sanitizeBasic(notes);
 
       // Parse ccEmails and bccEmails if they are JSON strings (from FormData)
       let ccEmails = req.body.ccEmails;
@@ -359,9 +543,6 @@ router.post(
       }
 
       try {
-        console.log('🎥 Creating real Teams meeting...');
-
-        // Calculate meeting end time
         const startTime = new Date(scheduledTime);
         const endTime = new Date(startTime.getTime() + (duration || 60) * 60000);
 
@@ -380,15 +561,7 @@ router.post(
 
         meetingLink = teamsResult.joinUrl;
         teamsMeetingId = teamsResult.meetingId;
-
-        console.log(
-          '✅ Real Teams meeting created with',
-          allParticipants.length,
-          'participants:',
-          meetingLink,
-        );
       } catch (error) {
-        console.error('❌ Failed to create Teams meeting:', error.message);
         return res.status(500).json({
           success: false,
           message: 'Failed to create Teams meeting. Please ensure Outlook is connected.',
@@ -427,8 +600,8 @@ router.post(
 
       // Generate ICS calendar file
       let icsContent = null;
-      if (InterviewCoordinatorService) {
-        icsContent = InterviewCoordinatorService.generateICSInvite({
+      if (interviewService) {
+        icsContent = interviewService.generateICSInvite({
           id: interviewId,
           candidateName: interview.candidate_name,
           candidateEmail: interview.candidate_email,
@@ -451,9 +624,7 @@ router.post(
           const filename = `cv_${interviewId}_${Date.now()}_${req.file.originalname}`;
           cvFilePath = path.join(uploadsDir, filename);
           await fs.writeFile(cvFilePath, req.file.buffer);
-          console.log('✅ CV file saved:', cvFilePath);
 
-          // Update interview with CV file path
           await database.run(
             `
           UPDATE interviews 
@@ -463,9 +634,8 @@ router.post(
             [cvFilePath, interviewId],
           );
         } catch (error) {
-          console.error('❌ Failed to save CV file:', error.message);
-          // Don't fail the request if CV save fails
-        }
+      // Intentionally empty - error is handled by caller
+    }
       }
 
       // Send confirmation email with calendar invite and CV attachment
@@ -495,10 +665,9 @@ router.post(
             cvFilename,
           );
           emailSent = true;
-          console.log('✅ Interview confirmation email sent successfully with CV attachment');
         } catch (error) {
-          console.error('❌ Failed to send email:', error.message);
-        }
+      // Intentionally empty - error is handled by caller
+    }
       }
 
       res.json({
@@ -515,7 +684,6 @@ router.post(
         message: 'Interview scheduled successfully',
       });
     } catch (error) {
-      console.error('Schedule interview error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to schedule interview',
@@ -527,6 +695,68 @@ router.post(
 
 /**
  * PUT /interview/:id/reschedule - Reschedule an interview
+ */
+/**
+ * @swagger
+ * /api/interview-coordinator/interview/{id}/reschedule:
+ *   put:
+ *     tags: [Interview Coordinator]
+ *     summary: Reschedule interview
+ *     description: Update interview date and time, update calendar event, and send notifications
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Interview ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - interviewDate
+ *               - interviewTime
+ *             properties:
+ *               interviewDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-02-20"
+ *               interviewTime:
+ *                 type: string
+ *                 example: "15:00"
+ *               duration:
+ *                 type: integer
+ *                 example: 60
+ *               meetingLink:
+ *                 type: string
+ *                 format: uri
+ *     responses:
+ *       200:
+ *         description: Interview rescheduled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Interview rescheduled successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Interview not found
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
  */
 router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async (req, res) => {
   try {
@@ -579,8 +809,8 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
       try {
         // Generate new ICS file
         let icsContent = null;
-        if (InterviewCoordinatorService) {
-          icsContent = InterviewCoordinatorService.generateICSInvite({
+        if (interviewService) {
+          icsContent = interviewService.generateICSInvite({
             id: interview.id,
             candidateName: interview.candidate_name,
             candidateEmail: interview.candidate_email,
@@ -617,11 +847,9 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
           },
           icsContent,
         );
-        console.log('✅ Reschedule notification sent');
       } catch (error) {
-        console.error('⚠️  Failed to send reschedule notification:', error.message);
-        // Don't fail the request if email fails
-      }
+      // Intentionally empty - error is handled by caller
+    }
     }
 
     res.json({
@@ -634,7 +862,6 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
       },
     });
   } catch (error) {
-    console.error('Reschedule interview error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to reschedule interview',
@@ -645,6 +872,56 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
 
 /**
  * PUT /interview/:id/status - Update interview status (scheduled/completed/selected/rejected)
+ */
+/**
+ * @swagger
+ * /api/interview-coordinator/interview/{id}/status:
+ *   put:
+ *     tags: [Interview Coordinator]
+ *     summary: Update interview status
+ *     description: Update the status of an interview (e.g., completed, cancelled)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Interview ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [scheduled, awaiting_response, completed, cancelled]
+ *                 example: completed
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Interview status updated successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Interview not found
  */
 router.put('/interview/:id/status', authenticateToken, async (req, res) => {
   try {
@@ -710,7 +987,6 @@ router.put('/interview/:id/status', authenticateToken, async (req, res) => {
       message: 'Interview status updated successfully',
     });
   } catch (error) {
-    console.error('Update status error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update interview status',
@@ -752,8 +1028,8 @@ router.get('/calendar/:id/ics', authenticateToken, async (req, res) => {
       });
     }
 
-    const icsContent = InterviewCoordinatorService
-      ? InterviewCoordinatorService.generateICSInvite({
+    const icsContent = interviewService
+      ? interviewService.generateICSInvite({
           id: interview.id,
           candidateName: interview.candidate_name,
           candidateEmail: interview.candidate_email,
@@ -786,7 +1062,6 @@ router.get('/calendar/:id/ics', authenticateToken, async (req, res) => {
     );
     res.send(icsContent);
   } catch (error) {
-    console.error('Generate ICS error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to generate calendar file',
@@ -831,7 +1106,6 @@ Best regards,
       message: 'Email template retrieved successfully',
     });
   } catch (error) {
-    console.error('Get email template error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get email template',
@@ -875,7 +1149,6 @@ Best regards,
       message: 'Email template retrieved successfully',
     });
   } catch (error) {
-    console.error('Get email template error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get email template',
@@ -889,15 +1162,47 @@ Best regards,
 /**
  * DELETE /interview/:id - Delete an interview
  */
+/**
+ * @swagger
+ * /api/interview-coordinator/interview/{id}:
+ *   delete:
+ *     tags: [Interview Coordinator]
+ *     summary: Delete interview
+ *     description: Cancel and delete an interview, remove calendar event, and notify candidate
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Interview ID
+ *     responses:
+ *       200:
+ *         description: Interview deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Interview cancelled and deleted successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Interview not found
+ */
 router.delete('/interview/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🗑️ Delete request for interview:', id, 'by user:', req.user?.id);
 
     await database.connect();
-    console.log('✅ Database connected for delete');
 
-    // Verify the interview belongs to the user
     const interview = await database.get(
       `
       SELECT * FROM interviews 
@@ -906,41 +1211,31 @@ router.delete('/interview/:id', authenticateToken, async (req, res) => {
       [id, req.user.id],
     );
 
-    console.log('📋 Interview found:', !!interview);
-
     if (!interview) {
-      console.log('❌ Interview not found or permission denied');
       return res.status(404).json({
         success: false,
         message: 'Interview not found or you do not have permission to delete it',
       });
     }
 
-    // Delete the interview
-    console.log('🗑️ Deleting interview...');
-    await database.run(
-      `
-      DELETE FROM interviews WHERE id = $1
-    `,
-      [id],
-    );
+    // Cancel Teams meeting if it exists
+    if (interview.teams_meeting_id && OutlookEmailService) {
+      try {
+        await OutlookEmailService.cancelTeamsMeeting(req.user.id, interview.teams_meeting_id);
+      } catch (error) {
+      // Intentionally empty - error is handled by caller
+    }
+    }
 
-    console.log('✅ Interview deleted successfully');
+    // Delete the interview
+
+    await database.run(`DELETE FROM interviews WHERE id = $1`, [id]);
 
     res.json({
       success: true,
-      message: 'Interview deleted successfully',
+      message: 'Interview and Teams meeting cancelled successfully',
     });
   } catch (error) {
-    console.error('❌ Delete interview error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      userId: req.user?.id,
-      interviewId: req.params.id,
-    });
-
     res.status(500).json({
       success: false,
       message: 'Failed to delete interview',

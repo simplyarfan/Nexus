@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   // Development logging helper
   const isDev = process.env.NODE_ENV === 'development';
   const log = (message, data) => {
-    if (isDev) console.log(message, data);
+    // Logging disabled
   };
 
   // Helper function to get auth headers
@@ -106,7 +106,6 @@ export const AuthProvider = ({ children }) => {
       log('✅ Auth check completed');
     } catch (error) {
       // Network error - don't log user out, keep existing session
-      if (isDev) console.error('❌ Auth check network error (keeping session):', error);
       // Don't clear tokens on network errors - user stays logged in
     } finally {
       setLoading(false);
@@ -141,7 +140,6 @@ export const AuthProvider = ({ children }) => {
         if (!response.ok) {
           // Backend returned an error (4xx or 5xx)
           const errorMessage = data.message || data.error || 'Registration failed';
-          console.error('❌ [REGISTER] Backend error:', errorMessage);
           toast.error(errorMessage);
           throw new Error(errorMessage);
         }
@@ -166,9 +164,6 @@ export const AuthProvider = ({ children }) => {
 
           if (accessToken && userData) {
             tokenManager.setTokens(accessToken, refreshToken);
-            console.log('🍪 [LOGIN] Tokens set in cookies');
-            console.log('🔑 [LOGIN] Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'MISSING');
-            console.log('🔄 [LOGIN] Refresh Token:', refreshToken ? refreshToken.substring(0, 30) + '...' : 'MISSING');
             setUser(userData);
             setIsAuthenticated(true);
             toast.success(data.message || 'Registration successful! You are now logged in.');
@@ -191,7 +186,6 @@ export const AuthProvider = ({ children }) => {
         // Fallback: data.success was false or missing
         throw new Error(data.message || 'Registration failed');
       } catch (err) {
-        console.error('❌ Registration error:', err);
         const errorMessage = err.message || 'Registration failed';
         // Don't show duplicate toast - already shown above
         if (!err.message || err.message === 'Registration failed') {
@@ -264,9 +258,6 @@ export const AuthProvider = ({ children }) => {
           const refreshToken = data.refreshToken;
           if (accessToken) {
             tokenManager.setTokens(accessToken, refreshToken);
-            console.log('🍪 [LOGIN] Tokens set in cookies');
-            console.log('🔑 [LOGIN] Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'MISSING');
-            console.log('🔄 [LOGIN] Refresh Token:', refreshToken ? refreshToken.substring(0, 30) + '...' : 'MISSING');
           }
 
           // Update state with user data
@@ -281,8 +272,6 @@ export const AuthProvider = ({ children }) => {
 
         throw new Error(data.message || 'Authentication failed');
       } catch (error) {
-        console.error('❌ Login error:', error);
-
         // Check if this is a verification error (don't show error toast, just return result)
         if (error.response?.data?.requiresVerification) {
           return {
@@ -324,7 +313,6 @@ export const AuthProvider = ({ children }) => {
           throw new Error(data.message || 'Email verification failed');
         }
       } catch (error) {
-        console.error('❌ Email verification error:', error);
         const errorMessage = error.message || 'Email verification failed';
         toast.error(errorMessage);
         return { success: false, error: errorMessage };
@@ -354,7 +342,6 @@ export const AuthProvider = ({ children }) => {
           throw new Error(data.message || 'Failed to resend verification email');
         }
       } catch (error) {
-        console.error('❌ Resend verification error:', error);
         const errorMessage = error.message || 'Failed to resend verification email';
         toast.error(errorMessage);
         return { success: false, error: errorMessage };
@@ -380,7 +367,7 @@ export const AuthProvider = ({ children }) => {
 
         toast.success(logoutAll ? 'Logged out from all devices' : 'Logged out successfully');
       } catch (error) {
-        console.error('❌ Logout error:', error);
+        // Silent failure
       } finally {
         // Clear tokens and state regardless of API call success
         tokenManager.clearTokens();
@@ -394,6 +381,33 @@ export const AuthProvider = ({ children }) => {
   const updateUser = useCallback((userData) => {
     setUser(userData);
   }, []);
+
+  // Role checking helpers
+  const isSuperAdmin = useMemo(() => {
+    return user?.role === 'superadmin';
+  }, [user]);
+
+  const isAdmin = useMemo(() => {
+    return user?.role === 'admin';
+  }, [user]);
+
+  const isUser = useMemo(() => {
+    return user?.role === 'user';
+  }, [user]);
+
+  const hasRole = useCallback(
+    (roles) => {
+      if (!user) return false;
+      const roleArray = Array.isArray(roles) ? roles : [roles];
+      return roleArray.includes(user.role);
+    },
+    [user],
+  );
+
+  // Check if user has department assigned
+  const hasDepartment = useMemo(() => {
+    return Boolean(user?.department);
+  }, [user]);
 
   // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(
@@ -409,6 +423,11 @@ export const AuthProvider = ({ children }) => {
       checkAuthStatus,
       updateUser,
       getAuthHeaders,
+      isSuperAdmin,
+      isAdmin,
+      isUser,
+      hasRole,
+      hasDepartment,
     }),
     [
       user,
@@ -422,6 +441,11 @@ export const AuthProvider = ({ children }) => {
       checkAuthStatus,
       updateUser,
       getAuthHeaders,
+      isSuperAdmin,
+      isAdmin,
+      isUser,
+      hasRole,
+      hasDepartment,
     ],
   );
 

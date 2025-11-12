@@ -2,20 +2,77 @@ const express = require('express');
 const router = express.Router();
 const { prisma } = require('../lib/prisma');
 const { authenticateToken } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/roleCheck');
+const { sanitizeFields, sanitizeStrict, sanitizeRich } = require('../utils/sanitize');
 
 /**
- * GET /api/tickets
- * List all tickets for the authenticated user
+ * @swagger
+ * /api/tickets:
+ *   get:
+ *     tags: [Support Tickets]
+ *     summary: Get all support tickets
+ *     description: Retrieve paginated list of support tickets for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [open, in_progress, resolved, closed]
+ *         description: Filter by ticket status
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: [low, medium, high, urgent]
+ *         description: Filter by priority
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: Tickets retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     tickets:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Ticket'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { user } = req;
     const { status, priority, page = 1, limit = 50 } = req.query;
 
-    // Build filter
-    const where = {
-      user_id: user.id,
-    };
+    // Build filter - admin/superadmin see all tickets, users see only their own
+    const where = {};
+
+    if (!['admin', 'superadmin'].includes(user.role)) {
+      where.user_id = user.id;
+    }
 
     if (status) {
       where.status = status;
@@ -86,7 +143,6 @@ router.get('/', authenticateToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching tickets:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch tickets',
@@ -96,76 +152,172 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 /**
- * POST /api/tickets
- * Create a new ticket
+ * @swagger
+ * /api/tickets:
+ *   post:
+ *     tags: [Support Tickets]
+ *     summary: Create new support ticket
+ *     description: Create a new support ticket with subject, description, and priority
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - subject
+ *               - description
+ *             properties:
+ *               subject:
+ *                 type: string
+ *                 example: Unable to upload CV files
+ *               description:
+ *                 type: string
+ *                 example: I'm getting an error when trying to upload PDF files larger than 5MB
+ *               priority:
+ *                 type: string
+ *                 enum: [low, medium, high, urgent]
+ *                 default: medium
+ *                 example: high
+ *               category:
+ *                 type: string
+ *                 example: Technical Issue
+ *     responses:
+ *       201:
+ *         description: Ticket created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     ticket:
+ *                       $ref: '#/components/schemas/Ticket'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const { user } = req;
-    const { subject, description, priority = 'medium', category } = req.body;
+router.post(
+  '/',
+  authenticateToken,
+  sanitizeFields(['subject', 'category'], sanitizeStrict), // Strict for titles
+  async (req, res) => {
+    try {
+      const { user } = req;
+      let { subject, description, priority = 'medium', category } = req.body;
 
-    // Validation
-    if (!subject || !description) {
-      return res.status(400).json({
-        success: false,
-        error: 'Subject and description are required',
-      });
-    }
+      // SECURITY: Sanitize description with rich formatting (allows safe HTML)
+      description = sanitizeRich(description);
 
-    if (!['low', 'medium', 'high', 'urgent'].includes(priority)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid priority. Must be: low, medium, high, or urgent',
-      });
-    }
+      // Validation
+      if (!subject || !description) {
+        return res.status(400).json({
+          success: false,
+          error: 'Subject and description are required',
+        });
+      }
 
-    // Create ticket with transaction
-    const ticket = await prisma.$transaction(async (tx) => {
-      const newTicket = await tx.supportTicket.create({
-        data: {
-          user_id: user.id,
-          subject: subject.trim(),
-          description: description.trim(),
-          priority,
-          category: category ? category.trim() : null,
-          status: 'open',
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              first_name: true,
-              last_name: true,
-              role: true,
+      if (!['low', 'medium', 'high', 'urgent'].includes(priority)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid priority. Must be: low, medium, high, or urgent',
+        });
+      }
+
+      // Create ticket with transaction
+      const ticket = await prisma.$transaction(async (tx) => {
+        const newTicket = await tx.supportTicket.create({
+          data: {
+            user_id: user.id,
+            subject: subject.trim(),
+            description: description.trim(),
+            priority,
+            category: category ? category.trim() : null,
+            status: 'open',
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                role: true,
+              },
             },
           },
-        },
+        });
+
+        return newTicket;
       });
 
-      return newTicket;
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Ticket created successfully',
-      data: {
-        ticket: ticket,
-      },
-    });
-  } catch (error) {
-    console.error('Error creating ticket:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create ticket',
-      message: error.message,
-    });
-  }
-});
+      res.status(201).json({
+        success: true,
+        message: 'Ticket created successfully',
+        data: {
+          ticket: ticket,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create ticket',
+        message: error.message,
+      });
+    }
+  },
+);
 
 /**
- * GET /api/tickets/:id
- * Get ticket details with all comments
+ * @swagger
+ * /api/tickets/{id}:
+ *   get:
+ *     tags: [Support Tickets]
+ *     summary: Get ticket details
+ *     description: Retrieve detailed information about a specific ticket including all comments
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Ticket ID
+ *     responses:
+ *       200:
+ *         description: Ticket details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     ticket:
+ *                       $ref: '#/components/schemas/Ticket'
+ *                     comments:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/TicketComment'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Ticket not found
  */
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -216,8 +368,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
         return null;
       }
 
-      // Check if user owns the ticket or is admin/support
-      if (ticket.user_id !== user.id && !['admin', 'support'].includes(user.role)) {
+      // Check if user owns the ticket or is admin/superadmin
+      if (ticket.user_id !== user.id && !['admin', 'superadmin'].includes(user.role)) {
         return { forbidden: true };
       }
 
@@ -269,7 +421,6 @@ router.get('/:id', authenticateToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching ticket:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch ticket',
@@ -279,14 +430,220 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 /**
- * POST /api/tickets/:id/comments
- * Add a comment to a ticket
+ * @swagger
+ * /api/tickets/{id}/comments:
+ *   post:
+ *     tags: [Support Tickets]
+ *     summary: Add comment to ticket
+ *     description: Add a new comment to an existing support ticket
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Ticket ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - comment
+ *             properties:
+ *               comment:
+ *                 type: string
+ *                 example: I've tried using smaller files and it works. The issue only occurs with files larger than 5MB.
+ *               is_internal:
+ *                 type: boolean
+ *                 default: false
+ *                 description: Internal comments are only visible to admin/support (requires admin/support role)
+ *     responses:
+ *       201:
+ *         description: Comment added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     comment:
+ *                       $ref: '#/components/schemas/TicketComment'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Ticket not found
  */
-router.post('/:id/comments', authenticateToken, async (req, res) => {
+router.post(
+  '/:id/comments',
+  authenticateToken,
+  sanitizeFields(['comment'], sanitizeRich), // Allow safe formatting in comments
+  async (req, res) => {
+    try {
+      const { user } = req;
+      const ticketId = parseInt(req.params.id);
+      const { comment, is_internal = false } = req.body;
+
+      if (isNaN(ticketId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid ticket ID',
+        });
+      }
+
+      if (!comment || comment.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Comment cannot be empty',
+        });
+      }
+
+      // Only admin/superadmin can create internal comments
+      const isInternalComment = is_internal && ['admin', 'superadmin'].includes(user.role);
+
+      // Use transaction for atomicity
+      const result = await prisma.$transaction(async (tx) => {
+        // Verify ticket exists and user has access
+        const ticket = await tx.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+
+        if (!ticket) {
+          return { notFound: true };
+        }
+
+        if (ticket.user_id !== user.id && !['admin', 'superadmin'].includes(user.role)) {
+          return { forbidden: true };
+        }
+
+        // Create comment
+        const newComment = await tx.ticketComment.create({
+          data: {
+            ticket_id: ticketId,
+            user_id: user.id,
+            comment: comment.trim(),
+            is_internal: isInternalComment,
+          },
+        });
+
+        // Update ticket timestamp
+        await tx.supportTicket.update({
+          where: { id: ticketId },
+          data: {
+            updated_at: new Date(),
+          },
+        });
+
+        // Fetch comment with user info
+        const commentWithUser = await tx.ticketComment.findUnique({
+          where: { id: newComment.id },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                role: true,
+              },
+            },
+          },
+        });
+
+        return commentWithUser;
+      });
+
+      if (result.notFound) {
+        return res.status(404).json({
+          success: false,
+          error: 'Ticket not found',
+        });
+      }
+
+      if (result.forbidden) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to comment on this ticket',
+        });
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Comment added successfully',
+        data: {
+          comment: {
+            id: result.id,
+            ticket_id: result.ticket_id,
+            user_id: result.user_id,
+            comment: result.comment,
+            is_internal: result.is_internal,
+            created_at: result.created_at,
+            first_name: result.user.first_name,
+            last_name: result.user.last_name,
+            email: result.user.email,
+            role: result.user.role,
+          },
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to add comment',
+        message: error.message,
+      });
+    }
+  },
+);
+
+/**
+ * @swagger
+ * /api/tickets/{id}/resolve:
+ *   patch:
+ *     tags: [Support Tickets]
+ *     summary: Resolve ticket
+ *     description: Mark ticket as resolved (admin/superadmin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Ticket ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               resolution:
+ *                 type: string
+ *                 description: Resolution notes
+ *     responses:
+ *       200:
+ *         description: Ticket resolved successfully
+ *       403:
+ *         description: Insufficient permissions
+ *       404:
+ *         description: Ticket not found
+ */
+router.patch('/:id/resolve', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { user } = req;
     const ticketId = parseInt(req.params.id);
-    const { comment, is_internal = false } = req.body;
+    const { resolution } = req.body;
 
     if (isNaN(ticketId)) {
       return res.status(400).json({
@@ -295,105 +652,133 @@ router.post('/:id/comments', authenticateToken, async (req, res) => {
       });
     }
 
-    if (!comment || comment.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Comment cannot be empty',
-      });
-    }
-
-    // Only admin/support can create internal comments
-    const isInternalComment = is_internal && ['admin', 'support'].includes(user.role);
-
-    // Use transaction for atomicity
-    const result = await prisma.$transaction(async (tx) => {
-      // Verify ticket exists and user has access
-      const ticket = await tx.supportTicket.findUnique({
-        where: { id: ticketId },
-      });
-
-      if (!ticket) {
-        return { notFound: true };
-      }
-
-      if (ticket.user_id !== user.id && !['admin', 'support'].includes(user.role)) {
-        return { forbidden: true };
-      }
-
-      // Create comment
-      const newComment = await tx.ticketComment.create({
-        data: {
-          ticket_id: ticketId,
-          user_id: user.id,
-          comment: comment.trim(),
-          is_internal: isInternalComment,
-        },
-      });
-
-      // Update ticket timestamp
-      await tx.supportTicket.update({
-        where: { id: ticketId },
-        data: {
-          updated_at: new Date(),
-        },
-      });
-
-      // Fetch comment with user info
-      const commentWithUser = await tx.ticketComment.findUnique({
-        where: { id: newComment.id },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              first_name: true,
-              last_name: true,
-              role: true,
-            },
+    const ticket = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: {
+        status: 'resolved',
+        resolution: resolution || null,
+        resolved_at: new Date(),
+        updated_at: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            first_name: true,
+            last_name: true,
           },
         },
-      });
-
-      return commentWithUser;
+      },
     });
 
-    if (result.notFound) {
+    res.json({
+      success: true,
+      message: 'Ticket resolved successfully',
+      data: { ticket },
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
       return res.status(404).json({
         success: false,
         error: 'Ticket not found',
       });
     }
+    res.status(500).json({
+      success: false,
+      error: 'Failed to resolve ticket',
+      message: error.message,
+    });
+  }
+});
 
-    if (result.forbidden) {
-      return res.status(403).json({
+/**
+ * @swagger
+ * /api/tickets/{id}/status:
+ *   patch:
+ *     tags: [Support Tickets]
+ *     summary: Update ticket status
+ *     description: Update ticket status (admin/superadmin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Ticket ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [open, in_progress, resolved, closed]
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *       400:
+ *         description: Invalid status
+ *       403:
+ *         description: Insufficient permissions
+ *       404:
+ *         description: Ticket not found
+ */
+router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const ticketId = parseInt(req.params.id);
+    const { status } = req.body;
+
+    if (isNaN(ticketId)) {
+      return res.status(400).json({
         success: false,
-        error: 'You do not have permission to comment on this ticket',
+        error: 'Invalid ticket ID',
       });
     }
 
-    res.status(201).json({
+    if (!['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status. Must be: open, in_progress, resolved, or closed',
+      });
+    }
+
+    const updateData = {
+      status,
+      updated_at: new Date(),
+    };
+
+    // If resolving, set resolved_at
+    if (status === 'resolved') {
+      updateData.resolved_at = new Date();
+    }
+
+    const ticket = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: updateData,
+    });
+
+    res.json({
       success: true,
-      message: 'Comment added successfully',
-      data: {
-        comment: {
-          id: result.id,
-          ticket_id: result.ticket_id,
-          user_id: result.user_id,
-          comment: result.comment,
-          is_internal: result.is_internal,
-          created_at: result.created_at,
-          first_name: result.user.first_name,
-          last_name: result.user.last_name,
-          email: result.user.email,
-          role: result.user.role,
-        },
-      },
+      message: 'Ticket status updated successfully',
+      data: { ticket },
     });
   } catch (error) {
-    console.error('Error adding comment:', error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({
+        success: false,
+        error: 'Ticket not found',
+      });
+    }
     res.status(500).json({
       success: false,
-      error: 'Failed to add comment',
+      error: 'Failed to update ticket status',
       message: error.message,
     });
   }

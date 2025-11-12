@@ -1,18 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
+import { useAuth } from '../../contexts/AuthContext';
+import { usersAPI } from '../../utils/usersAPI';
+import toast from 'react-hot-toast';
 
 export default function UserManagement() {
   const router = useRouter();
+  const { user, isAdmin, isSuperAdmin, loading: authLoading } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [filterDepartment, setFilterDepartment] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading] = useState(false);
-  const [errors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0 });
 
   const [formData, setFormData] = useState({
     email: '',
@@ -24,62 +31,201 @@ export default function UserManagement() {
     role: 'user',
   });
 
-  // Mock data - replace with API call
-  const users = [
-    {
-      id: 1,
-      first_name: 'John',
-      last_name: 'Doe',
-      email: 'john@example.com',
-      role: 'admin',
-      department: 'IT',
-      job_title: 'Developer',
-      status: 'active',
-    },
-    {
-      id: 2,
-      first_name: 'Jane',
-      last_name: 'Smith',
-      email: 'jane@example.com',
-      role: 'user',
-      department: 'Human Resources',
-      job_title: 'HR Manager',
-      status: 'active',
-    },
-    {
-      id: 3,
-      first_name: 'Bob',
-      last_name: 'Johnson',
-      email: 'bob@example.com',
-      role: 'user',
-      department: 'Finance',
-      job_title: 'Accountant',
-      status: 'active',
-    },
-  ];
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    return matchesSearch && matchesRole;
+  const [passwordData, setPasswordData] = useState({
+    new_password: '',
+    confirm_password: '',
   });
 
-  const openEditModal = (user) => {
-    setSelectedUser(user);
+  // Role check
+  useEffect(() => {
+    if (!authLoading && user && !isAdmin && !isSuperAdmin) {
+      router.replace('/');
+    }
+  }, [user, isAdmin, isSuperAdmin, authLoading, router]);
+
+  // Fetch users
+  useEffect(() => {
+    if (isAdmin || isSuperAdmin) {
+      fetchUsers();
+    }
+  }, [isAdmin, isSuperAdmin, pagination.page, filterRole, filterDepartment]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+      };
+
+      if (filterRole !== 'all') params.role = filterRole;
+      if (filterDepartment !== 'all') params.department = filterDepartment;
+      if (searchTerm) params.search = searchTerm;
+
+      const result = await usersAPI.getUsers(params);
+      setUsers(result.data.users);
+      setPagination((prev) => ({ ...prev, ...result.data.pagination }));
+    } catch (error) {
+      toast.error('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchUsers();
+  };
+
+  const openAddModal = () => {
     setFormData({
-      email: user.email,
+      email: '',
       password: '',
-      first_name: user.first_name,
-      last_name: user.last_name,
-      department: user.department || '',
-      job_title: user.job_title || '',
-      role: user.role,
+      first_name: '',
+      last_name: '',
+      department: '',
+      job_title: '',
+      role: 'user',
+    });
+    setShowAddModal(true);
+  };
+
+  const openEditModal = (userToEdit) => {
+    setSelectedUser(userToEdit);
+    setFormData({
+      email: userToEdit.email,
+      password: '',
+      first_name: userToEdit.first_name,
+      last_name: userToEdit.last_name,
+      department: userToEdit.department || '',
+      job_title: userToEdit.job_title || '',
+      role: userToEdit.role,
     });
     setShowEditModal(true);
   };
+
+  const openPasswordModal = (userToEdit) => {
+    setSelectedUser(userToEdit);
+    setPasswordData({ new_password: '', confirm_password: '' });
+    setShowPasswordModal(true);
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    if (!isSuperAdmin) {
+      toast.error('Only superadmins can create users');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await usersAPI.createUser(formData);
+      toast.success('User created successfully');
+      setShowAddModal(false);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to create user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const updateData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        department: formData.department,
+        job_title: formData.job_title,
+      };
+
+      // Only superadmin can change role
+      if (isSuperAdmin) {
+        updateData.role = formData.role;
+      }
+
+      await usersAPI.updateUser(selectedUser.id, updateData);
+      toast.success('User updated successfully');
+      setShowEditModal(false);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to update user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (!isSuperAdmin) {
+      toast.error('Only superadmins can change passwords');
+      return;
+    }
+
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await usersAPI.changePassword(selectedUser.id, passwordData.new_password);
+      toast.success('Password changed successfully');
+      setShowPasswordModal(false);
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to change password');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!isSuperAdmin) {
+      toast.error('Only superadmins can delete users');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await usersAPI.deleteUser(selectedUser.id);
+      toast.success('User deleted successfully');
+      setShowDeleteModal(false);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to delete user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getRoleBadgeColor = (role) => {
+    switch (role) {
+      case 'superadmin':
+        return 'bg-purple-100 text-purple-700';
+      case 'admin':
+        return 'bg-blue-100 text-blue-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  if (authLoading || (!isAdmin && !isSuperAdmin)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      u.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -89,7 +235,7 @@ export default function UserManagement() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => router.push('/superadmin')}
+                onClick={() => router.push(isSuperAdmin ? '/superadmin' : '/admin')}
                 className="p-2 hover:bg-green-50 rounded-lg transition-colors"
               >
                 <svg
@@ -111,20 +257,22 @@ export default function UserManagement() {
                 <p className="text-gray-600 mt-1">Manage users, roles, and permissions</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-500/90 transition-colors font-medium"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Add User
-            </button>
+            {isSuperAdmin && (
+              <button
+                onClick={openAddModal}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add User
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -132,7 +280,7 @@ export default function UserManagement() {
       <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Filters */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <svg
@@ -153,7 +301,7 @@ export default function UserManagement() {
                   placeholder="Search users by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-muted-foreground rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="pl-10 pr-4 py-3 w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -161,7 +309,7 @@ export default function UserManagement() {
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
               >
                 <option value="all">All Roles</option>
                 <option value="superadmin">Superadmin</option>
@@ -169,414 +317,432 @@ export default function UserManagement() {
                 <option value="user">User</option>
               </select>
             </div>
-          </div>
+            <div className="sm:w-48">
+              <select
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500"
+              >
+                <option value="all">All Departments</option>
+                <option value="Human Resources">Human Resources</option>
+                <option value="Finance">Finance</option>
+                <option value="Sales & Marketing">Sales & Marketing</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+            >
+              Search
+            </button>
+          </form>
         </div>
 
         {/* Users Table */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-gray-100/50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Department
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredUsers.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center text-gray-600">
-                        <svg
-                          className="w-16 h-16 mb-4 opacity-50"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                          />
-                        </svg>
-                        <p className="text-lg font-medium mb-1">No users found</p>
-                        <p className="text-sm">Try adjusting your filters or search criteria</p>
-                      </div>
-                    </td>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <motion.tr
-                      key={user.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="hover:bg-green-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
-                              <span className="text-sm font-medium text-white">
-                                {user.first_name?.[0]}
-                                {user.last_name?.[0]}
-                              </span>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-600">
+                          <p className="text-lg font-medium mb-1">No users found</p>
+                          <p className="text-sm">Try adjusting your filters or search criteria</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((u) => (
+                      <motion.tr
+                        key={u.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
+                                <span className="text-sm font-medium text-white">
+                                  {u.first_name?.[0]}
+                                  {u.last_name?.[0]}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {u.first_name} {u.last_name}
+                              </div>
+                              <div className="text-sm text-gray-600">{u.email}</div>
                             </div>
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.first_name} {user.last_name}
-                            </div>
-                            <div className="text-sm text-gray-600">{user.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' + getRoleBadgeColor(u.role)}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {u.department || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              (u.is_active
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700')}
+                          >
+                            {u.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEditModal(u)}
+                              className="text-blue-600 hover:text-blue-900"
+                            >
+                              Edit
+                            </button>
+                            {isSuperAdmin && (
+                              <>
+                                <span className="text-gray-300">|</span>
+                                <button
+                                  onClick={() => openPasswordModal(u)}
+                                  className="text-yellow-600 hover:text-yellow-900"
+                                >
+                                  Password
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <button
+                                  onClick={() => {
+                                    setSelectedUser(u);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            user.role === 'superadmin'
-                              ? 'bg-red-500/10 text-red-600'
-                              : user.role === 'admin'
-                                ? 'bg-green-50 text-green-900'
-                                : 'bg-green-500/10 text-green-600'
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="flex flex-col">
-                          <span className="font-medium">{user.department || 'Not assigned'}</span>
-                          {user.job_title && (
-                            <span className="text-xs text-gray-600">{user.job_title}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-600">
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 8 8">
-                            <circle cx="4" cy="4" r="3" />
-                          </svg>
-                          Active
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditModal(user)}
-                            className="p-2 text-green-600 hover:bg-green-500/10 rounded-lg transition-colors"
-                            title="Edit user"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowDeleteModal(true);
-                            }}
-                            className="p-2 text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Delete user"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                      </motion.tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Add User Modal */}
       <AnimatePresence>
         {showAddModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50"
-              onClick={() => setShowAddModal(false)}
-            />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              className="bg-white rounded-xl p-6 w-full max-w-md"
             >
-              <div
-                className="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md relative"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="absolute top-4 right-4 p-1.5 hover:bg-green-50 rounded-lg transition-colors"
-                  aria-label="Close"
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Add New User</h2>
+              <form onSubmit={handleCreateUser} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="First Name"
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    required
+                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last Name"
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    required
+                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
-                  <svg
-                    className="w-5 h-5 text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Superadmin</option>
+                </select>
+                <select
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">No Department</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Sales & Marketing">Sales & Marketing</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Job Title"
+                  value={formData.job_title}
+                  onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Add New User</h3>
-                <form className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        className={`w-full px-3 py-2.5 bg-gray-50 border rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent ${errors.first_name ? 'border-destructive' : 'border-gray-200'}`}
-                      />
-                      {errors.first_name && (
-                        <p className="text-sm text-red-600 mt-1">{errors.first_name}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        className={`w-full px-3 py-2.5 bg-gray-50 border rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent ${errors.last_name ? 'border-destructive' : 'border-gray-200'}`}
-                      />
-                      {errors.last_name && (
-                        <p className="text-sm text-red-600 mt-1">{errors.last_name}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">Email</label>
-                    <input
-                      type="email"
-                      required
-                      className={`w-full px-3 py-2.5 bg-gray-50 border rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent ${errors.email ? 'border-destructive' : 'border-gray-200'}`}
-                    />
-                    {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">Password</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        className={`w-full px-3 py-2.5 bg-gray-50 border rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent pr-10 ${errors.password ? 'border-destructive' : 'border-gray-200'}`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
-                      >
-                        {showPassword ? (
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-red-600 mt-1">{errors.password}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Department
-                    </label>
-                    <select className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent">
-                      <option value="">Select Department</option>
-                      <option value="IT">IT</option>
-                      <option value="Human Resources">Human Resources</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Sales & Marketing">Sales & Marketing</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Job Title
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2">Role</label>
-                    <select className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent">
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                      <option value="superadmin">Superadmin</option>
-                    </select>
-                  </div>
-                  <div className="flex justify-end gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="px-4 py-2.5 text-gray-900 hover:bg-green-50 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-500/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? 'Creating...' : 'Create User'}
-                    </button>
-                  </div>
-                </form>
-              </div>
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create User'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
-          </>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit User Modal */}
+      <AnimatePresence>
+        {showEditModal && selectedUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-xl p-6 w-full max-w-md"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Edit User</h2>
+              <form onSubmit={handleUpdateUser} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="First Name"
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    required
+                    disabled={!isSuperAdmin}
+                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last Name"
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    required
+                    disabled={!isSuperAdmin}
+                    className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                  />
+                </div>
+                <input
+                  type="email"
+                  value={formData.email}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-100"
+                />
+                {isSuperAdmin && (
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="superadmin">Superadmin</option>
+                  </select>
+                )}
+                <select
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">No Department</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Sales & Marketing">Sales & Marketing</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Job Title"
+                  value={formData.job_title}
+                  onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                  disabled={!isSuperAdmin}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                />
+                {!isSuperAdmin && (
+                  <p className="text-sm text-gray-600">
+                    As an admin, you can only change the department
+                  </p>
+                )}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Updating...' : 'Update User'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Change Password Modal */}
+      <AnimatePresence>
+        {showPasswordModal && selectedUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-xl p-6 w-full max-w-md"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Change Password</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Changing password for: <strong>{selectedUser.email}</strong>
+              </p>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  value={passwordData.new_password}
+                  onChange={(e) =>
+                    setPasswordData({ ...passwordData, new_password: e.target.value })
+                  }
+                  required
+                  minLength={8}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={passwordData.confirm_password}
+                  onChange={(e) =>
+                    setPasswordData({ ...passwordData, confirm_password: e.target.value })
+                  }
+                  required
+                  minLength={8}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {showDeleteModal && selectedUser && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50"
-              onClick={() => setShowDeleteModal(false)}
-            />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              className="bg-white rounded-xl p-6 w-full max-w-md"
             >
-              <div
-                className="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md relative"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Delete User</h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete <strong>{selectedUser.email}</strong>? This action
+                cannot be undone.
+              </p>
+              <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setShowDeleteModal(false)}
-                  className="absolute top-4 right-4 p-1.5 hover:bg-green-50 rounded-lg transition-colors"
-                  aria-label="Close"
+                  className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
-                  <svg
-                    className="w-5 h-5 text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  Cancel
                 </button>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Delete User</h3>
-                <p className="text-gray-600 mb-6">
-                  Are you sure you want to delete{' '}
-                  <strong className="text-gray-900">
-                    {selectedUser.first_name} {selectedUser.last_name}
-                  </strong>
-                  ? This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="px-4 py-2.5 text-gray-900 hover:bg-green-50 rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-500/90 transition-colors font-medium"
-                  >
-                    Delete User
-                  </button>
-                </div>
+                <button
+                  onClick={handleDeleteUser}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </div>

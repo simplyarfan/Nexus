@@ -1,2 +1,5 @@
-/api/* https://thesimpleai.vercel.app/api/:splat 200
+# API proxy to backend (update with your backend URL)
+# /api/* https://your-backend.vercel.app/api/:splat 200
+
+# SPA fallback
 /* /index.html 200

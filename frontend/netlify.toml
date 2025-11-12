@@ -5,9 +5,19 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# NOTE: Backend API proxying disabled - configure NEXT_PUBLIC_API_URL environment variable instead
-# If you need to proxy API requests through Netlify, uncomment and update the redirects below
-# with your backend API URL (e.g., https://your-backend.vercel.app)
+# Environment variables
+# Set these in Netlify dashboard: Site settings > Build & deploy > Environment variables
+# REQUIRED:
+# NEXT_PUBLIC_API_URL=https://your-backend.vercel.app
+# NEXT_PUBLIC_COMPANY_DOMAIN=yourcompany.com
+# NEXT_PUBLIC_SUPER_ADMIN_EMAIL=admin@yourcompany.com
+# NEXT_PUBLIC_SUPPORT_EMAIL=support@yourcompany.com
+# OPTIONAL (for OAuth):
+# NEXT_PUBLIC_OUTLOOK_CLIENT_ID=your-azure-app-client-id
+# NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
+
+# NOTE: Backend API proxying disabled - using direct CORS requests
+# The NEXT_PUBLIC_API_URL environment variable should point to your Vercel backend
 
 # [[redirects]]
 #   from = "/api/auth/*"
@@ -44,11 +54,19 @@
 #   to = "https://your-backend-api.vercel.app/api/tickets/:splat"
 #   status = 200
 
-# SPA fallback for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# SPA fallback for client-side routing (Next.js handles this automatically)
+# This is kept for compatibility but @netlify/plugin-nextjs handles routing
+
+# Caching configuration
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 # Security headers
 [[headers]]
@@ -58,5 +76,20 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Cross-Origin-Opener-Policy = "unsafe-none"
-    Cross-Origin-Embedder-Policy = "unsafe-none"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # Allow CORS from Vercel backend
+    # Note: Actual CORS is handled by backend, these are additional security headers
+
+# Redirect HTTP to HTTPS
+# Update this with your actual Netlify domain
+# [[redirects]]
+#   from = "http://your-app.netlify.app/*"
+#   to = "https://your-app.netlify.app/:splat"
+#   status = 301
+#   force = true
+
+# 404 handling (Next.js handles this)
+[[redirects]]
+  from = "/*"
+  to = "/404"
+  status = 404

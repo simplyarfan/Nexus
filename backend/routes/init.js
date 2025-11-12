@@ -13,7 +13,6 @@ router.get('/database', async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Database initialization error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to initialize database',

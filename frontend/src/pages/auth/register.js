@@ -46,7 +46,7 @@ export default function Register() {
         localStorage.removeItem('oauthData');
         toast.success('Microsoft account detected! Complete your registration.');
       } catch (error) {
-        console.error('Failed to parse OAuth data:', error);
+        // Intentionally empty - OAuth data parsing is optional, form can still be filled manually
       }
     }
 
@@ -91,7 +91,7 @@ export default function Register() {
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = 'Invalid email format';
       } else if (!microsoftAuthService.validateEmailDomain(formData.email)) {
-        newErrors.email = 'Please use your @securemaxtech.com email address';
+        newErrors.email = `Please use your @${process.env.NEXT_PUBLIC_COMPANY_DOMAIN} email address`;
       }
     }
 
@@ -146,7 +146,7 @@ export default function Register() {
         router.push('/');
       }
     } catch (error) {
-      console.error('Registration failed:', error.message);
+      // Intentionally empty - error is handled by registerUser function and displayed to user
     } finally {
       setIsLoading(false);
     }
@@ -318,11 +318,11 @@ export default function Register() {
                   <Input
                     label="Work Email"
                     type="email"
-                    placeholder="john@securemaxtech.com"
+                    placeholder={`john@${process.env.NEXT_PUBLIC_COMPANY_DOMAIN}`}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     error={errors.email}
-                    hint="Must use @securemaxtech.com email address"
+                    hint={`Must use @${process.env.NEXT_PUBLIC_COMPANY_DOMAIN} email address`}
                     fullWidth
                     leftIcon={
                       <svg
@@ -341,13 +341,7 @@ export default function Register() {
                     }
                   />
 
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    onClick={handleNext}
-                  >
+                  <Button type="button" variant="primary" size="lg" fullWidth onClick={handleNext}>
                     Continue
                   </Button>
                 </motion.div>

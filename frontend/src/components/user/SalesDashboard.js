@@ -32,7 +32,7 @@ export default function SalesDashboard() {
       await logout();
       router.push('/landing');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Intentionally empty - user is redirected regardless, error is non-critical
     }
   };
 

@@ -1,12 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
+import { useAuth } from '../../contexts/AuthContext';
+import { usersAPI } from '../../utils/usersAPI';
+import { supportAPI } from '../../utils/supportAPI';
+import { notificationsAPI } from '../../utils/notificationsAPI';
+import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
+  const { user, isAdmin, isSuperAdmin, loading } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    openTickets: 0,
+    resolvedToday: 0
+  });
+  const [notifications, setNotifications] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
   const router = useRouter();
+
+  // Admin role check - redirect if not admin or superadmin
+  useEffect(() => {
+    if (!loading && user && !isAdmin && !isSuperAdmin) {
+      router.replace('/');
+    }
+  }, [user, isAdmin, isSuperAdmin, loading, router]);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    if (user && (isAdmin || isSuperAdmin)) {
+      fetchDashboardData();
+    }
+  }, [user, isAdmin, isSuperAdmin]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoadingData(true);
+
+      // Fetch all data in parallel
+      const [usersResponse, ticketsResponse, notificationsResponse] = await Promise.all([
+        usersAPI.getUsers({ limit: 1000 }),
+        supportAPI.getMyTickets({ limit: 1000 }),
+        notificationsAPI.getNotifications({ limit: 10, unread_only: true })
+      ]);
+
+      const allUsers = usersResponse.data.users || [];
+      const allTickets = ticketsResponse.data.tickets || [];
+      const userNotifications = notificationsResponse.data.notifications || [];
+
+      // Calculate stats
+      const openTickets = allTickets.filter(
+        t => t.status === 'open' || t.status === 'pending'
+      ).length;
+
+      // Get tickets resolved today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const resolvedToday = allTickets.filter(t => {
+        if (t.status !== 'resolved' && t.status !== 'closed') return false;
+        const resolvedDate = new Date(t.updated_at);
+        return resolvedDate >= today;
+      }).length;
+
+      setStats({
+        totalUsers: allUsers.length,
+        openTickets,
+        resolvedToday
+      });
+
+      setNotifications(userNotifications);
+    } catch (error) {
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  // Show loading while checking auth or data
+  if (loading || loadingData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authorized
+  if (!isAdmin && !isSuperAdmin) {
+    return null;
+  }
+
+  const formatNotificationTime = (createdAt) => {
+    const now = new Date();
+    const notifDate = new Date(createdAt);
+    const diffMs = now - notifDate;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
 
   const agents = [
     {
@@ -170,7 +271,7 @@ export default function AdminDashboard() {
                   className="absolute bottom-full left-4 right-4 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50"
                 >
                   <button
-                    onClick={() => router.push('/support')}
+                    onClick={() => router.push('/support/create-ticket')}
                     className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
                   >
                     <svg
@@ -189,7 +290,7 @@ export default function AdminDashboard() {
                     <span className="text-sm text-gray-900">Create Ticket</span>
                   </button>
                   <button
-                    onClick={() => router.push('/support')}
+                    onClick={() => router.push('/support/my-tickets')}
                     className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
                   >
                     <svg
@@ -305,7 +406,9 @@ export default function AdminDashboard() {
                       />
                     </svg>
                     {/* Notification Badge */}
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
+                    {notifications.length > 0 && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
+                    )}
                   </button>
 
                   <AnimatePresence>
@@ -325,37 +428,32 @@ export default function AdminDashboard() {
                             <h3 className="font-semibold text-gray-900">Notifications</h3>
                           </div>
                           <div className="max-h-96 overflow-y-auto">
-                            {[
-                              {
-                                title: 'New support ticket',
-                                detail: 'Ticket #1235 - User login issue',
-                                time: '10 min ago',
-                              },
-                              {
-                                title: 'Password reset request',
-                                detail: 'User requested password reset',
-                                time: '1 hour ago',
-                              },
-                              {
-                                title: 'Ticket resolved',
-                                detail: 'Ticket #1220 marked as resolved',
-                                time: '3 hours ago',
-                              },
-                            ].map((notification, index) => (
-                              <div
-                                key={index}
-                                className="p-4 hover:bg-gray-50 transition-colors border-b border-gray-200 last:border-0"
-                              >
-                                <p className="font-medium text-gray-900 text-sm">
-                                  {notification.title}
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">{notification.detail}</p>
-                                <p className="text-xs text-gray-600 mt-2">{notification.time}</p>
+                            {notifications.length === 0 ? (
+                              <div className="p-8 text-center text-gray-500">
+                                <p className="text-sm">No unread notifications</p>
                               </div>
-                            ))}
+                            ) : (
+                              notifications.map((notification) => (
+                                <div
+                                  key={notification.id}
+                                  className="p-4 hover:bg-gray-50 transition-colors border-b border-gray-200 last:border-0"
+                                >
+                                  <p className="font-medium text-gray-900 text-sm">
+                                    {notification.title}
+                                  </p>
+                                  <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                                  <p className="text-xs text-gray-600 mt-2">
+                                    {formatNotificationTime(notification.created_at)}
+                                  </p>
+                                </div>
+                              ))
+                            )}
                           </div>
                           <div className="p-3 border-t border-gray-200 text-center">
-                            <button className="text-sm text-green-500 hover:opacity-80">
+                            <button
+                              onClick={() => router.push('/notifications')}
+                              className="text-sm text-green-500 hover:opacity-80"
+                            >
                               View all notifications
                             </button>
                           </div>
@@ -374,7 +472,7 @@ export default function AdminDashboard() {
               {[
                 {
                   label: 'Total Users',
-                  value: '542',
+                  value: stats.totalUsers.toString(),
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -389,7 +487,7 @@ export default function AdminDashboard() {
                 },
                 {
                   label: 'Open Tickets',
-                  value: '18',
+                  value: stats.openTickets.toString(),
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -404,7 +502,7 @@ export default function AdminDashboard() {
                 },
                 {
                   label: 'Resolved Today',
-                  value: '12',
+                  value: stats.resolvedToday.toString(),
                   icon: (
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path

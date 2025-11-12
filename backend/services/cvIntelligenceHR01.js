@@ -3,7 +3,7 @@
  * Following EXACT blueprint: Ingress → Docling → spaCy → Llama 3.1 → Pydantic → pgvector
  */
 
-const axios = require('axios');
+const { axios } = require('../utils/axios');
 const pdf = require('pdf-parse');
 
 class CVIntelligenceHR01 {
@@ -14,7 +14,7 @@ class CVIntelligenceHR01 {
 
     // Check if API key is configured
     if (!this.apiKey) {
-      console.error('❌ OPENAI_API_KEY not configured in environment variables');
+      // OPENAI_API_KEY not configured
     }
 
     // Smart skill matching mappings
@@ -92,7 +92,6 @@ class CVIntelligenceHR01 {
       const jdText = parsedJD.rawText || parsedJD.text || '';
 
       if (!jdText || jdText.trim().length === 0) {
-        console.error('❌ JD text is empty after parsing!');
         return {
           success: false,
           error: 'Failed to extract text from JD file',
@@ -117,8 +116,6 @@ class CVIntelligenceHR01 {
         fileName: fileName,
       };
     } catch (error) {
-      console.error('❌ Error processing JD:', error);
-      console.error('❌ Error stack:', error.stack);
       return {
         success: false,
         error: error.message,
@@ -213,7 +210,6 @@ Return valid JSON only:`;
 
       // VALIDATE that we got actual skills, not garbage
       if (requirements.skills && requirements.skills.includes('PDF parsing')) {
-        console.error('❌ AI returned garbage skills including "PDF parsing" - rejecting response');
         throw new Error('AI returned invalid skills');
       }
 
@@ -222,15 +218,11 @@ Return valid JSON only:`;
         requirements.skills.includes('Scrum') &&
         jdText.toLowerCase().includes('ai engineer')
       ) {
-        console.error('❌ AI returned Scrum skills for AI Engineer JD - rejecting response');
         throw new Error('AI returned wrong skills for job type');
       }
 
       return requirements;
     } catch (error) {
-      console.error('❌ Error extracting JD requirements via AI:', error);
-      console.error('❌ Full error:', error.response?.data || error.message);
-
       // NO FALLBACK - FAIL COMPLETELY
       throw new Error(`JD extraction failed: ${error.message}`);
     }
@@ -265,8 +257,6 @@ Return valid JSON only:`;
           throw new Error('PDF contains no extractable text');
         }
       } catch (e) {
-        console.error('❌ PDF parsing failed:', e.message);
-
         // Try with different options for corrupted PDFs
         try {
           const pdfData = await pdf(fileBuffer, {
@@ -279,7 +269,6 @@ Return valid JSON only:`;
             throw new Error('PDF contains no extractable text even with alternative parsing');
           }
         } catch (e2) {
-          console.error('❌ Alternative PDF parsing also failed:', e2.message);
           throw new Error(
             `PDF is corrupted or unreadable. Please save as a new PDF or convert to TXT format. Error: ${e.message}`,
           );
@@ -510,7 +499,6 @@ Return only the JSON object, no other text:`;
 
       return structuredData;
     } catch (error) {
-      console.error('❌ CV extraction failed:', error.message);
       throw new Error(`Failed to extract CV data: ${error.message}`);
     }
   }
@@ -1025,7 +1013,6 @@ Return only the JSON object:`;
 
       return assessment;
     } catch (error) {
-      console.error('Holistic assessment failed:', error.message);
       return {
         overallFit: 0,
         strengths: [],
@@ -1126,7 +1113,6 @@ Return only the JSON object:`;
 
       return questions;
     } catch (error) {
-      console.error('Interview question generation failed:', error.message);
       return {
         technicalQuestions: [],
         behavioralQuestions: [],
@@ -1202,7 +1188,6 @@ Return only the JSON array:`;
 
       return rankings;
     } catch (error) {
-      console.error('Intelligent ranking failed:', error.message);
       // Fallback to simple ranking by assessment score
       return candidates.map((c, idx) => ({
         originalIndex: idx,
@@ -1215,4 +1200,172 @@ Return only the JSON array:`;
   }
 }
 
-module.exports = CVIntelligenceHR01;
+// Export class for AI processing
+module.exports.CVIntelligenceHR01 = CVIntelligenceHR01;
+
+// ============================================
+// DATABASE CRUD OPERATIONS (Using Prisma)
+// ============================================
+
+const { prisma } = require('../lib/prisma');
+
+/**
+ * Get all CV batches for user
+ */
+const getUserBatches = async (userId) => {
+  const batches = await prisma.cvBatch.findMany({
+    where: { userId },
+    include: {
+      candidates: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          overallScore: true,
+        },
+        orderBy: { overallScore: 'desc' },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return batches.map((batch) => ({
+    id: batch.id,
+    name: batch.batchName, // Correct field name from schema
+    position: batch.position,
+    status: batch.status,
+    cvCount: batch.cvCount,
+    dateCreated: batch.createdAt,
+    candidates: batch.candidates,
+    candidate_count: batch.candidates.length,
+  }));
+};
+
+/**
+ * Get batch details with candidates
+ */
+const getBatchById = async (batchId, userId) => {
+  const batch = await prisma.cvBatch.findFirst({
+    where: { id: batchId, userId },
+    include: {
+      candidates: {
+        orderBy: { overallScore: 'desc' }, // Changed to desc for highest scores first
+      },
+    },
+  });
+
+  if (!batch) {
+    throw { statusCode: 404, message: 'Batch not found' };
+  }
+
+  // Format batch data using correct schema fields
+  const batchWithCount = {
+    id: batch.id,
+    name: batch.batchName,
+    position: batch.position,
+    jobDescription: batch.jobDescription,
+    status: batch.status,
+    cvCount: batch.cvCount,
+    createdAt: batch.createdAt,
+    updatedAt: batch.updatedAt,
+    cv_count: batch.cvCount,
+  };
+
+  // Format candidates with correct schema fields
+  const formattedCandidates = batch.candidates.map((candidate) => ({
+    id: candidate.id,
+    name: candidate.name,
+    email: candidate.email,
+    phone: candidate.phone,
+    location: candidate.location,
+    overallScore: candidate.overallScore,
+    experience: candidate.experience,
+    education: candidate.education,
+    salary: candidate.salary,
+    matchedSkills: candidate.matchedSkills,
+    missingSkills: candidate.missingSkills,
+    additionalSkills: candidate.additionalSkills,
+    experienceTimeline: candidate.experienceTimeline,
+    certifications: candidate.certifications,
+    professionalAssessment: candidate.professionalAssessment,
+    cvFileUrl: candidate.cvFileUrl,
+    createdAt: candidate.createdAt,
+  }));
+
+  return {
+    batch: batchWithCount,
+    candidates: formattedCandidates,
+  };
+};
+
+/**
+ * Get candidate details
+ */
+const getCandidateById = async (candidateId) => {
+  const candidate = await prisma.candidate.findUnique({
+    where: { id: candidateId },
+  });
+
+  if (!candidate) {
+    throw { statusCode: 404, message: 'Candidate not found' };
+  }
+
+  // Return candidate with properly formatted fields
+  return {
+    id: candidate.id,
+    batchId: candidate.batchId,
+    name: candidate.name,
+    email: candidate.email,
+    phone: candidate.phone,
+    location: candidate.location,
+    overallScore: candidate.overallScore,
+    experience: candidate.experience,
+    education: candidate.education,
+    salary: candidate.salary,
+    matchedSkills: candidate.matchedSkills,
+    missingSkills: candidate.missingSkills,
+    additionalSkills: candidate.additionalSkills,
+    experienceTimeline: candidate.experienceTimeline,
+    certifications: candidate.certifications,
+    professionalAssessment: candidate.professionalAssessment,
+    cvFileUrl: candidate.cvFileUrl,
+    createdAt: candidate.createdAt,
+    updatedAt: candidate.updatedAt,
+  };
+};
+
+/**
+ * Delete batch and candidates
+ */
+const deleteBatch = async (batchId, userId) => {
+  // Verify ownership
+  const batch = await prisma.cvBatch.findFirst({
+    where: { id: batchId, userId },
+  });
+
+  if (!batch) {
+    throw { statusCode: 404, message: 'Batch not found or you do not have permission' };
+  }
+
+  // Delete candidates first (cascade should handle this, but being explicit)
+  await prisma.candidate.deleteMany({
+    where: { batchId },
+  });
+
+  // Delete batch
+  await prisma.cvBatch.delete({
+    where: { id: batchId },
+  });
+
+  return {
+    batchId,
+    batchName: batch.batchName, // Correct field name from schema
+  };
+};
+
+// Export CRUD functions
+module.exports.getUserBatches = getUserBatches;
+module.exports.getBatchById = getBatchById;
+module.exports.getCandidateById = getCandidateById;
+module.exports.deleteBatch = deleteBatch;

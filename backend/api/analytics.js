@@ -50,7 +50,6 @@ async function handler(req, res) {
         },
       });
     } catch (error) {
-      console.error('Dashboard analytics error:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch analytics',
@@ -72,7 +71,6 @@ async function handler(req, res) {
         },
       });
     } catch (error) {
-      console.error('Error fetching overview:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch overview data',
@@ -93,14 +91,12 @@ async function handler(req, res) {
       }
 
       // TODO: Implement event tracking when analytics tables are set up
-      console.log('Analytics event:', { userId, event, metadata });
 
       return res.status(200).json({
         success: true,
         message: 'Event tracked successfully',
       });
     } catch (error) {
-      console.error('Error tracking analytics event:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to track event',
@@ -129,7 +125,6 @@ async function handler(req, res) {
         },
       });
     } catch (error) {
-      console.error('Error fetching analytics:', error);
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch analytics data',

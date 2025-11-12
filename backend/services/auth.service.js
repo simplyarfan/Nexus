@@ -8,6 +8,7 @@ const { prisma } = require('../lib/prisma');
 const { generateTokens } = require('../lib/auth');
 const { generate2FACode } = require('../utils/twoFactorAuth');
 const emailService = require('./email.service');
+const cryptoUtil = require('../utils/crypto');
 
 /**
  * Register a new user
@@ -222,12 +223,17 @@ const loginUser = async ({ email, password, rememberMe, ipAddress, userAgent }) 
   // Generate tokens
   const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, rememberMe);
 
+  // SECURITY: Hash tokens before storing in database
+  // Store SHA256 hash instead of plaintext to prevent token theft from database breaches
+  const hashedAccessToken = cryptoUtil.hash(accessToken);
+  const hashedRefreshToken = cryptoUtil.hash(refreshToken);
+
   // Create session
   await prisma.userSession.create({
     data: {
       user_id: user.id,
-      session_token: accessToken,
-      refresh_token: refreshToken,
+      session_token: hashedAccessToken,
+      refresh_token: hashedRefreshToken,
       ip_address: ipAddress,
       user_agent: userAgent,
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
@@ -285,7 +291,7 @@ const verifyEmail = async (userId, code) => {
   const verification = verify2FACode(
     code,
     user.verification_token,
-    user.verification_token_expires
+    user.verification_token_expires,
   );
 
   if (!verification.valid) {
@@ -383,11 +389,19 @@ const checkUserExists = async (email) => {
   }
 
   // Validate email domain
-  const allowedDomain = '@securemaxtech.com';
+  const companyDomain = process.env.COMPANY_DOMAIN;
+  if (!companyDomain) {
+    throw {
+      statusCode: 500,
+      message: 'Server configuration error: COMPANY_DOMAIN environment variable is required',
+    };
+  }
+
+  const allowedDomain = `@${companyDomain}`;
   if (!email.toLowerCase().endsWith(allowedDomain)) {
     throw {
       statusCode: 400,
-      message: 'Email must be from securemaxtech.com domain',
+      message: `Email must be from ${companyDomain} domain`,
     };
   }
 

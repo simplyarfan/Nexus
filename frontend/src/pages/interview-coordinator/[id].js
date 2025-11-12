@@ -76,7 +76,6 @@ const InterviewDetailPage = () => {
         router.push('/interview-coordinator');
       }
     } catch (error) {
-      console.error('Failed to load interview:', error);
       toast.error(error.response?.data?.message || 'Failed to load interview');
       router.push('/interview-coordinator');
     } finally {
@@ -128,7 +127,6 @@ const InterviewDetailPage = () => {
       };
       toast.success(`${typeLabels[type] || 'Calendar'} file downloaded!`);
     } catch (error) {
-      console.error('Calendar download error:', error);
       toast.error('Failed to download calendar');
     }
   };
@@ -165,7 +163,6 @@ const InterviewDetailPage = () => {
         fetchInterviewDetails();
       }
     } catch (error) {
-      console.error('Reschedule error:', error);
       toast.error(error.response?.data?.message || 'Failed to reschedule interview');
     }
   };
@@ -180,7 +177,6 @@ const InterviewDetailPage = () => {
       toast.success('Interview deleted successfully!');
       router.push('/interview-coordinator');
     } catch (error) {
-      console.error('Delete error:', error);
       toast.error('Failed to delete interview');
     }
   };
@@ -200,7 +196,6 @@ const InterviewDetailPage = () => {
       setShowCancelModal(false);
       fetchInterviewDetails();
     } catch (error) {
-      console.error('Cancel error:', error);
       toast.error('Failed to cancel interview');
     }
   };
@@ -276,7 +271,6 @@ const InterviewDetailPage = () => {
         fetchInterviewDetails();
       }
     } catch (error) {
-      console.error('Schedule error:', error);
       toast.error(error.response?.data?.message || 'Failed to schedule interview');
     }
   };

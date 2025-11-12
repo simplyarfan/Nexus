@@ -26,9 +26,7 @@ const BatchDetail = () => {
     try {
       await logout();
       router.push('/landing');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    } catch (error) {}
   };
 
   const handleScheduleInterview = (candidate) => {
@@ -65,12 +63,8 @@ const BatchDetail = () => {
   const fetchBatchDetails = async () => {
     try {
       setLoading(true);
-      console.log('🎯 Fetching batch details for ID:', id);
-      const response = await cvAPI.getBatchDetails(id);
-      console.log('🎯 Batch details response:', response);
 
-      // Handle different response structures - check console for actual structure
-      console.log('🔍 Full response structure:', JSON.stringify(response, null, 2));
+      const response = await cvAPI.getBatchDetails(id);
 
       const isSuccess = response.success || (response.data && response.data.success);
       const batchData =
@@ -79,20 +73,13 @@ const BatchDetail = () => {
         response.data?.data?.candidates || response.data?.candidates || response.candidates || [];
 
       if (isSuccess && batchData) {
-        console.log('🎯 Setting batch data:', batchData);
-        console.log('🎯 Setting candidates data:', candidatesData);
-        console.log('🎯 Candidates array length:', candidatesData?.length);
-        console.log('🎯 First candidate sample:', candidatesData?.[0]);
         setBatch(batchData);
         setCandidates(Array.isArray(candidatesData) ? candidatesData : []);
       } else {
-        console.error('🎯 Failed to load batch details:', response);
         toast.error('Failed to load batch details');
         router.push('/cv-intelligence');
       }
     } catch (error) {
-      console.error('🎯 Error fetching batch details:', error);
-      console.error('🎯 Error details:', error.response?.data);
       toast.error('Failed to load batch details');
       router.push('/cv-intelligence');
     } finally {
@@ -102,9 +89,7 @@ const BatchDetail = () => {
 
   const handleDeleteBatch = async () => {
     try {
-      console.log('🎯 Deleting batch:', id);
       const response = await cvAPI.deleteBatch(id);
-      console.log('🎯 Delete response:', response);
 
       if (response.success || response.data?.success) {
         toast.success('Batch deleted successfully');
@@ -113,7 +98,6 @@ const BatchDetail = () => {
         toast.error('Failed to delete batch');
       }
     } catch (error) {
-      console.error('🎯 Error deleting batch:', error);
       toast.error('Failed to delete batch');
     }
     setShowDeleteModal(false);
@@ -566,7 +550,6 @@ const BatchDetail = () => {
                         </div>
                       );
                     } catch (error) {
-                      console.error('Error rendering professional assessment:', error);
                       return <p className="text-gray-500 text-sm">Assessment not available</p>;
                     }
                   })()}

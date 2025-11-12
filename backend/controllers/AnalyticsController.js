@@ -4,11 +4,8 @@ class AnalyticsController {
   // Get dashboard overview statistics
   static async getDashboard(req, res) {
     try {
-      console.log('📊 [ANALYTICS] Dashboard request received');
-
       // Ensure database connection
       await database.connect();
-      console.log('✅ [ANALYTICS] Database connected');
 
       // Get basic statistics
       const stats = await database.get(`
@@ -42,14 +39,11 @@ class AnalyticsController {
         recentActivity: recentActivity || [],
       };
 
-      console.log('✅ [ANALYTICS] Dashboard data prepared:', dashboardData);
-
       res.json({
         success: true,
         data: dashboardData,
       });
     } catch (error) {
-      console.error('❌ [ANALYTICS] Dashboard error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch dashboard data',
@@ -78,7 +72,6 @@ class AnalyticsController {
         data: { userStats },
       });
     } catch (error) {
-      console.error('❌ [ANALYTICS] User analytics error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch user analytics',
@@ -116,7 +109,6 @@ class AnalyticsController {
         data: cvStats || {},
       });
     } catch (error) {
-      console.error('❌ [ANALYTICS] CV analytics error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch CV analytics',
@@ -137,7 +129,6 @@ class AnalyticsController {
         },
       });
     } catch (error) {
-      console.error('❌ [ANALYTICS] System analytics error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch system analytics',
@@ -172,7 +163,6 @@ class AnalyticsController {
         },
       });
     } catch (error) {
-      console.error('❌ [ANALYTICS] User activity error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch user activity',

@@ -86,7 +86,6 @@ const Login = () => {
         setError(result.message || 'Login failed');
       }
     } catch (err) {
-      console.error('Login error:', err);
       if (!err.message || !err.message.toLowerCase().includes('verify')) {
         setError('An error occurred during login');
       }
@@ -104,7 +103,6 @@ const Login = () => {
       await microsoftAuthService.loginWithRedirect();
       // User will be redirected to Microsoft login page, then back to /auth/callback
     } catch (error) {
-      console.error('Microsoft login error:', error);
       setError(error.message || 'Failed to initiate Microsoft login');
       toast.error('Failed to connect to Microsoft. Please try again.');
       setIsMicrosoftLoading(false);
@@ -362,13 +360,7 @@ const Login = () => {
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              variant="secondary"
-              size="lg"
-              fullWidth
-              isLoading={isLoading}
-            >
+            <Button type="submit" variant="secondary" size="lg" fullWidth isLoading={isLoading}>
               Sign in
             </Button>
           </motion.form>

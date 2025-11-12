@@ -18,7 +18,6 @@ export default function HRDashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  // Fetch dashboard stats from API
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -26,26 +25,34 @@ export default function HRDashboard() {
         const token = tokenManager.getAccessToken();
 
         if (!token) {
-          console.error('No authentication token found');
           setLoading(false);
           return;
         }
 
-        // Fetch CV batches
-        const batchesResponse = await fetch('http://localhost:5000/api/cv-intelligence/batches', {
+        // Use environment variable for API URL (required)
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+        if (!API_BASE_URL) {
+          console.error('NEXT_PUBLIC_API_URL environment variable is not set');
+          setLoading(false);
+          return;
+        }
+
+        const batchesResponse = await fetch(`${API_BASE_URL}/api/cv-intelligence/batches`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
-        // Fetch interviews
-        const interviewsResponse = await fetch('http://localhost:5000/api/interview-coordinator/interviews', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+        const interviewsResponse = await fetch(
+          `${API_BASE_URL}/api/interview-coordinator/interviews`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
 
         let activeBatches = 0;
         let totalCandidates = 0;
@@ -54,24 +61,24 @@ export default function HRDashboard() {
         if (batchesResponse.ok) {
           const batchesResult = await batchesResponse.json();
           const batches = batchesResult.data || [];
-          activeBatches = batches.filter(b => b.status !== 'completed').length;
+          activeBatches = batches.filter((b) => b.status !== 'completed').length;
           totalCandidates = batches.reduce((sum, batch) => sum + (batch.candidate_count || 0), 0);
         }
 
         if (interviewsResponse.ok) {
           const interviewsResult = await interviewsResponse.json();
           const interviews = interviewsResult.data || [];
-          scheduledInterviews = interviews.filter(i => i.status === 'scheduled').length;
+          scheduledInterviews = interviews.filter((i) => i.status === 'scheduled').length;
         }
 
         setStats({
           activeBatches,
           totalCandidates,
           scheduledInterviews,
-          openPositions: 0, // This would come from a jobs/positions API endpoint if you have one
+          openPositions: 0,
         });
       } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
+        // Intentionally empty - loading state handled by finally block, fallback stats (0) shown on failure
       } finally {
         setLoading(false);
       }
@@ -85,7 +92,7 @@ export default function HRDashboard() {
       await logout();
       router.push('/landing');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Intentionally empty - user is redirected regardless, error is non-critical
     }
   };
 
@@ -124,7 +131,6 @@ export default function HRDashboard() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Backdrop for mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -132,15 +138,17 @@ export default function HRDashboard() {
         />
       )}
 
-      {/* Sidebar - Fixed */}
       <div
         className={`w-64 bg-sidebar border-r border-sidebar-border flex flex-col fixed h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform z-50`}
       >
-        {/* Logo */}
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-foreground" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                className="w-6 h-6 text-primary-foreground"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
               </svg>
             </div>
@@ -148,7 +156,6 @@ export default function HRDashboard() {
           </div>
         </div>
 
-        {/* AI Agents Section */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-4">
             <p className="text-xs font-semibold text-sidebar-foreground uppercase tracking-wider mb-3">
@@ -185,7 +192,6 @@ export default function HRDashboard() {
           </div>
         </div>
 
-        {/* User Menu */}
         <div className="p-4 border-t border-sidebar-border relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
@@ -319,10 +325,8 @@ export default function HRDashboard() {
         </div>
       </div>
 
-      {/* Main Content - Add left margin to account for fixed sidebar */}
       <div className="flex-1 lg:ml-64 overflow-auto">
         <div className="min-h-screen bg-background">
-          {/* Clean Header with Notifications */}
           <div className="border-b border-border bg-card sticky top-0 z-30">
             <div className="max-w-7xl mx-auto px-8 py-8">
               <div className="flex items-center justify-between">
@@ -353,7 +357,6 @@ export default function HRDashboard() {
                   </motion.div>
                 </div>
 
-                {/* Notifications Bell */}
                 <div className="relative">
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
@@ -372,7 +375,6 @@ export default function HRDashboard() {
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                       />
                     </svg>
-                    {/* Notification Badge */}
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
                   </button>
 
@@ -417,8 +419,12 @@ export default function HRDashboard() {
                                 <p className="font-medium text-foreground text-sm">
                                   {notification.title}
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">{notification.detail}</p>
-                                <p className="text-xs text-muted-foreground mt-2">{notification.time}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {notification.detail}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {notification.time}
+                                </p>
                               </div>
                             ))}
                           </div>
@@ -436,7 +442,6 @@ export default function HRDashboard() {
             </div>
           </div>
 
-          {/* Stats Overview */}
           <div className="max-w-7xl mx-auto px-8 py-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
               {[
@@ -519,7 +524,6 @@ export default function HRDashboard() {
               ))}
             </div>
 
-            {/* AI Agents Section */}
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground mb-2">AI-Powered Tools</h2>
               <p className="text-muted-foreground">
@@ -537,7 +541,6 @@ export default function HRDashboard() {
                   onClick={() => router.push(agent.href)}
                   className="bg-card border-2 border-border rounded-2xl p-8 hover:border-primary hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
                 >
-                  {/* Subtle gradient overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                   <div className="relative z-10">

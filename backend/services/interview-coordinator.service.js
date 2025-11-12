@@ -3,7 +3,7 @@
  * Automate scheduling, reminders, and question generation for interviews
  */
 
-const axios = require('axios');
+const { axios } = require('../utils/axios');
 const { v4: uuidv4 } = require('uuid');
 // const googleCalendarService = require('./googleCalendarService'); // Temporarily disabled - file doesn't exist
 
@@ -83,7 +83,6 @@ Make questions specific to the candidate's background and job requirements.`;
       const questions = JSON.parse(response.data.choices[0].message.content);
       return questions;
     } catch (error) {
-      console.error('❌ Failed to generate interview questions:', error.message);
       return this.getFallbackQuestions();
     }
   }
@@ -150,8 +149,7 @@ Make questions specific to the candidate's background and job requirements.`;
           }
         }
       } catch (error) {
-        console.error('⚠️  Failed to create Google Calendar event:', error.message);
-        // Continue without Google Calendar integration
+
       }
     }
     */
@@ -382,10 +380,10 @@ Make questions specific to the candidate's background and job requirements.`;
         if (isConnected) {
           // TODO: Implement actual conflict checking via Google Calendar API
           // This would require additional Calendar API methods for checking busy times
-          console.log('✓ Google Calendar connected - conflict checking available');
+
         }
       } catch (error) {
-        console.error('⚠️  Could not check Google Calendar conflicts:', error.message);
+
       }
     }
     */
@@ -493,7 +491,6 @@ Make questions specific to the candidate's background and job requirements.`;
         message: 'Interview coordination completed successfully',
       };
     } catch (error) {
-      console.error('❌ Interview coordination failed:', error.message);
       return {
         success: false,
         error: error.message,

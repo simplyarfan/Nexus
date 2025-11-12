@@ -61,15 +61,6 @@ const errorResponse = (error, req, res) => {
   }
 
   // Log error
-  console.error('🔴 [ERROR]', {
-    message: error.message,
-    code: error.code,
-    statusCode: error.statusCode,
-    path: req.path,
-    method: req.method,
-    user: req.user?.id || 'anonymous',
-    stack: isDevelopment ? error.stack : undefined,
-  });
 
   res.status(error.statusCode || 500).json(response);
 };

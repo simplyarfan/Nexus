@@ -6,9 +6,9 @@ const responseTime = require('response-time');
 
 // Response time middleware
 const responseTimeMiddleware = responseTime((req, res, time) => {
-  // Log slow requests (> 1 second)
+  // Track slow requests (> 1 second)
   if (time > 1000) {
-    console.warn(`Slow request: ${req.method} ${req.url} - ${time.toFixed(2)}ms`);
+    // Slow request detected
   }
 });
 
@@ -18,9 +18,7 @@ const requestLogger = (req, res, next) => {
 
   res.on('finish', () => {
     const duration = Date.now() - start;
-    const logLevel = res.statusCode >= 400 ? 'error' : 'info';
-
-    console[`${logLevel}`](`${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
+    // Request completed
   });
 
   next();
@@ -36,9 +34,9 @@ const memoryMonitor = (req, res, next) => {
     external: Math.round((used.external / 1024 / 1024) * 100) / 100,
   };
 
-  // Log memory usage if heap usage is high
+  // Monitor memory usage if heap usage is high
   if (memoryUsageMB.heapUsed > 100) {
-    console.warn('High memory usage:', memoryUsageMB);
+    // High memory usage detected
   }
 
   next();

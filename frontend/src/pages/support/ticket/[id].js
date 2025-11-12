@@ -101,7 +101,7 @@ export default function TicketDetail() {
     e.preventDefault();
     setIsLoading(true);
     // Handle reply submission
-    console.log('Reply:', replyText, 'Internal:', isInternal);
+
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setReplyText('');

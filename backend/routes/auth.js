@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/AuthController');
 const database = require('../models/database');
+const cryptoUtil = require('../utils/crypto');
+const { graphAPI: axios } = require('../utils/axios');
 const {
   authenticateToken,
   validateCompanyDomain,
@@ -33,13 +35,128 @@ const {
 
 // Public routes (no authentication required)
 
-// User registration
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Register a new user
+ *     description: Create a new user account with email verification
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - firstName
+ *               - lastName
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: SecurePass123!
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post('/register', authLimiter, validateRegistration, AuthController.register);
 
-// User login
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: User login
+ *     description: Authenticate user and receive JWT tokens
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: SecurePass123!
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post('/login', authLimiter, validateLogin, AuthController.login);
 
-// Verify 2FA code
+/**
+ * @swagger
+ * /api/auth/verify-2fa:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Verify 2FA code
+ *     description: Verify two-factor authentication code during login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: 2FA verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/verify-2fa',
   authLimiter,
@@ -47,18 +164,137 @@ router.post(
   AuthController.verify2FA,
 );
 
-// Resend 2FA code
+/**
+ * @swagger
+ * /api/auth/resend-2fa:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Resend 2FA code
+ *     description: Resend two-factor authentication code via email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: 2FA code resent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 2FA code resent successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post('/resend-2fa', authLimiter, trackActivity('2fa_resend'), AuthController.resend2FACode);
 
-// Email verification during registration
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Verify email address
+ *     description: Verify user's email address using verification code sent during registration
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Email verified successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/verify-email',
-  authLimiter,
+  emailVerificationLimiter, // More restrictive rate limiting for verification
+  validateEmailVerification,
   trackActivity('email_verification'),
   AuthController.verifyEmail,
 );
 
-// Resend verification code during registration
+/**
+ * @swagger
+ * /api/auth/resend-verification:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Resend email verification code
+ *     description: Resend email verification code to user's email address
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: Verification code resent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Verification code resent successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/resend-verification',
   emailVerificationLimiter,
@@ -66,7 +302,45 @@ router.post(
   AuthController.resendVerificationCode,
 );
 
-// Request password reset
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Request password reset
+ *     description: Send password reset link to user's email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: Password reset email sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Password reset instructions sent to your email
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/forgot-password',
   passwordResetLimiter,
@@ -76,7 +350,49 @@ router.post(
   AuthController.requestPasswordReset,
 );
 
-// Reset password
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Reset password with token
+ *     description: Reset user password using the reset token from email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: NewSecurePass123!
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/reset-password',
   passwordResetLimiter,
@@ -85,12 +401,72 @@ router.post(
   AuthController.resetPassword,
 );
 
-// Refresh access token
+/**
+ * @swagger
+ * /api/auth/refresh-token:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Refresh access token
+ *     description: Get a new access token using refresh token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 token:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.post('/refresh-token', cleanupExpiredSessions, AuthController.refreshToken);
 
 // Protected routes (authentication required)
 
-// Get current user profile
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Get current user profile
+ *     description: Retrieve the authenticated user's profile information
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.get(
   '/profile',
   authenticateToken,
@@ -98,7 +474,49 @@ router.get(
   AuthController.getProfile,
 );
 
-// Update user profile
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     tags: [Authentication]
+ *     summary: Update user profile
+ *     description: Update the authenticated user's profile information
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *               phone:
+ *                 type: string
+ *                 example: "+1234567890"
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.put(
   '/profile',
   authenticateToken,
@@ -107,7 +525,52 @@ router.put(
   AuthController.updateProfile,
 );
 
-// Change password
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   put:
+ *     tags: [Authentication]
+ *     summary: Change password
+ *     description: Change the authenticated user's password
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: OldPass123!
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: NewSecurePass123!
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Password changed successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.put(
   '/change-password',
   authenticateToken,
@@ -209,7 +672,6 @@ router.post('/admin/reset-password', authenticateToken, async (req, res) => {
 
     await AuthController.adminResetUserPassword(req, res);
   } catch (error) {
-    console.error('Admin reset password route error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -217,7 +679,32 @@ router.post('/admin/reset-password', authenticateToken, async (req, res) => {
   }
 });
 
-// Logout (current session)
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Logout user
+ *     description: Logout the current session and invalidate tokens
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Logged out successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.post('/logout', authenticateToken, trackActivity('logout'), AuthController.logout);
 
 // Logout from all devices
@@ -242,6 +729,13 @@ router.get('/outlook/auth', authenticateToken, async (req, res) => {
       });
     }
 
+    if (!process.env.BACKEND_URL) {
+      return res.status(503).json({
+        success: false,
+        message: 'Server configuration error: BACKEND_URL environment variable is required.',
+      });
+    }
+
     const crypto = require('crypto');
 
     // Generate PKCE code_verifier (random string)
@@ -260,7 +754,7 @@ router.get('/outlook/auth', authenticateToken, async (req, res) => {
       [codeVerifier, req.user.id],
     );
 
-    const backendUrl = process.env.BACKEND_URL || 'https://thesimpleai.vercel.app';
+    const backendUrl = process.env.BACKEND_URL;
     const redirectUri = `${backendUrl}/api/auth/outlook/callback`;
 
     // Build OAuth authorization URL with PKCE
@@ -283,7 +777,6 @@ router.get('/outlook/auth', authenticateToken, async (req, res) => {
       authUrl: authUrl.toString(),
     });
   } catch (error) {
-    console.error('Outlook auth initiation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to initiate Outlook OAuth',
@@ -299,11 +792,17 @@ router.get('/outlook/callback', async (req, res) => {
   try {
     const { code, state: userId, error, error_description } = req.query;
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://thesimpleai.netlify.app';
+    if (!process.env.FRONTEND_URL) {
+      return res.status(503).json({
+        success: false,
+        message: 'Server configuration error: FRONTEND_URL environment variable is required.',
+      });
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL;
 
     // Handle OAuth errors
     if (error) {
-      console.error('❌ Outlook OAuth error:', error, error_description);
       return res.redirect(
         `${frontendUrl}/profile?outlook=error&message=${encodeURIComponent(error_description || error)}`,
       );
@@ -321,27 +820,17 @@ router.get('/outlook/callback', async (req, res) => {
 
     // Check if OAuth credentials are configured
     if (!process.env.OUTLOOK_CLIENT_ID || !process.env.OUTLOOK_CLIENT_SECRET) {
-      console.error('❌ Outlook OAuth credentials not configured');
-      console.error('❌ OUTLOOK_CLIENT_ID:', process.env.OUTLOOK_CLIENT_ID ? 'Set' : 'Missing');
-      console.error(
-        '❌ OUTLOOK_CLIENT_SECRET:',
-        process.env.OUTLOOK_CLIENT_SECRET ? 'Set' : 'Missing',
-      );
       return res.redirect(
         `${frontendUrl}/profile?outlook=error&message=Server configuration error - credentials missing`,
       );
     }
 
-    console.log('✅ Received OAuth callback for user:', userId);
-
-    // Retrieve code_verifier from database
     await database.connect();
     const user = await database.get('SELECT outlook_pkce_verifier FROM users WHERE id = $1', [
       userId,
     ]);
 
     if (!user || !user.outlook_pkce_verifier) {
-      console.error('❌ No PKCE verifier found for user');
       return res.redirect(
         `${frontendUrl}/profile?outlook=error&message=Session expired. Please try again`,
       );
@@ -350,8 +839,13 @@ router.get('/outlook/callback', async (req, res) => {
     const codeVerifier = user.outlook_pkce_verifier;
 
     // Exchange authorization code for tokens with PKCE
-    const axios = require('axios');
-    const backendUrl = process.env.BACKEND_URL || 'https://thesimpleai.vercel.app';
+    if (!process.env.BACKEND_URL) {
+      return res.redirect(
+        `${frontendUrl}/profile?outlook=error&message=${encodeURIComponent('Server configuration error - BACKEND_URL missing')}`,
+      );
+    }
+
+    const backendUrl = process.env.BACKEND_URL;
     const redirectUri = `${backendUrl}/api/auth/outlook/callback`;
 
     const tokenResponse = await axios.post(
@@ -376,15 +870,11 @@ router.get('/outlook/callback', async (req, res) => {
     const { access_token, refresh_token, expires_in } = tokenResponse.data;
 
     if (!refresh_token) {
-      console.error('❌ No refresh token received. Make sure offline_access scope is requested.');
       return res.redirect(
         `${frontendUrl}/profile?outlook=error&message=Failed to obtain refresh token`,
       );
     }
 
-    console.log('✅ Tokens received successfully');
-
-    // Get user's email from Microsoft Graph
     const userResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -392,10 +882,13 @@ router.get('/outlook/callback', async (req, res) => {
     });
 
     const userEmail = userResponse.data.userPrincipalName || userResponse.data.mail;
-    console.log('✅ User email retrieved:', userEmail);
 
-    // Calculate token expiration
     const expiresAt = new Date(Date.now() + expires_in * 1000);
+
+    // SECURITY: Encrypt OAuth tokens before storing in database
+    // Use AES-256-GCM encryption to protect tokens from database breaches
+    const encryptedAccessToken = cryptoUtil.encrypt(access_token);
+    const encryptedRefreshToken = cryptoUtil.encrypt(refresh_token);
 
     // Store tokens in database and clear PKCE verifier
     await database.connect();
@@ -408,17 +901,12 @@ router.get('/outlook/callback', async (req, res) => {
            outlook_pkce_verifier = NULL,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $5`,
-      [access_token, refresh_token, expiresAt.toISOString(), userEmail, userId],
+      [encryptedAccessToken, encryptedRefreshToken, expiresAt.toISOString(), userEmail, userId],
     );
 
-    console.log('✅ Tokens stored in database for user:', userId);
-
-    // Redirect back to frontend with success
     res.redirect(`${frontendUrl}/profile?outlook=connected`);
   } catch (error) {
-    console.error('❌ Outlook OAuth callback error:', error.response?.data || error.message);
-    console.error('❌ Full error:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'https://thesimpleai.netlify.app';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://your-frontend.netlify.app';
     const errorMessage =
       error.response?.data?.error_description ||
       error.message ||
@@ -453,7 +941,6 @@ router.get('/outlook/status', authenticateToken, async (req, res) => {
       email: isConnected ? user.outlook_email : null,
     });
   } catch (error) {
-    console.error('Outlook status check error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to check Outlook connection status',
@@ -484,7 +971,6 @@ router.post('/outlook/disconnect', authenticateToken, async (req, res) => {
       message: 'Outlook account disconnected successfully',
     });
   } catch (error) {
-    console.error('Outlook disconnect error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to disconnect Outlook account',

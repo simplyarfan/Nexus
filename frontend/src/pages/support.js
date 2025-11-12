@@ -1,14 +1,13 @@
-import React from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function SupportPage() {
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Support</h1>
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-600">Support tickets page coming soon...</p>
-        </div>
-      </div>
-    </div>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to My Tickets page
+    router.replace('/support/my-tickets');
+  }, [router]);
+
+  return null;
 }

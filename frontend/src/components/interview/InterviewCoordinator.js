@@ -166,7 +166,7 @@ const InterviewCoordinator = () => {
       case 'scheduled':
         return 'bg-blue-100 text-blue-800';
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-accent text-primary';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       case 'rescheduled':
@@ -179,7 +179,7 @@ const InterviewCoordinator = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -194,7 +194,7 @@ const InterviewCoordinator = () => {
         </div>
         <button
           onClick={() => setShowScheduleModal(true)}
-          className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center space-x-2 bg-primary hover:bg-primary text-white px-4 py-2 rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span>Schedule Interview</span>
@@ -217,8 +217,8 @@ const InterviewCoordinator = () => {
 
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Check className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+              <Check className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Completed</p>
@@ -231,8 +231,8 @@ const InterviewCoordinator = () => {
 
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Scheduled</p>
@@ -342,7 +342,7 @@ const InterviewCoordinator = () => {
                       generateQuestions(candidate.id);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                 >
                   <option value="">Choose a candidate...</option>
                   {candidates.map((candidate) => (
@@ -366,7 +366,7 @@ const InterviewCoordinator = () => {
                         onChange={(e) =>
                           setInterviewForm({ ...interviewForm, type: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                       >
                         <option value="technical">Technical</option>
                         <option value="behavioral">Behavioral</option>
@@ -384,7 +384,7 @@ const InterviewCoordinator = () => {
                         onChange={(e) =>
                           setInterviewForm({ ...interviewForm, duration: parseInt(e.target.value) })
                         }
-                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                       />
                     </div>
                   </div>
@@ -411,7 +411,7 @@ const InterviewCoordinator = () => {
                         setInterviewForm({ ...interviewForm, meeting_link: e.target.value })
                       }
                       placeholder="https://zoom.us/j/..."
-                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                     />
                   </div>
 
@@ -448,7 +448,7 @@ const InterviewCoordinator = () => {
                     <button
                       onClick={scheduleInterview}
                       disabled={!interviewForm.scheduled_time}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Schedule Interview
                     </button>

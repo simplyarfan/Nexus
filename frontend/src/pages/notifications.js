@@ -120,7 +120,7 @@ export default function NotificationsPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export default function NotificationsPage() {
             </div>
             <button
               onClick={handleMarkAllAsRead}
-              className="px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 border border-green-600 rounded-lg hover:bg-green-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-primary hover:text-primary border border-primary rounded-lg hover:bg-accent transition-colors"
             >
               Mark All as Read
             </button>
@@ -172,7 +172,7 @@ export default function NotificationsPage() {
             onClick={() => setFilter('all')}
             className={
               'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'all' ? 'bg-green-500 text-white' : 'text-muted-foreground hover:bg-muted')
+              (filter === 'all' ? 'bg-accent text-white' : 'text-muted-foreground hover:bg-muted')
             }
           >
             All
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
             onClick={() => setFilter('unread')}
             className={
               'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'unread' ? 'bg-green-500 text-white' : 'text-muted-foreground hover:bg-muted')
+              (filter === 'unread' ? 'bg-accent text-white' : 'text-muted-foreground hover:bg-muted')
             }
           >
             Unread
@@ -192,7 +192,7 @@ export default function NotificationsPage() {
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -230,7 +230,7 @@ export default function NotificationsPage() {
                         'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ' +
                         (notification.is_read
                           ? 'bg-muted text-muted-foreground'
-                          : 'bg-green-100 text-green-600')
+                          : 'bg-accent text-primary')
                       }
                     >
                       {getNotificationIcon(notification.type)}
@@ -250,7 +250,7 @@ export default function NotificationsPage() {
                           {!notification.is_read && (
                             <button
                               onClick={() => handleMarkAsRead(notification.id)}
-                              className="text-xs text-green-600 hover:text-green-700 font-medium"
+                              className="text-xs text-primary hover:text-primary font-medium"
                             >
                               Mark as read
                             </button>

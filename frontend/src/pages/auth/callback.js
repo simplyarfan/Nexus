@@ -122,7 +122,7 @@ export default function AuthCallback() {
           <div className="bg-card border border-border rounded-2xl shadow-xl p-8">
             {/* Logo */}
             <div className="flex justify-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-green-600 rounded-2xl flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary rounded-2xl flex items-center justify-center">
                 <div className="w-8 h-8 bg-white rounded-lg transform rotate-45"></div>
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function AuthCallback() {
 
               {status === 'success' && (
                 <div className="flex flex-col items-center space-y-4">
-                  <CheckCircle className="w-12 h-12 text-green-500" />
+                  <CheckCircle className="w-12 h-12 text-primary" />
                   <p className="text-lg font-medium text-foreground">{message}</p>
                   <p className="text-sm text-muted-foreground">You will be redirected shortly...</p>
                 </div>

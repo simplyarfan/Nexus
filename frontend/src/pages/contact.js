@@ -192,7 +192,7 @@ export default function Contact() {
                       title: 'Phone',
                       content: '+1 (555) 123-4567',
                       description: 'Mon-Fri from 9am to 6pm',
-                      gradient: 'from-green-500 to-emerald-600',
+                      gradient: 'from-primary to-emerald-600',
                     },
                     {
                       icon: MapPin,

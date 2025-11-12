@@ -328,7 +328,7 @@ export default function LandingPage() {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-bold text-green-500 mb-3">With Nexus:</h4>
+                      <h4 className="font-bold text-primary mb-3">With Nexus:</h4>
                       <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• AI agents working 24/7</li>
                         <li>• Instant fraud detection</li>

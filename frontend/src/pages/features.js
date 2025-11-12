@@ -100,7 +100,7 @@ export default function Features() {
                   title: 'Invoice Processor',
                   description:
                     'Extract data from invoices instantly. Automated validation and fraud detection.',
-                  color: 'from-green-500 to-emerald-600',
+                  color: 'from-primary to-emerald-600',
                 },
                 {
                   icon: BarChart3,

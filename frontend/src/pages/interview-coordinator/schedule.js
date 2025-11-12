@@ -138,7 +138,7 @@ ${user?.email || ''}`;
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -163,7 +163,7 @@ ${user?.email || ''}`;
                   <Icons.ArrowLeft className="w-5 h-5 text-muted-foreground" />
                 </button>
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center">
                     <Icons.Calendar className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -182,7 +182,7 @@ ${user?.email || ''}`;
             {/* Candidate Information */}
             <div className="bg-card rounded-lg shadow-sm border border-border p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                <Icons.Users className="w-5 h-5 mr-2 text-green-600" />
+                <Icons.Users className="w-5 h-5 mr-2 text-primary" />
                 Candidate Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,7 +196,7 @@ ${user?.email || ''}`;
                     value={formData.candidateName}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="Enter candidate's full name"
                   />
                 </div>
@@ -210,7 +210,7 @@ ${user?.email || ''}`;
                     value={formData.candidateEmail}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="candidate@example.com"
                   />
                 </div>
@@ -220,7 +220,7 @@ ${user?.email || ''}`;
             {/* Interview Details */}
             <div className="bg-card rounded-lg shadow-sm border border-border p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                <Icons.Briefcase className="w-5 h-5 mr-2 text-green-600" />
+                <Icons.Briefcase className="w-5 h-5 mr-2 text-primary" />
                 Interview Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,7 +234,7 @@ ${user?.email || ''}`;
                     value={formData.title}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="e.g., Senior Software Engineer"
                   />
                 </div>
@@ -246,7 +246,7 @@ ${user?.email || ''}`;
                     name="type"
                     value={formData.type}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
                     <option value="technical">Technical Interview</option>
                     <option value="behavioral">Behavioral Interview</option>
@@ -262,7 +262,7 @@ ${user?.email || ''}`;
                     name="duration"
                     value={formData.duration}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
                     <option value={30}>30 minutes</option>
                     <option value={45}>45 minutes</option>
@@ -285,7 +285,7 @@ ${user?.email || ''}`;
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="Video Call, Office, etc."
                   />
                 </div>
@@ -298,7 +298,7 @@ ${user?.email || ''}`;
                     name="meetingLink"
                     value={formData.meetingLink}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="https://zoom.us/j/..."
                   />
                 </div>
@@ -311,7 +311,7 @@ ${user?.email || ''}`;
                     value={formData.notes}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="Any additional information for the candidate..."
                   />
                 </div>
@@ -329,7 +329,7 @@ ${user?.email || ''}`;
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors flex items-center"
               >
                 <Icons.Send className="w-4 h-4 mr-2" />
                 Preview & Send
@@ -366,7 +366,7 @@ ${user?.email || ''}`;
                   <textarea
                     value={emailContent}
                     onChange={(e) => setEmailContent(e.target.value)}
-                    className="w-full h-64 p-3 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                    className="w-full h-64 p-3 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent font-mono text-sm"
                   />
                 ) : (
                   <div className="bg-secondary p-4 rounded-lg">
@@ -390,7 +390,7 @@ ${user?.email || ''}`;
                 <button
                   onClick={handleSendInvitation}
                   disabled={loading}
-                  className="inline-flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+                  className="inline-flex items-center px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
                 >
                   {loading ? (
                     <>
@@ -414,7 +414,7 @@ ${user?.email || ''}`;
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-card rounded-lg max-w-md w-full p-6">
               <div className="flex items-center mb-4">
-                <Icons.AlertCircle className="w-6 h-6 text-green-500 mr-3" />
+                <Icons.AlertCircle className="w-6 h-6 text-primary mr-3" />
                 <h3 className="text-lg font-semibold text-foreground">Email Connection Required</h3>
               </div>
               <p className="text-muted-foreground mb-6">
@@ -429,7 +429,7 @@ ${user?.email || ''}`;
                 </button>
                 <button
                   onClick={handleGoToSettings}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors"
                 >
                   Connect Email
                 </button>

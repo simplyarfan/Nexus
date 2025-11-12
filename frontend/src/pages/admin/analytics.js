@@ -64,7 +64,7 @@ export default function AnalyticsDashboard() {
           label: 'Active Users',
           value: activeUsers.toString(),
           trend: `${activePercentage}%`,
-          color: 'bg-green-500/10 text-green-600',
+          color: 'bg-accent/10 text-primary',
         },
         {
           label: 'Total Tickets',
@@ -76,7 +76,7 @@ export default function AnalyticsDashboard() {
           label: 'Resolved Tickets',
           value: resolvedTickets.toString(),
           trend: `${resolvedPercentage}%`,
-          color: 'bg-green-50 text-green-900',
+          color: 'bg-accent text-primary',
         },
         {
           label: 'In Progress',
@@ -101,7 +101,7 @@ export default function AnalyticsDashboard() {
   if (loading || loadingStats) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function AnalyticsDashboard() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/admin')}
-              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <svg
                 className="w-5 h-5 text-foreground"

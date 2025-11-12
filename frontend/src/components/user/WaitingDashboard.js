@@ -58,7 +58,7 @@ const WaitingDashboard = () => {
       name: 'Reaction Time',
       description: 'How fast are your reflexes?',
       icon: Zap,
-      color: 'from-yellow-500 to-green-600',
+      color: 'from-yellow-500 to-primary',
       action: () => setCurrentGame('reaction'),
     },
     {
@@ -66,7 +66,7 @@ const WaitingDashboard = () => {
       name: 'Number Puzzle',
       description: 'Solve the sliding number puzzle',
       icon: Puzzle,
-      color: 'from-green-500 to-emerald-600',
+      color: 'from-primary to-emerald-600',
       action: () => setCurrentGame('puzzle'),
     },
   ];
@@ -95,7 +95,7 @@ const WaitingDashboard = () => {
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-border">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-card rounded-sm transform rotate-45"></div>
             </div>
             <span className="text-xl font-bold text-foreground">Nexus</span>
@@ -195,7 +195,7 @@ const WaitingDashboard = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
               <button className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted">
@@ -208,11 +208,11 @@ const WaitingDashboard = () => {
         {/* Dashboard content */}
         <div className="p-6 pb-20">
           {/* Welcome section */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white mb-8">
+          <div className="bg-gradient-to-r from-primary to-primary rounded-2xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Welcome to Nexus AI Platform!</h2>
-                <p className="text-green-100">
+                <p className="text-primary-foreground">
                   Your account is being reviewed. You&apos;ll be assigned to a department soon.
                 </p>
               </div>
@@ -227,7 +227,7 @@ const WaitingDashboard = () => {
           {/* Status Card */}
           <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-primary rounded-xl flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
@@ -272,7 +272,7 @@ const WaitingDashboard = () => {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-foreground mb-2">{game.name}</h3>
                       <p className="text-muted-foreground text-sm mb-4">{game.description}</p>
-                      <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
+                      <div className="flex items-center text-primary text-sm font-medium group-hover:text-primary">
                         <span>Play Now</span>
                         <Gamepad2 className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -328,8 +328,8 @@ const WaitingDashboard = () => {
                           : 'Click as fast as you can when the circle turns green!'}
                       </p>
                       {reactionScore !== null && (
-                        <div className="mb-4 p-3 bg-green-50 rounded-lg">
-                          <p className="text-green-700 font-bold">Your time: {reactionScore}ms</p>
+                        <div className="mb-4 p-3 bg-accent rounded-lg">
+                          <p className="text-primary font-bold">Your time: {reactionScore}ms</p>
                         </div>
                       )}
                       <div
@@ -345,7 +345,7 @@ const WaitingDashboard = () => {
                           !gameStarted
                             ? 'bg-muted'
                             : reactionGreen
-                              ? 'bg-green-400'
+                              ? 'bg-primary'
                               : 'bg-red-400'
                         }`}
                       >
@@ -354,7 +354,7 @@ const WaitingDashboard = () => {
                             !gameStarted
                               ? 'text-muted-foreground'
                               : reactionGreen
-                                ? 'text-green-900'
+                                ? 'text-primary'
                                 : 'text-red-900'
                           }`}
                         >
@@ -366,7 +366,7 @@ const WaitingDashboard = () => {
 
                   {currentGame === 'puzzle' && (
                     <div>
-                      <Puzzle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                      <Puzzle className="w-16 h-16 text-primary mx-auto mb-4" />
                       <p className="text-muted-foreground mb-4">
                         Arrange the numbers from 1 to 8 in order!
                       </p>
@@ -374,9 +374,9 @@ const WaitingDashboard = () => {
                         {[1, 2, 3, 4, 5, 6, 7, 8, ''].map((num, i) => (
                           <div
                             key={i}
-                            className={`w-10 h-10 ${num ? 'bg-green-100 hover:bg-green-200' : 'bg-secondary'} rounded border flex items-center justify-center cursor-pointer transition-colors`}
+                            className={`w-10 h-10 ${num ? 'bg-accent hover:bg-accent' : 'bg-secondary'} rounded border flex items-center justify-center cursor-pointer transition-colors`}
                           >
-                            <span className="text-green-600 font-bold">{num}</span>
+                            <span className="text-primary font-bold">{num}</span>
                           </div>
                         ))}
                       </div>
@@ -407,13 +407,13 @@ const WaitingDashboard = () => {
                           setReactionTimer(Date.now());
                         }, delay);
                       }}
-                      className="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-colors"
+                      className="px-4 py-2 text-white bg-gradient-to-r from-primary to-primary rounded-lg hover:from-primary hover:to-primary transition-colors"
                     >
                       Start Game
                     </button>
                   )}
                   {currentGame !== 'reaction' && (
-                    <button className="px-4 py-2 text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-colors opacity-50 cursor-not-allowed">
+                    <button className="px-4 py-2 text-white bg-gradient-to-r from-primary to-primary rounded-lg hover:from-primary hover:to-primary transition-colors opacity-50 cursor-not-allowed">
                       Coming Soon
                     </button>
                   )}

@@ -30,7 +30,7 @@ const AdminDashboard = () => {
         status: 'active',
         metrics: { processed: 1247, timeSaved: '312h', accuracy: '94.5%' },
         features: ['Parse PDFs/Word', 'Skill Matching', 'Auto-Ranking', '+1 more'],
-        gradient: 'from-green-500 to-green-500', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Human Resources',
       },
       {
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
         status: 'active',
         metrics: { scheduled: 89, conflictsAvoided: 23, satisfaction: '4.8/5' },
         features: ['Calendar Sync', 'Auto-Reminders', 'Panel Coordination', '+1 more'],
-        gradient: 'from-green-600 to-green-500', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Human Resources',
       },
       {
@@ -52,7 +52,7 @@ const AdminDashboard = () => {
         status: 'active',
         metrics: { onboarded: 34, completion: '98.2%', avgTime: '2 days' },
         features: ['Custom Plans', 'Task Tracking', 'Document Generation', '+1 more'],
-        gradient: 'from-green-500 to-green-500', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Human Resources',
       },
       {
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
         status: 'beta',
         metrics: { reports: 156, insights: 42, predictions: '91.3%' },
         features: ['Turnover Prediction', 'Performance Analytics', 'DEI Metrics', '+1 more'],
-        gradient: 'from-green-400 to-green-600', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Human Resources',
       },
     ],
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { pending: 0, processed: 0, accuracy: 'N/A' },
         features: ['OCR Scanning', 'GL Coding', 'Approval Workflow', '+1 more'],
-        gradient: 'from-green-500 to-green-600', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Finance',
       },
       {
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { audited: 0, flagged: 0, savings: '$0' },
         features: ['Policy Checking', 'Receipt Validation', 'Anomaly Detection', '+1 more'],
-        gradient: 'from-green-500 to-green-600', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Finance',
       },
       {
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { reports: 0, insights: 0, forecasts: 'N/A' },
         features: ['Custom Reports', 'Variance Analysis', 'Forecasting', '+1 more'],
-        gradient: 'from-green-400 to-green-500', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Finance',
       },
     ],
@@ -111,7 +111,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { qualified: 0, scored: 0, conversion: '0%' },
         features: ['Lead Scoring', 'Data Enrichment', 'Intent Signals', '+1 more'],
-        gradient: 'from-green-600 to-green-600', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Sales & Marketing',
       },
       {
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { proposals: 0, winRate: '0%', avgValue: '$0' },
         features: ['Template Library', 'Pricing Engine', 'E-Signatures', '+1 more'],
-        gradient: 'from-red-600 to-green-500', // GREEN THEME
+        gradient: 'from-red-600 to-primary', // GREEN THEME
         department: 'Sales & Marketing',
       },
       {
@@ -133,7 +133,7 @@ const AdminDashboard = () => {
         status: 'coming_soon',
         metrics: { campaigns: 0, roi: '0%', reach: '0' },
         features: ['ROI Analysis', 'Attribution', 'A/B Testing', '+1 more'],
-        gradient: 'from-green-600 to-green-600', // GREEN THEME
+        gradient: 'from-primary to-primary', // GREEN THEME
         department: 'Sales & Marketing',
       },
     ],
@@ -157,13 +157,13 @@ const AdminDashboard = () => {
     const IconComponent = agent.icon;
 
     return (
-      <div className="bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl border border-green-200/50 p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden">
+      <div className="bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl border border-primary/50 p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden">
         {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-green-50/30 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background/50 to-background/30 pointer-events-none" />
 
         {/* Department badge */}
         <div className="absolute top-4 right-4 z-10">
-          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
+          <span className="px-2 py-1 bg-accent text-primary rounded-md text-xs font-medium">
             {agent.department}
           </span>
         </div>
@@ -171,13 +171,13 @@ const AdminDashboard = () => {
         {/* Status badge */}
         <div className="absolute top-4 left-4 z-10">
           {agent.status === 'active' && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            <div className="flex items-center gap-1 px-2 py-1 bg-accent text-primary rounded-md text-xs font-medium">
+              <div className="w-1.5 h-1.5 bg-accent rounded-full" />
               Active
             </div>
           )}
           {agent.status === 'beta' && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
+            <div className="flex items-center gap-1 px-2 py-1 bg-accent text-primary rounded-md text-xs font-medium">
               <Sparkles className="w-3 h-3" />
               Beta
             </div>
@@ -223,7 +223,7 @@ const AdminDashboard = () => {
               key={idx}
               className={`text-xs px-2.5 py-1.5 rounded-lg font-medium ${
                 agent.status === 'active'
-                  ? 'bg-green-100 text-green-700'
+                  ? 'bg-accent text-primary'
                   : 'bg-muted text-muted-foreground'
               }`}
             >
@@ -257,21 +257,21 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-red-50 to-green-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background relative overflow-hidden">
       {/* Background decorative elements - GREEN THEME */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-primary rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
         <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-red-400 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
       </div>
 
       <main className="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Welcome Section */}
         <div className="px-4 py-6 sm:px-0">
-          <div className="bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-green-200/50 p-8 mb-8">
+          <div className="bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-primary/50 p-8 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary rounded-xl flex items-center justify-center mr-4">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -284,14 +284,14 @@ const AdminDashboard = () => {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => router.push('/admin/users')}
-                  className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all"
+                  className="flex items-center px-4 py-2 bg-gradient-to-r from-primary to-primary text-white rounded-xl hover:shadow-lg transition-all"
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Manage Users
                 </button>
                 <button
                   onClick={() => router.push('/admin/tickets')}
-                  className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all"
+                  className="flex items-center px-4 py-2 bg-gradient-to-r from-primary to-primary text-white rounded-xl hover:shadow-lg transition-all"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Support Tickets
@@ -312,8 +312,8 @@ const AdminDashboard = () => {
                   onClick={() => setSelectedDepartment(dept.id)}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
                     selectedDepartment === dept.id
-                      ? 'bg-gradient-to-r from-green-500 to-green-500 text-white shadow-lg'
-                      : 'bg-card/80 text-muted-foreground hover:bg-card border border-green-200/50'
+                      ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg'
+                      : 'bg-card/80 text-muted-foreground hover:bg-card border border-primary/50'
                   }`}
                 >
                   {dept.name} ({dept.count})

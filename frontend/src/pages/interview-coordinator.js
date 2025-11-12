@@ -639,8 +639,8 @@ Best regards,
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4">
-            <a
-              href={getDashboardPath()}
+            <button
+              onClick={() => router.push(getDashboardPath())}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -652,7 +652,7 @@ Best regards,
                 />
               </svg>
               Back to Dashboard
-            </a>
+            </button>
           </div>
           <div className="flex items-center justify-between">
             <div>
@@ -747,11 +747,11 @@ Best regards,
 
       {/* Outlook Connected Status */}
       {!checkingOutlook && outlookConnected && (
-        <div className="bg-green-500/10 border-l-4 border-green-500">
+        <div className="bg-accent/10 border-l-4 border-primary">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center">
               <svg
-                className="w-5 h-5 text-green-500 mr-2"
+                className="w-5 h-5 text-primary mr-2"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -763,7 +763,7 @@ Best regards,
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="text-sm text-green-500 font-medium">
+              <p className="text-sm text-primary font-medium">
                 Outlook Connected: {outlookEmail}
               </p>
             </div>
@@ -874,7 +874,7 @@ Best regards,
                               <span
                                 className={`px-3 py-1 text-xs font-medium rounded-full ${
                                   interview.outcome === 'selected'
-                                    ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                    ? 'bg-accent/10 text-primary border border-primary/20'
                                     : 'bg-red-500/10 text-red-600 border border-red-500/20'
                                 }`}
                               >
@@ -1004,7 +1004,7 @@ Best regards,
                       <span
                         className={`px-3 py-1 text-xs font-medium rounded-full ${
                           selectedInterview.outcome === 'selected'
-                            ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                            ? 'bg-accent/10 text-primary border border-primary/20'
                             : 'bg-red-500/10 text-red-600 border border-red-500/20'
                         }`}
                       >
@@ -1612,7 +1612,7 @@ Best regards,
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full bg-primary hover:bg-primary"
                 onClick={() => handleMarkInterview('selected')}
               >
                 <svg

@@ -42,7 +42,7 @@ export default function TicketsPage() {
     const colors = {
       open: 'bg-blue-100 text-blue-800',
       'in-progress': 'bg-yellow-100 text-yellow-800',
-      resolved: 'bg-green-100 text-green-800',
+      resolved: 'bg-accent text-primary',
       closed: 'bg-muted text-foreground',
     };
     return colors[status] || 'bg-muted text-foreground';
@@ -50,7 +50,7 @@ export default function TicketsPage() {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      low: 'text-green-600',
+      low: 'text-primary',
       medium: 'text-yellow-600',
       high: 'text-orange-600',
       urgent: 'text-red-600',

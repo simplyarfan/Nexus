@@ -72,11 +72,11 @@ export default function TicketDetail() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'open':
-        return 'bg-green-50 text-green-900 border-accent';
+        return 'bg-accent text-primary border-accent';
       case 'in_progress':
-        return 'bg-green-500/10 text-green-600 border-primary/20';
+        return 'bg-accent/10 text-primary border-primary/20';
       case 'resolved':
-        return 'bg-green-500/10 text-green-600 border-primary/20';
+        return 'bg-accent/10 text-primary border-primary/20';
       case 'closed':
         return 'bg-muted text-muted-foreground border-border';
       default:
@@ -89,9 +89,9 @@ export default function TicketDetail() {
       case 'high':
         return 'bg-red-500/10 text-red-600 border-destructive/20';
       case 'medium':
-        return 'bg-green-50 text-green-900 border-accent';
+        return 'bg-accent text-primary border-accent';
       case 'low':
-        return 'bg-green-500/10 text-green-600 border-primary/20';
+        return 'bg-accent/10 text-primary border-primary/20';
       default:
         return 'bg-muted text-muted-foreground border-border';
     }
@@ -116,7 +116,7 @@ export default function TicketDetail() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/superadmin/tickets')}
-              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <svg
                 className="w-5 h-5 text-foreground"
@@ -153,7 +153,7 @@ export default function TicketDetail() {
             <div className="bg-card border border-border rounded-xl p-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
                     <span className="text-lg font-medium text-white">{ticket.user_name[0]}</span>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export default function TicketDetail() {
                             </svg>
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
                             <span className="text-sm font-medium text-white">
                               {activity.user[0]}
                             </span>
@@ -228,7 +228,7 @@ export default function TicketDetail() {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold text-foreground">{activity.user}</span>
                           {activity.isInternal && (
-                            <span className="text-xs px-2 py-0.5 bg-green-50 text-green-900 border border-accent rounded-full">
+                            <span className="text-xs px-2 py-0.5 bg-accent text-primary border border-accent rounded-full">
                               Internal Note
                             </span>
                           )}
@@ -271,7 +271,7 @@ export default function TicketDetail() {
                       type="checkbox"
                       checked={isInternal}
                       onChange={(e) => setIsInternal(e.target.checked)}
-                      className="w-4 h-4 rounded border-border text-green-600 focus:ring-primary"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                     />
                     <span className="text-sm text-foreground">
                       Internal note (not visible to user)
@@ -280,14 +280,14 @@ export default function TicketDetail() {
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      className="px-4 py-2.5 text-foreground hover:bg-green-50 rounded-lg transition-colors"
+                      className="px-4 py-2.5 text-foreground hover:bg-accent rounded-lg transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-500/90 transition-colors font-medium inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2.5 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors font-medium inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg
                         className="w-5 h-5"
@@ -384,7 +384,7 @@ export default function TicketDetail() {
             <div className="bg-card border border-border rounded-xl p-6">
               <h3 className="text-lg font-bold text-foreground mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full px-4 py-2.5 bg-secondary hover:bg-green-50 border border-border text-foreground rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
+                <button className="w-full px-4 py-2.5 bg-secondary hover:bg-accent border border-border text-foreground rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
@@ -395,7 +395,7 @@ export default function TicketDetail() {
                   </svg>
                   Assign to Me
                 </button>
-                <button className="w-full px-4 py-2.5 bg-green-500/10 hover:bg-green-500/20 border border-primary/20 text-green-600 rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
+                <button className="w-full px-4 py-2.5 bg-accent/10 hover:bg-accent/20 border border-primary/20 text-primary rounded-lg transition-colors text-sm font-medium inline-flex items-center justify-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"

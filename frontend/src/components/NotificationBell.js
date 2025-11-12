@@ -168,7 +168,7 @@ export default function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-sm text-green-600 hover:text-green-700 font-medium flex items-center"
+                className="text-sm text-primary hover:text-primary font-medium flex items-center"
               >
                 <CheckCheck className="w-4 h-4 mr-1" />
                 Mark all read
@@ -180,7 +180,7 @@ export default function NotificationBell() {
           <div className="max-h-96 overflow-y-auto">
             {isLoading ? (
               <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-sm text-muted-foreground">Loading...</p>
               </div>
             ) : notifications.length === 0 ? (
@@ -195,7 +195,7 @@ export default function NotificationBell() {
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={`p-4 border-b border-gray-100 hover:bg-secondary cursor-pointer transition-colors ${
-                    !notification.is_read ? 'bg-green-50' : ''
+                    !notification.is_read ? 'bg-accent' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -205,7 +205,7 @@ export default function NotificationBell() {
                           {notification.title}
                         </h4>
                         {!notification.is_read && (
-                          <span className="ml-2 w-2 h-2 bg-green-500 rounded-full"></span>
+                          <span className="ml-2 w-2 h-2 bg-accent rounded-full"></span>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
@@ -240,7 +240,7 @@ export default function NotificationBell() {
                   setIsOpen(false);
                   router.push('/notifications');
                 }}
-                className="text-sm text-green-600 hover:text-green-700 font-medium"
+                className="text-sm text-primary hover:text-primary font-medium"
               >
                 View all notifications
               </button>

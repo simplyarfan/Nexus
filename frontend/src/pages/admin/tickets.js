@@ -126,7 +126,7 @@ export default function SupportManagement() {
       case 'in_progress':
         return 'bg-yellow-100 text-yellow-700';
       case 'resolved':
-        return 'bg-green-100 text-green-700';
+        return 'bg-accent text-primary';
       case 'closed':
         return 'bg-muted text-muted-foreground';
       default:
@@ -143,7 +143,7 @@ export default function SupportManagement() {
       case 'medium':
         return 'bg-yellow-100 text-yellow-700';
       case 'low':
-        return 'bg-green-100 text-green-700';
+        return 'bg-accent text-primary';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -152,7 +152,7 @@ export default function SupportManagement() {
   if (authLoading || (!isAdmin && !isSuperAdmin)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -220,7 +220,7 @@ export default function SupportManagement() {
                   placeholder="Search tickets by subject or user..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 w-full bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="pl-10 pr-4 py-3 w-full bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
                 />
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function SupportManagement() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
               >
                 <option value="all">All Status</option>
                 <option value="open">Open</option>
@@ -241,7 +241,7 @@ export default function SupportManagement() {
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
               >
                 <option value="all">All Priority</option>
                 <option value="urgent">Urgent</option>
@@ -257,7 +257,7 @@ export default function SupportManagement() {
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -341,7 +341,7 @@ export default function SupportManagement() {
                               e.stopPropagation();
                               openTicketDetails(ticket);
                             }}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-primary hover:text-primary"
                           >
                             View
                           </button>
@@ -438,7 +438,7 @@ export default function SupportManagement() {
                         <p className="text-sm font-medium text-foreground">
                           {comment.first_name} {comment.last_name}
                           {comment.role !== 'user' && (
-                            <span className="ml-2 text-xs text-green-600">({comment.role})</span>
+                            <span className="ml-2 text-xs text-primary">({comment.role})</span>
                           )}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -457,12 +457,12 @@ export default function SupportManagement() {
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a comment..."
                     rows={3}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting || !newComment.trim()}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                    className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
                   >
                     {isSubmitting ? 'Adding...' : 'Add Comment'}
                   </button>
@@ -474,7 +474,7 @@ export default function SupportManagement() {
                 <select
                   value={selectedTicket.status}
                   onChange={(e) => handleChangeStatus(selectedTicket.id, e.target.value)}
-                  className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 >
                   <option value="open">Open</option>
                   <option value="in_progress">In Progress</option>
@@ -483,7 +483,7 @@ export default function SupportManagement() {
                 </select>
                 <button
                   onClick={() => setShowResolveModal(true)}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary"
                 >
                   Resolve Ticket
                 </button>
@@ -516,7 +516,7 @@ export default function SupportManagement() {
                   onChange={(e) => setResolution(e.target.value)}
                   placeholder="Resolution notes (optional)..."
                   rows={4}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 />
                 <div className="flex gap-3">
                   <button
@@ -529,7 +529,7 @@ export default function SupportManagement() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
                   >
                     {isSubmitting ? 'Resolving...' : 'Resolve'}
                   </button>

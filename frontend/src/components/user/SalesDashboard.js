@@ -42,7 +42,7 @@ export default function SalesDashboard() {
       name: 'Lead Generator',
       description: 'Generate and qualify leads automatically',
       icon: Target,
-      color: 'from-green-600 to-green-600', // UPDATED TO GREEN THEME
+      color: 'from-primary to-primary', // UPDATED TO GREEN THEME
       route: '/lead-generator',
     },
     {
@@ -50,7 +50,7 @@ export default function SalesDashboard() {
       name: 'Campaign Optimizer',
       description: 'Optimize marketing campaigns for better ROI',
       icon: BarChart3,
-      color: 'from-green-400 to-green-600', // UPDATED TO GREEN THEME
+      color: 'from-primary to-primary', // UPDATED TO GREEN THEME
       route: '/campaign-optimizer',
     },
   ];
@@ -79,7 +79,7 @@ export default function SalesDashboard() {
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-border">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-card rounded-sm transform rotate-45"></div>
             </div>
             <span className="text-xl font-bold text-foreground">Nexus</span>
@@ -195,7 +195,7 @@ export default function SalesDashboard() {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
               <button className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted">
@@ -208,11 +208,11 @@ export default function SalesDashboard() {
         {/* Dashboard content */}
         <div className="p-6 pb-20">
           {/* Welcome section */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white mb-8">
+          <div className="bg-gradient-to-r from-primary to-primary rounded-2xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Sales Intelligence Hub</h2>
-                <p className="text-green-100">
+                <p className="text-primary-foreground">
                   Access your AI-powered sales tools and campaign management systems
                 </p>
               </div>
@@ -241,7 +241,7 @@ export default function SalesDashboard() {
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-foreground mb-2">{agent.name}</h3>
                     <p className="text-muted-foreground text-sm mb-4">{agent.description}</p>
-                    <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
+                    <div className="flex items-center text-primary text-sm font-medium group-hover:text-primary">
                       <span>Launch Agent</span>
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>

@@ -118,7 +118,7 @@ export default function SystemHealth() {
   if (loading || loadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function SystemHealth() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/admin')}
-              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <svg
                 className="w-5 h-5 text-foreground"
@@ -173,7 +173,7 @@ export default function SystemHealth() {
                       ? 'bg-red-500/10 text-red-600'
                       : metric.items.some((item) => item.status === 'warning')
                         ? 'bg-yellow-500/10 text-yellow-600'
-                        : 'bg-green-500/10 text-green-600'
+                        : 'bg-accent/10 text-primary'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -200,7 +200,7 @@ export default function SystemHealth() {
                         <span className="w-2 h-2 rounded-full bg-red-500"></span>
                       )}
                       {item.status === 'healthy' && (
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span className="w-2 h-2 rounded-full bg-accent"></span>
                       )}
                     </div>
                   </div>

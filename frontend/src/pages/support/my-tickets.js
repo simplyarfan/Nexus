@@ -63,7 +63,7 @@ export default function MyTickets() {
       case 'in_progress':
         return <AlertCircle className="w-4 h-4 text-yellow-600" />;
       case 'resolved':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-primary" />;
       case 'closed':
         return <CheckCircle className="w-4 h-4 text-muted-foreground" />;
       default:
@@ -78,7 +78,7 @@ export default function MyTickets() {
       case 'in_progress':
         return 'text-yellow-600 bg-yellow-50';
       case 'resolved':
-        return 'text-green-600 bg-green-50';
+        return 'text-primary bg-accent';
       case 'closed':
         return 'text-muted-foreground bg-secondary/50';
       default:
@@ -93,7 +93,7 @@ export default function MyTickets() {
       case 'medium':
         return 'text-yellow-600 bg-yellow-50';
       case 'low':
-        return 'text-green-600 bg-green-50';
+        return 'text-primary bg-accent';
       default:
         return 'text-muted-foreground bg-secondary/50';
     }
@@ -135,7 +135,7 @@ export default function MyTickets() {
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center">
                     <div className="w-4 h-4 bg-card rounded-sm transform rotate-45"></div>
                   </div>
                   <div>
@@ -188,7 +188,7 @@ export default function MyTickets() {
                     onClick={() => setFilter(status.key)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       filter === status.key
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-accent text-primary'
                         : 'text-muted-foreground hover:bg-secondary'
                     }`}
                   >
@@ -203,7 +203,7 @@ export default function MyTickets() {
                   placeholder="Search tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-64"
+                  className="pl-10 pr-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent w-64"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function MyTickets() {
           <div className="space-y-4">
             {loading ? (
               <div className="bg-card rounded-xl shadow-sm border border-border p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Loading tickets...</p>
               </div>
             ) : filteredTickets.length === 0 ? (
@@ -227,7 +227,7 @@ export default function MyTickets() {
                 </p>
                 <button
                   onClick={() => router.push('/support/create-ticket')}
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-colors font-medium"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-primary text-white rounded-lg hover:from-primary hover:to-primary transition-colors font-medium"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create Your First Ticket
@@ -268,7 +268,7 @@ export default function MyTickets() {
                     </div>
                     <button
                       onClick={() => router.push(`/support/ticket/${ticket.id}`)}
-                      className="flex items-center px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors font-medium"
+                      className="flex items-center px-4 py-2 text-primary hover:bg-accent rounded-lg transition-colors font-medium"
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       View

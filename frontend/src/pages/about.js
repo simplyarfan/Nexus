@@ -175,7 +175,7 @@ export default function About() {
                     title: 'Ethical AI',
                     description:
                       "We're committed to responsible AI development with transparency and fairness at the core.",
-                    gradient: 'from-green-500 to-emerald-600',
+                    gradient: 'from-primary to-emerald-600',
                   },
                   {
                     icon: TrendingUp,

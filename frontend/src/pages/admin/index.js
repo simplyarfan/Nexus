@@ -83,7 +83,7 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground text-sm">Loading...</p>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
               </svg>
@@ -454,7 +454,7 @@ export default function AdminDashboard() {
                           <div className="p-3 border-t border-border text-center">
                             <button
                               onClick={() => router.push('/notifications')}
-                              className="text-sm text-green-500 hover:opacity-80"
+                              className="text-sm text-primary hover:opacity-80"
                             >
                               View all notifications
                             </button>
@@ -485,7 +485,7 @@ export default function AdminDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/10 text-green-500',
+                  color: 'bg-accent/10 text-primary',
                 },
                 {
                   label: 'Open Tickets',
@@ -500,7 +500,7 @@ export default function AdminDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/20 text-green-500',
+                  color: 'bg-accent/20 text-primary',
                 },
                 {
                   label: 'Resolved Today',
@@ -515,7 +515,7 @@ export default function AdminDashboard() {
                       />
                     </svg>
                   ),
-                  color: 'bg-green-500/10 text-green-500',
+                  color: 'bg-accent/10 text-primary',
                 },
               ].map((stat, index) => (
                 <motion.div
@@ -552,24 +552,24 @@ export default function AdminDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
                   onClick={() => router.push(agent.href)}
-                  className="bg-card border-2 border-border rounded-2xl p-8 hover:border-green-500 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
+                  className="bg-card border-2 border-border rounded-2xl p-8 hover:border-primary hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
                 >
                   {/* Subtle gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                   <div className="relative z-10">
                     <div className="flex flex-col items-center text-center mb-6">
-                      <div className="w-16 h-16 rounded-2xl bg-green-500 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg mb-4">
                         {agent.icon}
                       </div>
-                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-green-500 transition-colors">
+                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                         {agent.title}
                       </h3>
                       <p className="text-muted-foreground text-sm">{agent.description}</p>
                     </div>
 
                     <div className="flex items-center justify-center pt-4 border-t border-border">
-                      <div className="inline-flex items-center gap-2 text-green-500 font-medium group-hover:gap-3 transition-all">
+                      <div className="inline-flex items-center gap-2 text-primary font-medium group-hover:gap-3 transition-all">
                         <span>Open Tool</span>
                         <svg
                           className="w-5 h-5"

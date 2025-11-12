@@ -40,12 +40,12 @@ const ErrorAlert = ({
       closeColor: 'text-blue-600 hover:text-blue-800',
     },
     success: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      icon: <AlertCircle className="w-5 h-5 text-green-600" />,
-      titleColor: 'text-green-900',
-      messageColor: 'text-green-800',
-      closeColor: 'text-green-600 hover:text-green-800',
+      bg: 'bg-accent',
+      border: 'border-primary',
+      icon: <AlertCircle className="w-5 h-5 text-primary" />,
+      titleColor: 'text-primary',
+      messageColor: 'text-primary',
+      closeColor: 'text-primary hover:text-primary',
     },
   };
 
@@ -98,7 +98,7 @@ export const ErrorFallback = ({ error, resetErrorBoundary }) => {
         {resetErrorBoundary && (
           <button
             onClick={resetErrorBoundary}
-            className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="mt-4 w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors"
           >
             Try again
           </button>

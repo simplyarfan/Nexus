@@ -294,7 +294,7 @@ const InterviewDetailPage = () => {
       completed: {
         color:
           outcome === 'selected'
-            ? 'bg-green-100 text-green-800 border-green-200'
+            ? 'bg-accent text-primary border-primary'
             : outcome === 'rejected'
               ? 'bg-red-100 text-red-800 border-red-200'
               : 'bg-muted text-foreground border-border',
@@ -322,7 +322,7 @@ const InterviewDetailPage = () => {
   if (!user || loading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -340,7 +340,7 @@ const InterviewDetailPage = () => {
         <title>{interview.candidate_name} - Interview Details</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50">
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
         {/* Header */}
         <div className="bg-card border-b border-border shadow-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -368,16 +368,16 @@ const InterviewDetailPage = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Candidate Card */}
               <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-                <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-8">
+                <div className="bg-gradient-to-r from-primary to-primary px-6 py-8">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center">
-                      <User className="w-8 h-8 text-green-600" />
+                      <User className="w-8 h-8 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-2xl font-bold text-white mb-1">
                         {interview.candidate_name}
                       </h2>
-                      <p className="text-green-100 flex items-center">
+                      <p className="text-primary-foreground flex items-center">
                         <Mail className="w-4 h-4 mr-2" />
                         {interview.candidate_email}
                       </p>
@@ -531,7 +531,7 @@ const InterviewDetailPage = () => {
                         });
                         setShowRescheduleModal(true);
                       }}
-                      className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                      className="w-full px-4 py-3 bg-primary hover:bg-primary text-white rounded-lg font-medium transition-colors flex items-center justify-center"
                     >
                       <Clock className="w-5 h-5 mr-2" />
                       Reschedule Interview
@@ -547,7 +547,7 @@ const InterviewDetailPage = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleOutcomeSelect('selected')}
-                          className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                          className="flex-1 px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg font-medium transition-colors"
                         >
                           <CheckCircle2 className="w-4 h-4 inline mr-1" />
                           Select
@@ -574,7 +574,7 @@ const InterviewDetailPage = () => {
                     !(interview.status === 'completed' && interview.outcome) && (
                       <button
                         onClick={() => setShowCancelModal(true)}
-                        className="w-full px-4 py-3 text-green-600 hover:bg-green-50 rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-green-200 hover:border-green-300"
+                        className="w-full px-4 py-3 text-primary hover:bg-accent rounded-lg inline-flex items-center justify-center text-sm font-medium transition-colors border-2 border-primary hover:border-primary"
                       >
                         <XCircle className="w-4 h-4 mr-2" />
                         Cancel Interview
@@ -797,7 +797,7 @@ const InterviewDetailPage = () => {
             <div className="bg-card rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-foreground flex items-center">
-                  <Clock className="w-6 h-6 mr-2 text-green-600" />
+                  <Clock className="w-6 h-6 mr-2 text-primary" />
                   Reschedule Interview
                 </h3>
                 <button
@@ -819,7 +819,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, scheduledTime: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     required
                   />
                 </div>
@@ -836,7 +836,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, duration: parseInt(e.target.value) })
                     }
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
 
@@ -849,7 +849,7 @@ const InterviewDetailPage = () => {
                     onChange={(e) =>
                       setRescheduleForm({ ...rescheduleForm, notes: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                     rows="3"
                     placeholder="Optional notes about the reschedule..."
                   />
@@ -873,7 +873,7 @@ const InterviewDetailPage = () => {
                 </button>
                 <button
                   onClick={rescheduleInterview}
-                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg transition-colors font-medium"
                 >
                   Confirm Reschedule
                 </button>
@@ -928,8 +928,8 @@ const InterviewDetailPage = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-card rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                  <XCircle className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mr-4">
+                  <XCircle className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-foreground">Cancel Interview</h3>
@@ -952,7 +952,7 @@ const InterviewDetailPage = () => {
                 </button>
                 <button
                   onClick={cancelInterview}
-                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-primary hover:bg-primary text-white rounded-lg transition-colors font-medium"
                 >
                   Cancel Interview
                 </button>

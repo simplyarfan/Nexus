@@ -214,7 +214,7 @@ export default function UserManagement() {
   if (authLoading || (!isAdmin && !isSuperAdmin)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -260,7 +260,7 @@ export default function UserManagement() {
             {isSuperAdmin && (
               <button
                 onClick={openAddModal}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-white rounded-lg hover:bg-primary transition-colors font-medium"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -301,7 +301,7 @@ export default function UserManagement() {
                   placeholder="Search users by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 w-full bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-3 w-full bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
             </div>
@@ -309,7 +309,7 @@ export default function UserManagement() {
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
               >
                 <option value="all">All Roles</option>
                 <option value="superadmin">Superadmin</option>
@@ -321,7 +321,7 @@ export default function UserManagement() {
               <select
                 value={filterDepartment}
                 onChange={(e) => setFilterDepartment(e.target.value)}
-                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 bg-secondary border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
               >
                 <option value="all">All Departments</option>
                 <option value="Human Resources">Human Resources</option>
@@ -331,7 +331,7 @@ export default function UserManagement() {
             </div>
             <button
               type="submit"
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+              className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-primary transition-colors font-medium"
             >
               Search
             </button>
@@ -342,7 +342,7 @@ export default function UserManagement() {
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -387,7 +387,7 @@ export default function UserManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
+                              <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
                                 <span className="text-sm font-medium text-white">
                                   {u.first_name?.[0]}
                                   {u.last_name?.[0]}
@@ -420,7 +420,7 @@ export default function UserManagement() {
                             className={
                               'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
                               (u.is_active
-                                ? 'bg-green-100 text-green-700'
+                                ? 'bg-accent text-primary'
                                 : 'bg-red-100 text-red-700')
                             }
                           >
@@ -487,7 +487,7 @@ export default function UserManagement() {
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     required
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                   />
                   <input
                     type="text"
@@ -495,7 +495,7 @@ export default function UserManagement() {
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     required
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                   />
                 </div>
                 <input
@@ -504,7 +504,7 @@ export default function UserManagement() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 />
                 <input
                   type="password"
@@ -512,12 +512,12 @@ export default function UserManagement() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 />
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -526,7 +526,7 @@ export default function UserManagement() {
                 <select
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 >
                   <option value="">No Department</option>
                   <option value="Human Resources">Human Resources</option>
@@ -538,7 +538,7 @@ export default function UserManagement() {
                   placeholder="Job Title"
                   value={formData.job_title}
                   onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 />
                 <div className="flex gap-3 pt-4">
                   <button
@@ -551,7 +551,7 @@ export default function UserManagement() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
                   >
                     {isSubmitting ? 'Creating...' : 'Create User'}
                   </button>
@@ -582,7 +582,7 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     required
                     disabled={!isSuperAdmin}
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-muted"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
                   />
                   <input
                     type="text"
@@ -591,7 +591,7 @@ export default function UserManagement() {
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     required
                     disabled={!isSuperAdmin}
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-muted"
+                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
                   />
                 </div>
                 <input
@@ -604,7 +604,7 @@ export default function UserManagement() {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -614,7 +614,7 @@ export default function UserManagement() {
                 <select
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 >
                   <option value="">No Department</option>
                   <option value="Human Resources">Human Resources</option>
@@ -627,7 +627,7 @@ export default function UserManagement() {
                   value={formData.job_title}
                   onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
                   disabled={!isSuperAdmin}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500 disabled:bg-muted"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
                 />
                 {!isSuperAdmin && (
                   <p className="text-sm text-muted-foreground">
@@ -645,7 +645,7 @@ export default function UserManagement() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
                   >
                     {isSubmitting ? 'Updating...' : 'Update User'}
                   </button>
@@ -680,7 +680,7 @@ export default function UserManagement() {
                   }
                   required
                   minLength={8}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 />
                 <input
                   type="password"
@@ -691,7 +691,7 @@ export default function UserManagement() {
                   }
                   required
                   minLength={8}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
                 />
                 <div className="flex gap-3 pt-4">
                   <button
@@ -704,7 +704,7 @@ export default function UserManagement() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
                   >
                     {isSubmitting ? 'Changing...' : 'Change Password'}
                   </button>

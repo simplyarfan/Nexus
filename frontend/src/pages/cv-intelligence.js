@@ -547,7 +547,7 @@ export default function CVIntelligencePage() {
                         </Button>
                       </label>
                       {cvFiles.length > 0 && (
-                        <p className="text-sm text-green-600 mt-2">
+                        <p className="text-sm text-primary mt-2">
                           ✓ {cvFiles.length} file{cvFiles.length > 1 ? 's' : ''} selected
                         </p>
                       )}
@@ -596,7 +596,7 @@ export default function CVIntelligencePage() {
                         </Button>
                       </label>
                       {jdFile && (
-                        <p className="text-sm text-green-600 mt-2">
+                        <p className="text-sm text-primary mt-2">
                           ✓ {jdFile.name}
                         </p>
                       )}

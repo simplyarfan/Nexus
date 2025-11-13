@@ -44,6 +44,10 @@ model User {
   sessions                    UserSession[]
   cvBatches                   CvBatch[]
   interviews                  Interview[]
+  tickets                     SupportTicket[]  @relation("UserTickets")
+  assignedTickets             SupportTicket[]  @relation("AssignedTickets")
+  comments                    TicketComment[]  @relation("UserComments")
+  notifications               Notification[]   @relation("UserNotifications")
 
   @@map("users")
 }
@@ -109,23 +113,96 @@ model Candidate {
 
 // Interview Coordinator Models
 model Interview {
-  id                String      @id @default(uuid())
-  userId            Int
-  candidateName     String
-  candidateEmail    String
-  position          String
-  status            String      // awaiting_response, scheduled, completed, cancelled, rejected
-  interviewType     String?     // technical, behavioral, cultural, final
-  scheduledTime     DateTime?
-  duration          Int?        // in minutes
-  meetingLink       String?
-  notes             String?     @db.Text
-  rejectionReason   String?     @db.Text
-  workflow          Json?       // JSON array of workflow stages
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id                  String      @id @default(uuid())
+  candidate_id        String
+  candidate_name      String
+  candidate_email     String
+  job_title           String
+  status              String
+  interview_type      String?
+  scheduled_time      DateTime?
+  duration            Int?
+  platform            String?
+  meeting_link        String?
+  calendly_link       String?
+  google_form_link    String?
+  panel_members       String?     @db.Text
+  generated_questions String?     @db.Text
+  notes               String?     @db.Text
+  scheduled_by        Int
+  outcome             String?
+  scheduled_at        DateTime?
+  cv_file_path        String?
+  teams_meeting_id    String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
 
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User        @relation(fields: [scheduled_by], references: [id], onDelete: Cascade)
 
   @@map("interviews")
+  @@index([scheduled_by])
+  @@index([candidate_email])
+  @@index([scheduled_time])
+  @@index([status])
+}
+
+// Support Ticket System
+model SupportTicket {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  subject     String    @db.VarChar(255)
+  description String    @db.Text
+  status      String    @default("open") @db.VarChar(50)
+  priority    String    @default("medium") @db.VarChar(20)
+  category    String    @default("general") @db.VarChar(50)
+  assigned_to Int?
+  resolution  String?   @db.Text
+  resolved_at DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  user        User            @relation("UserTickets", fields: [user_id], references: [id], onDelete: Cascade)
+  assignedTo  User?           @relation("AssignedTickets", fields: [assigned_to], references: [id], onDelete: SetNull)
+  comments    TicketComment[]
+
+  @@map("support_tickets")
+  @@index([user_id])
+  @@index([status])
+  @@index([status, created_at])
+  @@index([priority, status])
+  @@index([user_id, status])
+}
+
+model TicketComment {
+  id          Int      @id @default(autoincrement())
+  ticket_id   Int
+  user_id     Int
+  comment     String   @db.Text
+  is_internal Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  user        User          @relation("UserComments", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("ticket_comments")
+  @@index([ticket_id, created_at])
+}
+
+// Notification System
+model Notification {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  type       String    @db.VarChar(50)
+  title      String    @db.VarChar(255)
+  message    String    @db.Text
+  metadata   Json?
+  is_read    Boolean   @default(false)
+  read_at    DateTime?
+  created_at DateTime  @default(now())
+
+  user       User      @relation("UserNotifications", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([user_id])
+  @@index([user_id, is_read])
 }

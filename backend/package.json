@@ -31,7 +31,7 @@
   "license": "ISC",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^7.0.0",
     "@sentry/node": "^10.25.0",
     "@sentry/profiling-node": "^10.25.0",
     "axios": "^1.6.0",

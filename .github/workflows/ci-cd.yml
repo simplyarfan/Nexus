@@ -32,7 +32,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: ./backend
-        run: npm run lint
+        run: npm run lint -- --max-warnings=50
 
       - name: Run Prettier check
         working-directory: ./backend
@@ -42,9 +42,12 @@ jobs:
         working-directory: ./backend
         run: npm test -- --coverage --maxWorkers=2
         env:
+          CI: true
           NODE_ENV: test
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          SESSION_SECRET: test-session-secret
 
       - name: Upload backend coverage
         uses: codecov/codecov-action@v3
@@ -75,7 +78,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: ./frontend
-        run: npm run lint
+        run: npm run lint -- --max-warnings=100
 
       - name: Build frontend
         working-directory: ./frontend

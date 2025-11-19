@@ -1,8 +1,8 @@
 <div align="center">
 
-# **NEXUS**
+<img src=".github/header.svg" alt="Nexus - AI-Powered Recruitment Platform" width="100%"/>
 
-### *Next-Generation AI-Powered HR & Recruitment Platform*
+<br/>
 
 <img src="https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js"/>
 <img src="https://img.shields.io/badge/Node.js-18.x-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"/>

@@ -1,0 +1,148 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient backgrounds -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#312e81;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e1b4b;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#d946ef;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#0ea5e9;stop-opacity:0.4" />
+    </linearGradient>
+
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c084fc;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e879f9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Grid pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#8b5cf6" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+
+    <!-- Star pattern for background -->
+    <radialGradient id="starGradient">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bgGradient)"/>
+
+  <!-- Stars -->
+  <circle cx="100" cy="50" r="1.5" fill="url(#starGradient)" opacity="0.8"/>
+  <circle cx="250" cy="80" r="1" fill="url(#starGradient)" opacity="0.6"/>
+  <circle cx="450" cy="40" r="1.2" fill="url(#starGradient)" opacity="0.7"/>
+  <circle cx="650" cy="70" r="1" fill="url(#starGradient)" opacity="0.5"/>
+  <circle cx="850" cy="45" r="1.5" fill="url(#starGradient)" opacity="0.9"/>
+  <circle cx="1050" cy="65" r="1" fill="url(#starGradient)" opacity="0.6"/>
+  <circle cx="150" cy="90" r="0.8" fill="url(#starGradient)" opacity="0.5"/>
+  <circle cx="350" cy="55" r="1.2" fill="url(#starGradient)" opacity="0.8"/>
+  <circle cx="550" cy="85" r="1" fill="url(#starGradient)" opacity="0.6"/>
+  <circle cx="750" cy="35" r="1.5" fill="url(#starGradient)" opacity="0.7"/>
+  <circle cx="950" cy="75" r="1" fill="url(#starGradient)" opacity="0.8"/>
+  <circle cx="1100" cy="50" r="1.2" fill="url(#starGradient)" opacity="0.6"/>
+
+  <!-- Grid overlay -->
+  <rect width="1200" height="400" fill="url(#grid)"/>
+
+  <!-- Perspective grid lines (horizon effect) -->
+  <g opacity="0.4">
+    <line x1="0" y1="300" x2="600" y2="250" stroke="#8b5cf6" stroke-width="1"/>
+    <line x1="1200" y1="300" x2="600" y2="250" stroke="#8b5cf6" stroke-width="1"/>
+    <line x1="100" y1="320" x2="600" y2="260" stroke="#d946ef" stroke-width="0.5"/>
+    <line x1="1100" y1="320" x2="600" y2="260" stroke="#d946ef" stroke-width="0.5"/>
+    <line x1="200" y1="340" x2="600" y2="270" stroke="#0ea5e9" stroke-width="0.5"/>
+    <line x1="1000" y1="340" x2="600" y2="270" stroke="#0ea5e9" stroke-width="0.5"/>
+  </g>
+
+  <!-- Glow orbs -->
+  <circle cx="200" cy="200" r="80" fill="url(#glowGradient)" opacity="0.15" filter="blur(40px)"/>
+  <circle cx="1000" cy="220" r="100" fill="url(#glowGradient)" opacity="0.15" filter="blur(40px)"/>
+
+  <!-- Main content -->
+  <g transform="translate(600, 180)">
+    <!-- NEXUS text -->
+    <text
+      x="0"
+      y="0"
+      font-family="'Arial Black', 'Impact', sans-serif"
+      font-size="120"
+      font-weight="900"
+      fill="url(#textGradient)"
+      text-anchor="middle"
+      letter-spacing="8"
+      style="text-transform: uppercase;"
+    >NEXUS</text>
+
+    <!-- Subtitle -->
+    <text
+      x="0"
+      y="50"
+      font-family="'Courier New', monospace"
+      font-size="22"
+      font-weight="400"
+      fill="#e0e7ff"
+      text-anchor="middle"
+      letter-spacing="2"
+      opacity="0.9"
+    >AI-POWERED RECRUITMENT PLATFORM</text>
+
+    <!-- Tagline -->
+    <text
+      x="0"
+      y="85"
+      font-family="'Courier New', monospace"
+      font-size="16"
+      font-weight="300"
+      fill="#c7d2fe"
+      text-anchor="middle"
+      letter-spacing="1"
+      opacity="0.7"
+    >Hire smarter. Scale faster. Win better.</text>
+  </g>
+
+  <!-- Tech badges -->
+  <g transform="translate(600, 320)">
+    <!-- Next.js badge -->
+    <g transform="translate(-180, 0)">
+      <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#000000" opacity="0.8"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Next.js</text>
+    </g>
+
+    <!-- AI badge -->
+    <g transform="translate(-60, 0)">
+      <rect x="-35" y="-12" width="70" height="24" rx="12" fill="#8b5cf6" opacity="0.8"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Groq AI</text>
+    </g>
+
+    <!-- PostgreSQL badge -->
+    <g transform="translate(60, 0)">
+      <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#4169E1" opacity="0.8"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">PostgreSQL</text>
+    </g>
+
+    <!-- Deployed badge -->
+    <g transform="translate(180, 0)">
+      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#10b981" opacity="0.8"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">LIVE</text>
+    </g>
+  </g>
+
+  <!-- Decorative lines -->
+  <line x1="300" y1="150" x2="400" y2="150" stroke="url(#textGradient)" stroke-width="2" opacity="0.6"/>
+  <line x1="800" y1="150" x2="900" y2="150" stroke="url(#textGradient)" stroke-width="2" opacity="0.6"/>
+
+  <!-- Corner accents -->
+  <g opacity="0.3">
+    <polyline points="50,50 50,100 100,100" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+    <polyline points="1150,50 1150,100 1100,100" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+    <polyline points="50,350 50,300 100,300" fill="none" stroke="#0ea5e9" stroke-width="2"/>
+    <polyline points="1150,350 1150,300 1100,300" fill="none" stroke="#0ea5e9" stroke-width="2"/>
+  </g>
+</svg>

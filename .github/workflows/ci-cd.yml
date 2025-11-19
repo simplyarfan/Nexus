@@ -50,7 +50,7 @@ jobs:
           SESSION_SECRET: test-session-secret
 
       - name: Upload backend coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./backend/coverage/lcov.info
           flags: backend

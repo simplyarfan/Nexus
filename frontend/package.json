@@ -2,7 +2,7 @@
   "name": "nexus-frontend",
   "version": "2.0.0",
   "private": true,
-  "description": "Nexus Frontend - Production-Ready Static Site",
+  "description": "Nexus Frontend - Next.js Production Build with Netlify CD",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -569,7 +569,7 @@ export default function CVIntelligencePage() {
                       className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
-                      The batch name should describe the role you're hiring for
+                      The batch name should describe the role you&apos;re hiring for
                     </p>
                   </div>
 
@@ -1712,7 +1712,7 @@ export default function CVIntelligencePage() {
               <p className="text-muted-foreground text-center mb-6">
                 Are you sure you want to delete{' '}
                 <span className="font-semibold text-foreground">
-                  "{deleteConfirmation.batchName}"
+                  &quot;{deleteConfirmation.batchName}&quot;
                 </span>
                 ?
                 <br />

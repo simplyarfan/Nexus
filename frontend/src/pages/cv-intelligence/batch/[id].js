@@ -26,7 +26,10 @@ const BatchDetail = () => {
     try {
       await logout();
       router.push('/landing');
-    } catch (error) {}
+    } catch (error) {
+      // Logout failed, but still redirect
+      console.error('Logout error:', error);
+    }
   };
 
   const handleScheduleInterview = (candidate) => {

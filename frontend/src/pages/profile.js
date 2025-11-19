@@ -488,7 +488,7 @@ export default function ProfilePage() {
                   <div>
                     <h2 className="text-2xl font-bold text-foreground mb-2">Profile Information</h2>
                     <p className="text-muted-foreground">
-                      Update your account's profile information
+                      Update your account&apos;s profile information
                     </p>
                   </div>
 

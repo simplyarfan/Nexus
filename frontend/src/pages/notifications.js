@@ -277,7 +277,7 @@ export default function NotificationsPage() {
                 />
               </svg>
               <p className="text-lg font-medium mb-1">No notifications</p>
-              <p className="text-sm">You're all caught up!</p>
+              <p className="text-sm">You&apos;re all caught up!</p>
             </div>
           ) : (
             <div className="divide-y divide-border">

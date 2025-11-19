@@ -6,7 +6,7 @@ import * as Icons from 'lucide-react';
 import axios from 'axios';
 import emailService from '../../services/emailService';
 import toast from 'react-hot-toast';
-import ImprovedDateTimePicker from '../../components/ui/ImprovedDateTimePicker';
+import ImprovedDateTimePicker from '../../components/ui/DateTimePicker';
 
 const ScheduleInterview = () => {
   const { user, getAuthHeaders } = useAuth();

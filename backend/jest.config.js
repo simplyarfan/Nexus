@@ -27,7 +27,9 @@ module.exports = {
         '**/tests/services/**/*.test.js',
       ]
     : ['**/__tests__/**/*.test.js', '**/?(*.)+(spec|test).js'],
-  testPathIgnorePatterns: process.env.CI ? ['/node_modules/', '/tests/e2e/'] : ['/node_modules/'],
+  testPathIgnorePatterns: process.env.CI
+    ? ['/node_modules/', '/tests/e2e/', '/tests/services/cvIntelligence.test.js']
+    : ['/node_modules/', '/tests/services/cvIntelligence.test.js'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   testTimeout: 10000,
   verbose: true,

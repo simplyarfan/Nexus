@@ -8,15 +8,15 @@ const {
   checkAuth,
   requestPasswordReset,
   resetPassword,
-} = require('../../../controllers/AuthController');
-const database = require('../../../models/database');
-const emailService = require('../../../services/email.service');
+} = require('../../controllers/AuthController');
+const database = require('../../models/database');
+const emailService = require('../../services/email.service');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Mock dependencies
-jest.mock('../../../models/database');
-jest.mock('../../../services/email.service');
+jest.mock('../../models/database');
+jest.mock('../../services/email.service');
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
 

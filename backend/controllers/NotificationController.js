@@ -7,11 +7,13 @@ class NotificationController {
       const { page = 1, limit = 20, unread_only = false, types } = req.query;
       const offset = (page - 1) * limit;
 
+      // Regular users only see their own notifications
+      // Admins/superadmins also only see their own notifications (which include system-wide notifications)
       let query = `
-        SELECT 
+        SELECT
           n.*,
-          CASE 
-            WHEN n.type = 'ticket_response' THEN 
+          CASE
+            WHEN n.type = 'ticket_response' THEN
               json_build_object(
                 'ticket_id', st.id,
                 'ticket_subject', st.subject,
@@ -48,7 +50,7 @@ class NotificationController {
       const notifications = await database.all(query, params);
 
       // Get total count for pagination
-      let countQuery = 'SELECT COUNT(*) as total FROM notifications WHERE user_id = $1';
+      let countQuery = `SELECT COUNT(*) as total FROM notifications WHERE user_id = $1`;
       const countParams = [req.user.id];
 
       // Apply same type filter to count query
@@ -89,11 +91,9 @@ class NotificationController {
     try {
       const { notification_id } = req.params;
 
-      // Check if notification exists and belongs to user
+      // Users can only mark their own notifications as read
       const notification = await database.get(
-        `
-        SELECT * FROM notifications WHERE id = $1 AND user_id = $2
-      `,
+        `SELECT * FROM notifications WHERE id = $1 AND user_id = $2`,
         [notification_id, req.user.id],
       );
 
@@ -107,8 +107,8 @@ class NotificationController {
       // Mark as read
       await database.run(
         `
-        UPDATE notifications 
-        SET is_read = true, read_at = CURRENT_TIMESTAMP 
+        UPDATE notifications
+        SET is_read = true, read_at = CURRENT_TIMESTAMP
         WHERE id = $1
       `,
         [notification_id],
@@ -129,10 +129,11 @@ class NotificationController {
   // Mark all notifications as read
   static async markAllAsRead(req, res) {
     try {
+      // Mark all of the current user's notifications as read
       await database.run(
         `
-        UPDATE notifications 
-        SET is_read = true, read_at = CURRENT_TIMESTAMP 
+        UPDATE notifications
+        SET is_read = true, read_at = CURRENT_TIMESTAMP
         WHERE user_id = $1 AND is_read = false
       `,
         [req.user.id],
@@ -330,6 +331,68 @@ class NotificationController {
         message: 'Internal server error',
       });
     }
+  }
+
+  // Create interview notification
+  static async createInterviewNotification(userId, interviewData, notificationType) {
+    let title, message, metadata;
+
+    switch (notificationType) {
+      case 'availability_requested':
+        title = `Interview Availability Request - ${interviewData.position}`;
+        message = `Please provide your availability for an interview for the ${interviewData.position} position.`;
+        metadata = {
+          interview_id: interviewData.id,
+          candidate_name: interviewData.candidateName,
+          candidate_email: interviewData.candidateEmail,
+          position: interviewData.position,
+        };
+        break;
+
+      case 'interview_scheduled':
+        title = `Interview Scheduled - ${interviewData.position || interviewData.title}`;
+        message = `An interview for ${interviewData.candidateName} has been scheduled for ${new Date(interviewData.scheduledTime).toLocaleDateString()} at ${new Date(interviewData.scheduledTime).toLocaleTimeString()}.`;
+        metadata = {
+          interview_id: interviewData.id,
+          candidate_name: interviewData.candidateName,
+          candidate_email: interviewData.candidateEmail,
+          position: interviewData.position || interviewData.title,
+          scheduled_time: interviewData.scheduledTime,
+          interview_type: interviewData.type,
+        };
+        break;
+
+      case 'interview_rescheduled':
+        title = `Interview Rescheduled - ${interviewData.position || interviewData.title}`;
+        message = `The interview with ${interviewData.candidateName} has been rescheduled to ${new Date(interviewData.newScheduledTime).toLocaleDateString()} at ${new Date(interviewData.newScheduledTime).toLocaleTimeString()}.`;
+        metadata = {
+          interview_id: interviewData.id,
+          candidate_name: interviewData.candidateName,
+          candidate_email: interviewData.candidateEmail,
+          position: interviewData.position || interviewData.title,
+          old_scheduled_time: interviewData.oldScheduledTime,
+          new_scheduled_time: interviewData.newScheduledTime,
+          interview_type: interviewData.type,
+        };
+        break;
+
+      case 'interview_canceled':
+        title = `Interview Canceled - ${interviewData.position || interviewData.title}`;
+        message = `The interview with ${interviewData.candidateName} has been canceled.`;
+        metadata = {
+          interview_id: interviewData.id,
+          candidate_name: interviewData.candidateName,
+          candidate_email: interviewData.candidateEmail,
+          position: interviewData.position || interviewData.title,
+          scheduled_time: interviewData.scheduledTime,
+        };
+        break;
+
+      default:
+        throw new Error(`Unknown notification type: ${notificationType}`);
+    }
+
+    return await this.createNotification(userId, notificationType, title, message, metadata);
   }
 }
 

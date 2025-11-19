@@ -18,11 +18,12 @@ export default function Register() {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    department: '',
+    phone: '',
     jobTitle: '',
   });
 
@@ -70,12 +71,19 @@ export default function Register() {
     if (/[^a-zA-Z\d]/.test(password)) strength++;
 
     const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    const colors = ['bg-destructive', 'bg-primary/60', 'bg-primary/80', 'bg-primary', 'bg-primary'];
+    // Use CSS variables for proper theming: red (error) → yellow (warning) → green (success)
+    const colors = [
+      'var(--error)',
+      'var(--warning)',
+      'var(--warning)',
+      'var(--success)',
+      'var(--success)',
+    ];
 
     return {
       strength: (strength / 5) * 100,
       label: labels[strength - 1] || 'Weak',
-      color: colors[strength - 1] || 'bg-red-500',
+      color: colors[strength - 1] || 'var(--error)',
     };
   };
 
@@ -85,7 +93,8 @@ export default function Register() {
     const newErrors = {};
 
     if (currentStep === 1) {
-      if (!formData.name.trim()) newErrors.name = 'Name is required';
+      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+      if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
       if (!formData.email.trim()) {
         newErrors.email = 'Email is required';
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -106,7 +115,10 @@ export default function Register() {
     }
 
     if (currentStep === 3) {
-      if (!formData.department.trim()) newErrors.department = 'Department is required';
+      // Phone is optional, but validate format if provided
+      if (formData.phone && !/^\+?[\d\s\-()]+$/.test(formData.phone)) {
+        newErrors.phone = 'Please enter a valid phone number';
+      }
       if (!formData.jobTitle.trim()) newErrors.jobTitle = 'Job title is required';
     }
 
@@ -135,13 +147,20 @@ export default function Register() {
       const result = await registerUser({
         email: formData.email,
         password: formData.password,
-        firstName: formData.name.split(' ')[0],
-        lastName: formData.name.split(' ').slice(1).join(' ') || formData.name.split(' ')[0],
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         jobTitle: formData.jobTitle,
+        phone: formData.phone || null,
       });
 
       if (result.success && result.requiresVerification) {
-        router.push(`/auth/verify-email?userId=\${result.userId}`);
+        // Store email and userId in localStorage for verification page (NOT in URL for security)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('pendingVerificationEmail', formData.email);
+          localStorage.setItem('pendingVerificationUserId', String(result.userId));
+        }
+        // Don't pass email in URL - security risk!
+        router.push(`/auth/verify-email`);
       } else if (result.success) {
         router.push('/');
       }
@@ -240,9 +259,9 @@ export default function Register() {
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-center mb-2">
               {[1, 2, 3].map((s) => (
-                <div key={s} className="flex items-center">
+                <React.Fragment key={s}>
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shadow-sm transition-all ${
                       step >= s
@@ -264,10 +283,10 @@ export default function Register() {
                   </div>
                   {s < 3 && (
                     <div
-                      className={`w-16 h-1 mx-2 transition-colors ${step > s ? 'bg-primary' : 'bg-muted'}`}
+                      className={`flex-1 h-1 mx-2 transition-colors ${step > s ? 'bg-primary' : 'bg-muted'}`}
                     />
                   )}
-                </div>
+                </React.Fragment>
               ))}
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
@@ -291,12 +310,37 @@ export default function Register() {
                   className="space-y-4"
                 >
                   <Input
-                    label="Full Name"
+                    label="First Name"
                     type="text"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    error={errors.name}
+                    placeholder="John"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    error={errors.firstName}
+                    fullWidth
+                    leftIcon={
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    }
+                  />
+
+                  <Input
+                    label="Last Name"
+                    type="text"
+                    placeholder="Doe"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    error={errors.lastName}
                     fullWidth
                     leftIcon={
                       <svg
@@ -391,9 +435,7 @@ export default function Register() {
                     >
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Password Strength</span>
-                        <span
-                          className={`font-medium ${passwordStrength.strength > 60 ? 'text-primary' : 'text-primary/60'}`}
-                        >
+                        <span className="font-medium" style={{ color: passwordStrength.color }}>
                           {passwordStrength.label}
                         </span>
                       </div>
@@ -401,7 +443,8 @@ export default function Register() {
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${passwordStrength.strength}%` }}
-                          className={`h-full ${passwordStrength.color} rounded-full`}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: passwordStrength.color }}
                           transition={{ duration: 0.3 }}
                         />
                       </div>
@@ -484,12 +527,13 @@ export default function Register() {
                   className="space-y-4"
                 >
                   <Input
-                    label="Department"
-                    type="text"
-                    placeholder="e.g., Human Resources"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    error={errors.department}
+                    label="Phone Number (Optional)"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    error={errors.phone}
+                    hint="Your department will be assigned by an administrator"
                     fullWidth
                     leftIcon={
                       <svg
@@ -502,7 +546,7 @@ export default function Register() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                         />
                       </svg>
                     }
@@ -550,7 +594,7 @@ export default function Register() {
                       </div>
                       <div className="text-sm text-muted-foreground">
                         <p className="font-medium mb-1">Email Verification Required</p>
-                        <p>We&apos;ll send a verification link to {formData.email}</p>
+                        <p>We&apos;ll send a 6-digit verification code to {formData.email}</p>
                       </div>
                     </div>
                   </div>

@@ -550,7 +550,9 @@ const BatchDetail = () => {
                         </div>
                       );
                     } catch (error) {
-                      return <p className="text-muted-foreground text-sm">Assessment not available</p>;
+                      return (
+                        <p className="text-muted-foreground text-sm">Assessment not available</p>
+                      );
                     }
                   })()}
                 </div>
@@ -602,9 +604,7 @@ const BatchDetail = () => {
                                           : 'bg-accent text-primary'
                                       }`}
                                     >
-                                      {isCritical && (
-                                        <span className="mr-1 text-primary">⚡</span>
-                                      )}
+                                      {isCritical && <span className="mr-1 text-primary">⚡</span>}
                                       {skill}
                                     </span>
                                   );
@@ -675,7 +675,9 @@ const BatchDetail = () => {
                           {matchedSkills.length === 0 &&
                             missingSkills.length === 0 &&
                             allSkills.length === 0 && (
-                              <p className="text-muted-foreground text-sm">Skills analysis not available</p>
+                              <p className="text-muted-foreground text-sm">
+                                Skills analysis not available
+                              </p>
                             )}
 
                           {/* Skills Gap Chart */}
@@ -737,7 +739,9 @@ const BatchDetail = () => {
                         </>
                       );
                     } catch (e) {
-                      return <p className="text-muted-foreground text-sm">Skills data parsing error</p>;
+                      return (
+                        <p className="text-muted-foreground text-sm">Skills data parsing error</p>
+                      );
                     }
                   })()}
                 </div>
@@ -878,7 +882,9 @@ const BatchDetail = () => {
                       );
                     } catch (e) {
                       return (
-                        <p className="text-muted-foreground text-sm">Experience details not available</p>
+                        <p className="text-muted-foreground text-sm">
+                          Experience details not available
+                        </p>
                       );
                     }
                   })()}
@@ -902,7 +908,9 @@ const BatchDetail = () => {
                       // Show ALL education entries as cards
                       if (!Array.isArray(education) || education.length === 0) {
                         return (
-                          <p className="text-muted-foreground text-sm">Education details not available</p>
+                          <p className="text-muted-foreground text-sm">
+                            Education details not available
+                          </p>
                         );
                       }
 
@@ -981,7 +989,11 @@ const BatchDetail = () => {
                         </div>
                       );
                     } catch (e) {
-                      return <p className="text-muted-foreground text-sm">Education data parsing error</p>;
+                      return (
+                        <p className="text-muted-foreground text-sm">
+                          Education data parsing error
+                        </p>
+                      );
                     }
                   })()}
                 </div>
@@ -1000,7 +1012,9 @@ const BatchDetail = () => {
                       const certifications = profileData.certifications || [];
 
                       if (!Array.isArray(certifications) || certifications.length === 0) {
-                        return <p className="text-muted-foreground text-sm">No certifications listed</p>;
+                        return (
+                          <p className="text-muted-foreground text-sm">No certifications listed</p>
+                        );
                       }
 
                       return (
@@ -1041,7 +1055,9 @@ const BatchDetail = () => {
                       );
                     } catch (e) {
                       return (
-                        <p className="text-muted-foreground text-sm">Certifications data not available</p>
+                        <p className="text-muted-foreground text-sm">
+                          Certifications data not available
+                        </p>
                       );
                     }
                   })()}

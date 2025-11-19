@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const AuthController = require('../controllers/AuthController');
 const database = require('../models/database');
 const cryptoUtil = require('../utils/crypto');
@@ -12,6 +15,23 @@ const {
   requireSuperAdmin,
   requireAdmin,
 } = require('../middleware/auth');
+
+// Configure multer for profile picture uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only images
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+});
 const {
   authLimiter,
   passwordResetLimiter,
@@ -444,6 +464,78 @@ router.post('/refresh-token', cleanupExpiredSessions, AuthController.refreshToke
 
 /**
  * @swagger
+ * /api/auth/check:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Check authentication status
+ *     description: Verify if the user is authenticated and return user data
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Auth check successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.get('/check', authenticateToken, async (req, res) => {
+  try {
+    // Get user data from database (including profile_picture_url, two_factor_enabled, and preferences)
+    const user = await database.get(
+      `SELECT id, email, first_name, last_name, role, department, job_title, phone, bio, profile_picture_url, two_factor_enabled, timezone, date_format, created_at, updated_at
+       FROM users
+       WHERE id = $1`,
+      [req.user.id],
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+        department: user.department,
+        job_title: user.job_title,
+        phone: user.phone,
+        bio: user.bio,
+        profile_picture_url: user.profile_picture_url,
+        two_factor_enabled: user.two_factor_enabled || false,
+        timezone: user.timezone || 'Asia/Riyadh',
+        date_format: user.date_format || 'MM/DD/YYYY',
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      },
+    });
+  } catch (error) {
+    console.error('Auth check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check authentication',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
  * /api/auth/profile:
  *   get:
  *     tags: [Authentication]
@@ -594,9 +686,6 @@ router.post(
   trackActivity('2fa_disabled'),
   AuthController.disable2FA,
 );
-
-// Check authentication status
-router.get('/check', authenticateToken, AuthController.checkAuth);
 
 // Get all users (superadmin only)
 router.get(
@@ -949,18 +1038,65 @@ router.get('/outlook/status', authenticateToken, async (req, res) => {
   }
 });
 
+// ========================================
+// PROFILE PICTURE ROUTES
+// ========================================
+
 /**
- * POST /outlook/disconnect - Disconnect Outlook account
+ * POST /api/auth/profile/picture
+ * Upload profile picture
  */
-router.post('/outlook/disconnect', authenticateToken, async (req, res) => {
+router.post(
+  '/profile/picture',
+  authenticateToken,
+  upload.single('profilePicture'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded',
+        });
+      }
+
+      // Convert image to base64 data URL
+      const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+      // Update user's profile picture URL in database
+      await database.run(
+        `UPDATE users
+       SET profile_picture_url = $1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+        [base64Image, req.user.id],
+      );
+
+      res.json({
+        success: true,
+        message: 'Profile picture updated successfully',
+        data: {
+          profile_picture_url: base64Image,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload profile picture',
+        error: error.message,
+      });
+    }
+  },
+);
+
+/**
+ * DELETE /api/auth/profile/picture
+ * Delete profile picture
+ */
+router.delete('/profile/picture', authenticateToken, async (req, res) => {
   try {
-    await database.connect();
     await database.run(
-      `UPDATE users 
-       SET outlook_access_token = NULL,
-           outlook_refresh_token = NULL,
-           outlook_token_expires_at = NULL,
-           outlook_email = NULL,
+      `UPDATE users
+       SET profile_picture_url = NULL,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1`,
       [req.user.id],
@@ -968,12 +1104,366 @@ router.post('/outlook/disconnect', authenticateToken, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Outlook account disconnected successfully',
+      message: 'Profile picture deleted successfully',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to disconnect Outlook account',
+      message: 'Failed to delete profile picture',
+      error: error.message,
+    });
+  }
+});
+
+// ========================================
+// TWO-FACTOR AUTHENTICATION ROUTES
+// ========================================
+
+/**
+ * PUT /api/auth/two-factor/toggle
+ * Toggle two-factor authentication for the user
+ */
+router.put('/two-factor/toggle', authenticateToken, async (req, res) => {
+  try {
+    const { enabled } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'enabled field must be a boolean',
+      });
+    }
+
+    // Update user's 2FA status
+    await database.run(
+      `UPDATE users
+       SET two_factor_enabled = $1,
+           two_factor_secret = NULL,
+           two_factor_code = NULL,
+           two_factor_code_expires_at = NULL,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+      [enabled, req.user.id],
+    );
+
+    res.json({
+      success: true,
+      message: enabled
+        ? 'Two-factor authentication enabled successfully'
+        : 'Two-factor authentication disabled successfully',
+      data: {
+        two_factor_enabled: enabled,
+      },
+    });
+  } catch (error) {
+    console.error('2FA toggle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update two-factor authentication',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * Get user preferences
+ * GET /api/auth/preferences
+ */
+router.get('/preferences', authenticateToken, async (req, res) => {
+  try {
+    // Get user preferences from database
+    const user = await database.get(
+      `SELECT timezone, date_format
+       FROM users
+       WHERE id = $1`,
+      [req.user.id],
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        timezone: user.timezone || 'Asia/Riyadh',
+        date_format: user.date_format || 'MM/DD/YYYY',
+      },
+    });
+  } catch (error) {
+    console.error('Get preferences error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get preferences',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * Update user preferences
+ * PUT /api/auth/preferences
+ */
+router.put('/preferences', authenticateToken, async (req, res) => {
+  try {
+    const { timezone, date_format } = req.body;
+
+    // Validate timezone
+    const validTimezones = [
+      'Asia/Riyadh',
+      'Asia/Dubai',
+      'Asia/Kolkata',
+      'Asia/Singapore',
+      'Europe/London',
+      'Europe/Paris',
+      'Europe/Berlin',
+      'America/New_York',
+      'America/Chicago',
+      'America/Denver',
+      'America/Los_Angeles',
+      'Australia/Sydney',
+      'Pacific/Auckland',
+    ];
+
+    if (timezone && !validTimezones.includes(timezone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid timezone',
+      });
+    }
+
+    // Validate date format
+    const validDateFormats = ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'];
+
+    if (date_format && !validDateFormats.includes(date_format)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date format',
+      });
+    }
+
+    // Update user preferences
+    await database.run(
+      `UPDATE users
+       SET timezone = COALESCE($1, timezone),
+           date_format = COALESCE($2, date_format),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3`,
+      [timezone, date_format, req.user.id],
+    );
+
+    res.json({
+      success: true,
+      message: 'Preferences updated successfully',
+      data: {
+        timezone: timezone || undefined,
+        date_format: date_format || undefined,
+      },
+    });
+  } catch (error) {
+    console.error('Update preferences error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update preferences',
+      error: error.message,
+    });
+  }
+});
+
+// ========================================
+// OUTLOOK OAUTH ROUTES
+// ========================================
+
+/**
+ * GET /auth/outlook/connect
+ * Initiate Outlook OAuth flow with PKCE
+ */
+router.get('/outlook/connect', authenticateToken, async (req, res) => {
+  try {
+    const { generatePKCEChallenge } = require('../utils/crypto');
+
+    // Check if Outlook OAuth is configured
+    if (!process.env.OUTLOOK_CLIENT_ID) {
+      return res.status(500).json({
+        success: false,
+        message: 'Outlook OAuth is not configured on the server',
+      });
+    }
+
+    // Generate PKCE challenge
+    const { codeVerifier, codeChallenge } = generatePKCEChallenge();
+
+    // Store PKCE verifier in database for this user
+    const { prisma } = require('../lib/prisma');
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        outlook_pkce_verifier: cryptoUtil.encrypt(codeVerifier),
+      },
+    });
+
+    // Build authorization URL
+    const redirectUri = `${process.env.FRONTEND_URL}/auth/outlook/callback`;
+    const scopes = [
+      'https://graph.microsoft.com/Mail.Send',
+      'https://graph.microsoft.com/User.Read',
+      'https://graph.microsoft.com/OnlineMeetings.ReadWrite',
+      'offline_access',
+    ].join(' ');
+
+    const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
+    authUrl.searchParams.append('client_id', process.env.OUTLOOK_CLIENT_ID);
+    authUrl.searchParams.append('response_type', 'code');
+    authUrl.searchParams.append('redirect_uri', redirectUri);
+    authUrl.searchParams.append('scope', scopes);
+    authUrl.searchParams.append('state', req.user.id.toString());
+    authUrl.searchParams.append('code_challenge', codeChallenge);
+    authUrl.searchParams.append('code_challenge_method', 'S256');
+    authUrl.searchParams.append('response_mode', 'query');
+
+    res.json({
+      success: true,
+      authUrl: authUrl.toString(),
+    });
+  } catch (error) {
+    console.error('Outlook connect error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initiate Outlook connection',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /auth/outlook/callback
+ * Handle Outlook OAuth callback
+ */
+router.post('/outlook/callback', authenticateToken, async (req, res) => {
+  try {
+    const { code, state } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Authorization code is required',
+      });
+    }
+
+    // Verify state matches user ID
+    if (parseInt(state) !== req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid state parameter',
+      });
+    }
+
+    const { prisma } = require('../lib/prisma');
+
+    // Get PKCE verifier from database
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { outlook_pkce_verifier: true },
+    });
+
+    if (!user?.outlook_pkce_verifier) {
+      return res.status(400).json({
+        success: false,
+        message: 'PKCE verifier not found. Please restart the connection process.',
+      });
+    }
+
+    const codeVerifier = cryptoUtil.decrypt(user.outlook_pkce_verifier);
+
+    // Exchange code for tokens
+    const redirectUri = `${process.env.FRONTEND_URL}/auth/outlook/callback`;
+    const tokenResponse = await axios.post(
+      'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+      new URLSearchParams({
+        client_id: process.env.OUTLOOK_CLIENT_ID,
+        client_secret: process.env.OUTLOOK_CLIENT_SECRET,
+        code: code,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+        code_verifier: codeVerifier,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+
+    const { access_token, refresh_token, expires_in } = tokenResponse.data;
+
+    // Get user's email from Microsoft Graph
+    const graphResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    const outlookEmail = graphResponse.data.mail || graphResponse.data.userPrincipalName;
+
+    // Store encrypted tokens in database
+    const expiresAt = new Date(Date.now() + expires_in * 1000);
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        outlook_access_token: cryptoUtil.encrypt(access_token),
+        outlook_refresh_token: cryptoUtil.encrypt(refresh_token),
+        outlook_token_expires_at: expiresAt,
+        outlook_email: outlookEmail,
+        outlook_pkce_verifier: null, // Clear PKCE verifier after use
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Outlook connected successfully!',
+      email: outlookEmail,
+    });
+  } catch (error) {
+    console.error('Outlook callback error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to connect Outlook account',
+      error: error.response?.data?.error_description || error.message,
+    });
+  }
+});
+
+/**
+ * DELETE /auth/outlook/disconnect
+ * Disconnect Outlook account
+ */
+router.delete('/outlook/disconnect', authenticateToken, async (req, res) => {
+  try {
+    const { prisma } = require('../lib/prisma');
+
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        outlook_access_token: null,
+        outlook_refresh_token: null,
+        outlook_token_expires_at: null,
+        outlook_email: null,
+        outlook_pkce_verifier: null,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Outlook disconnected successfully',
+    });
+  } catch (error) {
+    console.error('Outlook disconnect error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to disconnect Outlook',
       error: error.message,
     });
   }

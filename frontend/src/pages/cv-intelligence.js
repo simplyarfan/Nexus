@@ -34,6 +34,7 @@ export default function CVIntelligencePage() {
   const [cvFiles, setCvFiles] = useState([]);
   const [jdFile, setJdFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(null);
 
   // Fetch CV batches from API
   useEffect(() => {
@@ -77,12 +78,20 @@ export default function CVIntelligencePage() {
       if (response.data.success) {
         const batchData = response.data.data;
 
-        // Sort candidates by overall_score (highest to lowest)
+        // Sort candidates by rank (ASC - lower rank number = better candidate)
+        // Fallback to overall_score if rank is not available
         if (batchData.candidates && Array.isArray(batchData.candidates)) {
           batchData.candidates.sort((a, b) => {
-            const scoreA = parseFloat(a.overall_score) || 0;
-            const scoreB = parseFloat(b.overall_score) || 0;
-            return scoreB - scoreA; // Descending order (best to worst)
+            // Use rank from ChatGPT if available (lower is better)
+            const rankA = parseFloat(a.overall_score) || parseFloat(a.rank) || 999;
+            const rankB = parseFloat(b.overall_score) || parseFloat(b.rank) || 999;
+
+            // If ranks are equal, sort by ID for consistency
+            if (rankA === rankB) {
+              return (a.id || '').localeCompare(b.id || '');
+            }
+
+            return rankA - rankB; // Ascending order (rank 1 is best)
           });
         }
 
@@ -127,16 +136,13 @@ export default function CVIntelligencePage() {
   const handleScheduleInterview = (e, candidate) => {
     e.stopPropagation(); // Prevent candidate detail expansion
 
-    // Navigate to interview coordinator with pre-filled candidate data
+    // Navigate to interviews page with pre-filled candidate data
     router.push({
-      pathname: '/interview-coordinator',
+      pathname: '/interviews',
       query: {
         candidateName: candidate.name,
         candidateEmail: candidate.email,
-        candidatePhone: candidate.phone || '',
-        candidateId: candidate.id,
-        batchId: selectedBatch?.id || '',
-        batchName: selectedBatch?.name || '',
+        position: selectedBatch?.name || '',
       },
     });
   };
@@ -149,6 +155,10 @@ export default function CVIntelligencePage() {
   const handleJdFileChange = (e) => {
     const file = e.target.files?.[0];
     setJdFile(file || null);
+  };
+
+  const handleRemoveCvFile = (indexToRemove) => {
+    setCvFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleProcessBatch = async () => {
@@ -168,6 +178,7 @@ export default function CVIntelligencePage() {
 
     try {
       setIsProcessing(true);
+      setProcessingProgress({ step: 1, message: 'Creating batch...' });
 
       // Create batch first
       const batchResponse = await api.post('/cv-intelligence', {
@@ -178,7 +189,9 @@ export default function CVIntelligencePage() {
         throw new Error('Failed to create batch');
       }
 
-      const batchId = batchResponse.data.data.batch.id;
+      const batchId = batchResponse.data.data.batchId;
+
+      setProcessingProgress({ step: 2, message: 'Uploading files...' });
 
       // Upload and process files
       const formData = new FormData();
@@ -187,15 +200,38 @@ export default function CVIntelligencePage() {
         formData.append('cvFiles', file);
       });
 
-      const processResponse = await api.post(`/cv-intelligence/batch/${batchId}/process`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      setProcessingProgress({ step: 3, message: 'Analyzing CVs with AI...' });
+
+      const processResponse = await api.post(
+        `/cv-intelligence/batch/${batchId}/process`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 600000, // 10 minutes
         },
-        timeout: 600000, // 10 minutes
-      });
+      );
 
       if (processResponse.data.success) {
-        toast.success('Batch processed successfully!');
+        setProcessingProgress({ step: 4, message: 'Processing complete!' });
+
+        // Check if there were any errors during processing
+        const responseData = processResponse.data.data;
+        const hasErrors = responseData?.errors && responseData.errors.length > 0;
+
+        if (hasErrors) {
+          // Show warning for partial success
+          const errorCount = responseData.errors.length;
+          const successCount = responseData.processed || 0;
+          toast.warning(
+            `Batch processed with warnings: ${successCount} CVs processed, ${errorCount} failed. Check logs for details.`,
+            { duration: 6000 },
+          );
+          console.error('CV Processing Errors:', responseData.errors);
+        } else {
+          toast.success('Batch processed successfully!');
+        }
 
         // Reset form
         setBatchName('');
@@ -207,12 +243,41 @@ export default function CVIntelligencePage() {
         setBatches(refreshResponse.data.data || []);
         setView('batches');
       } else {
-        throw new Error(processResponse.data.message || 'Failed to process batch');
+        // Processing failed
+        const errorData = processResponse.data.data;
+        const errorMessage = processResponse.data.message || 'Failed to process batch';
+
+        // Show detailed error if available
+        if (errorData?.errors && errorData.errors.length > 0) {
+          console.error('CV Processing Errors:', errorData.errors);
+          const errorSummary = errorData.errors.map((e) => `${e.file}: ${e.error}`).join('\n');
+          toast.error(
+            `${errorMessage}\n\nErrors:\n${errorSummary.substring(0, 200)}${errorSummary.length > 200 ? '...' : ''}`,
+            { duration: 8000 },
+          );
+        } else {
+          toast.error(errorMessage);
+        }
+
+        throw new Error(errorMessage);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Failed to process batch');
+      // Handle network or other errors
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to process batch';
+      const errorData = error.response?.data?.data;
+
+      if (errorData?.errors && errorData.errors.length > 0) {
+        console.error('CV Processing Errors:', errorData.errors);
+        toast.error(`${errorMessage} - Check console for detailed errors`, { duration: 6000 });
+      } else {
+        toast.error(errorMessage);
+      }
+
+      setProcessingProgress(null);
     } finally {
       setIsProcessing(false);
+      setTimeout(() => setProcessingProgress(null), 2000);
     }
   };
 
@@ -344,12 +409,21 @@ export default function CVIntelligencePage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      onClick={() => batch.status === 'completed' && handleBatchClick(batch)}
+                      onClick={() =>
+                        (batch.status === 'completed' ||
+                          batch.status === 'completed_with_warnings') &&
+                        handleBatchClick(batch)
+                      }
                       className={`bg-card border border-border rounded-2xl p-6 ${
-                        batch.status === 'completed'
+                        batch.status === 'completed' || batch.status === 'completed_with_warnings'
                           ? 'cursor-pointer hover:shadow-lg transition-shadow'
-                          : 'opacity-60'
+                          : 'opacity-60 cursor-not-allowed'
                       }`}
+                      title={
+                        batch.status === 'failed'
+                          ? 'This batch failed to process. Check logs for details.'
+                          : ''
+                      }
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -369,15 +443,19 @@ export default function CVIntelligencePage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-3 py-1 text-xs font-medium rounded-full capitalize ${
+                            className={`px-3 py-1 text-xs font-medium rounded-full ${
                               batch.status === 'completed'
-                                ? 'bg-ring/10 text-ring'
-                                : batch.status === 'processing'
-                                  ? 'bg-primary/10 text-primary'
-                                  : 'bg-destructive/10 text-destructive'
+                                ? 'bg-ring/10 text-ring capitalize'
+                                : batch.status === 'completed_with_warnings'
+                                  ? 'bg-yellow-500/10 text-yellow-600'
+                                  : batch.status === 'processing'
+                                    ? 'bg-primary/10 text-primary capitalize'
+                                    : 'bg-destructive/10 text-destructive capitalize'
                             }`}
                           >
-                            {batch.status}
+                            {batch.status === 'completed_with_warnings'
+                              ? 'Completed (Warnings)'
+                              : batch.status}
                           </span>
                           <button
                             onClick={(e) => handleDeleteBatch(e, batch.id, batch.name)}
@@ -385,7 +463,7 @@ export default function CVIntelligencePage() {
                             title="Delete batch"
                           >
                             <svg
-                              className="w-4 h-4 text-destructive"
+                              className="w-4 h-4 text-red-500"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -427,7 +505,7 @@ export default function CVIntelligencePage() {
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-muted-foreground">Top Match:</span>
                               <span className="font-medium text-primary">
-                                {batch.candidates[0].overall_score}%
+                                {batch.candidates[0].name || 'Unknown'}
                               </span>
                             </div>
                           )}
@@ -541,10 +619,11 @@ export default function CVIntelligencePage() {
                         onChange={handleCvFilesChange}
                         className="hidden"
                       />
-                      <label htmlFor="cv-files">
-                        <Button variant="primary" size="md">
-                          Select CV Files
-                        </Button>
+                      <label
+                        htmlFor="cv-files"
+                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:opacity-90 transition-all cursor-pointer"
+                      >
+                        Select CV Files
                       </label>
                       {cvFiles.length > 0 && (
                         <p className="text-sm text-primary mt-2">
@@ -552,6 +631,58 @@ export default function CVIntelligencePage() {
                         </p>
                       )}
                     </div>
+
+                    {/* Selected CV Files List */}
+                    {cvFiles.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-sm font-medium text-foreground mb-2">Selected Files:</p>
+                        {cvFiles.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-secondary border border-border rounded-lg p-3"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <svg
+                                className="w-4 h-4 text-primary flex-shrink-0"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                              <span className="text-sm text-foreground truncate">{file.name}</span>
+                              <span className="text-xs text-muted-foreground flex-shrink-0">
+                                ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveCvFile(index)}
+                              className="ml-2 p-1 hover:bg-destructive/10 rounded transition-colors flex-shrink-0"
+                              title="Remove file"
+                            >
+                              <svg
+                                className="w-4 h-4 text-destructive"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* 3. Job Description Upload Area */}
@@ -590,16 +721,13 @@ export default function CVIntelligencePage() {
                         onChange={handleJdFileChange}
                         className="hidden"
                       />
-                      <label htmlFor="jd-file">
-                        <Button variant="secondary" size="md">
-                          Select JD File
-                        </Button>
+                      <label
+                        htmlFor="jd-file"
+                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-foreground bg-secondary border border-border rounded-lg hover:bg-muted transition-all cursor-pointer"
+                      >
+                        Select JD File
                       </label>
-                      {jdFile && (
-                        <p className="text-sm text-primary mt-2">
-                          ✓ {jdFile.name}
-                        </p>
-                      )}
+                      {jdFile && <p className="text-sm text-primary mt-2">✓ {jdFile.name}</p>}
                     </div>
                   </div>
                 </div>
@@ -650,6 +778,69 @@ export default function CVIntelligencePage() {
                     Cancel
                   </Button>
                 </div>
+
+                {/* Processing Progress Indicator */}
+                {processingProgress && (
+                  <div className="mt-6 bg-card border border-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-foreground">Processing Status</h3>
+                      <span className="text-sm text-primary font-medium">
+                        Step {processingProgress.step} of 4
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {/* Progress Bar */}
+                      <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-primary h-full transition-all duration-500 ease-out"
+                          style={{ width: `${(processingProgress.step / 4) * 100}%` }}
+                        />
+                      </div>
+                      {/* Status Message */}
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        <p className="text-sm text-foreground">{processingProgress.message}</p>
+                      </div>
+                      {/* Progress Steps */}
+                      <div className="grid grid-cols-4 gap-2 mt-4">
+                        {['Creating batch', 'Uploading files', 'Analyzing CVs', 'Complete'].map(
+                          (label, index) => (
+                            <div key={index} className="text-center">
+                              <div
+                                className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center mb-1 transition-colors ${
+                                  processingProgress.step > index + 1
+                                    ? 'bg-primary text-white'
+                                    : processingProgress.step === index + 1
+                                      ? 'bg-primary/20 text-primary'
+                                      : 'bg-secondary text-muted-foreground'
+                                }`}
+                              >
+                                {processingProgress.step > index + 1 ? (
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2.5}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <span className="text-xs font-semibold">{index + 1}</span>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">{label}</p>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -841,6 +1032,57 @@ export default function CVIntelligencePage() {
               ? rawSkills.filter((s) => typeof s === 'string')
               : [];
 
+            // ONLY PARSE - ChatGPT does ALL the analysis
+            // Matched skills = ChatGPT-generated matched_skills (NO FALLBACK)
+            let matchedSkills = [];
+            const matchedSkillsData = selectedCandidate.matched_skills || [];
+            if (Array.isArray(matchedSkillsData)) {
+              matchedSkills = matchedSkillsData;
+            } else if (typeof matchedSkillsData === 'string') {
+              try {
+                const parsed = JSON.parse(matchedSkillsData);
+                matchedSkills = Array.isArray(parsed) ? parsed : [];
+              } catch (e) {
+                console.warn('Failed to parse matched_skills:', e);
+                matchedSkills = [];
+              }
+            }
+
+            // Missing skills = ChatGPT-generated missing_skills (NO FALLBACK)
+            let missingSkills = [];
+            const missingSkillsData = selectedCandidate.missing_skills || [];
+            if (Array.isArray(missingSkillsData)) {
+              missingSkills = missingSkillsData;
+            } else if (typeof missingSkillsData === 'string') {
+              try {
+                const parsed = JSON.parse(missingSkillsData);
+                missingSkills = Array.isArray(parsed) ? parsed : [];
+              } catch (e) {
+                console.warn('Failed to parse missing_skills:', e);
+                missingSkills = [];
+              }
+            }
+
+            // Additional skills = ChatGPT-generated additional_skills (NO FALLBACK)
+            let additionalSkills = [];
+            const additionalSkillsData = selectedCandidate.additional_skills || [];
+            if (Array.isArray(additionalSkillsData)) {
+              additionalSkills = additionalSkillsData;
+            } else if (typeof additionalSkillsData === 'string') {
+              try {
+                const parsed = JSON.parse(additionalSkillsData);
+                additionalSkills = Array.isArray(parsed) ? parsed : [];
+              } catch (e) {
+                console.warn('Failed to parse additional_skills:', e);
+                additionalSkills = [];
+              }
+            }
+
+            console.log('📊 Skills Analysis (100% ChatGPT):');
+            console.log('   ✅ Matched:', matchedSkills);
+            console.log('   ❌ Missing:', missingSkills);
+            console.log('   ➕ Additional:', additionalSkills);
+
             // Ensure experience is a string
             const experience =
               typeof profile.experience === 'string'
@@ -853,19 +1095,32 @@ export default function CVIntelligencePage() {
 
             // Ensure professional assessment is a string - try multiple possible fields
             const professionalAssessment =
-              typeof profile.professional_assessment === 'string' &&
-              profile.professional_assessment.trim()
-                ? profile.professional_assessment
-                : typeof profile.summary === 'string' && profile.summary.trim()
-                  ? profile.summary
+              typeof profile.summary === 'string' && profile.summary.trim()
+                ? profile.summary
+                : typeof profile.professional_assessment === 'string' &&
+                    profile.professional_assessment.trim()
+                  ? profile.professional_assessment
                   : typeof profile.assessment === 'string' && profile.assessment.trim()
                     ? profile.assessment
                     : typeof profile.bio === 'string' && profile.bio.trim()
                       ? profile.bio
                       : 'No professional assessment available in database';
 
-            // Ensure education is a string
-            const education = typeof profile.education === 'string' ? profile.education : '';
+            // Safely extract education data
+            const educationData = Array.isArray(profile.education)
+              ? profile.education
+              : typeof profile.education === 'string' && profile.education
+                ? JSON.parse(profile.education)
+                : [];
+
+            // Safely extract experience timeline
+            const experienceTimeline = Array.isArray(profile.experience)
+              ? profile.experience
+              : Array.isArray(profile.experience_timeline)
+                ? profile.experience_timeline
+                : typeof profile.experience === 'string' && profile.experience
+                  ? JSON.parse(profile.experience)
+                  : [];
 
             return (
               <motion.div
@@ -922,23 +1177,6 @@ export default function CVIntelligencePage() {
 
                   {/* Modal Content */}
                   <div className="p-6 space-y-6">
-                    {/* Match Score */}
-                    <div className="bg-accent rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-1">
-                            Overall Match Score
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            Based on skills, experience, and qualifications
-                          </p>
-                        </div>
-                        <div className="text-5xl font-bold text-primary">
-                          {selectedCandidate.overall_score || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Contact Information */}
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-4">
@@ -1029,139 +1267,341 @@ export default function CVIntelligencePage() {
                       </div>
                     </div>
 
-                    {/* Skills Analysis */}
-                    {skills.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-4">
-                          Skills Analysis
+                    {/* Skills Gap Analysis */}
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          Skills Gap Analysis
                         </h3>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full font-medium border border-green-500/20">
+                            {matchedSkills.length} Matched
+                          </span>
+                          <span className="px-3 py-1 bg-red-500/10 text-red-400 rounded-full font-medium border border-red-500/20">
+                            {missingSkills.length} Missing
+                          </span>
+                          <span className="px-3 py-1 bg-yellow-500/10 text-yellow-400 rounded-full font-medium border border-yellow-500/20">
+                            {additionalSkills.length} Additional
+                          </span>
+                        </div>
+                      </div>
 
-                        {/* Skills Match Visualization */}
-                        <div className="mb-6">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-muted-foreground">
-                              Overall Match Score
-                            </span>
-                            <span className="text-sm font-semibold text-primary">
-                              {selectedCandidate.overall_score || 'N/A'}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        {/* Matched Skills */}
+                        <div className="bg-card border border-border rounded-lg p-4 hover:border-green-500/30 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-green-500"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground">
+                                  Matched Skills
+                                </h4>
+                                <p className="text-xs text-muted-foreground">Present in both</p>
+                              </div>
+                            </div>
+                            <span className="text-lg font-bold text-green-500">
+                              {matchedSkills.length}
                             </span>
                           </div>
-                          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all"
-                              style={{ width: `${selectedCandidate.overall_score || 0}%` }}
-                            />
+                          <div className="space-y-2">
+                            {matchedSkills.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {matchedSkills.map((skill, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2.5 py-1 text-xs font-medium bg-green-500/10 text-green-400 rounded border border-green-500/20"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground italic">
+                                No matched skills found
+                              </p>
+                            )}
                           </div>
                         </div>
 
-                        {/* Skills */}
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                            <div className="w-2 h-2 bg-ring rounded-full" />
-                            Skills ({skills.length})
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {skills.map((skill, idx) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1.5 text-xs font-medium bg-ring/10 text-ring rounded-full"
-                              >
-                                {skill}
-                              </span>
-                            ))}
+                        {/* Missing Skills */}
+                        <div className="bg-card border border-border rounded-lg p-4 hover:border-red-500/30 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-red-500"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground">
+                                  Missing Skills
+                                </h4>
+                                <p className="text-xs text-muted-foreground">
+                                  Required but not found
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-lg font-bold text-red-500">
+                              {missingSkills.length}
+                            </span>
                           </div>
+                          <div className="space-y-2">
+                            {missingSkills.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {missingSkills.map((skill, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2.5 py-1 text-xs font-medium bg-red-500/10 text-red-400 rounded border border-red-500/20"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-green-400 italic">
+                                All required skills present
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Additional Skills */}
+                        <div className="bg-card border border-border rounded-lg p-4 hover:border-yellow-500/30 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-yellow-500"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 4v16m8-8H4"
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground">
+                                  Additional Skills
+                                </h4>
+                                <p className="text-xs text-muted-foreground">Not required by JD</p>
+                              </div>
+                            </div>
+                            <span className="text-lg font-bold text-yellow-500">
+                              {additionalSkills.length}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {additionalSkills.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {additionalSkills.map((skill, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2.5 py-1 text-xs font-medium bg-yellow-500/10 text-yellow-400 rounded border border-yellow-500/20"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground italic">
+                                No additional skills beyond requirements
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Work Experience Section */}
+                    {experienceTimeline && experienceTimeline.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground mb-4">
+                          Work Experience
+                        </h3>
+                        <div className="space-y-4">
+                          {experienceTimeline.map((exp, idx) => {
+                            // Ensure exp is an object and not a primitive
+                            if (typeof exp !== 'object' || exp === null) return null;
+
+                            // Extract string values safely
+                            const role =
+                              typeof exp.role === 'string'
+                                ? exp.role
+                                : typeof exp.title === 'string'
+                                  ? exp.title
+                                  : 'Position';
+                            const company =
+                              typeof exp.company === 'string' ? exp.company : 'Company';
+                            const period =
+                              typeof exp.period === 'string'
+                                ? exp.period
+                                : typeof exp.duration === 'string'
+                                  ? exp.duration
+                                  : typeof exp.startDate === 'string' &&
+                                      typeof exp.endDate === 'string'
+                                    ? `${exp.startDate} - ${exp.endDate}`
+                                    : '';
+
+                            // Extract achievements
+                            const achievements = Array.isArray(exp.achievements)
+                              ? exp.achievements
+                              : [];
+
+                            return (
+                              <div
+                                key={idx}
+                                className="bg-accent rounded-lg p-4 border border-border"
+                              >
+                                <div className="flex gap-4">
+                                  <div className="flex flex-col items-center">
+                                    <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0 mt-1" />
+                                    {idx < experienceTimeline.length - 1 && (
+                                      <div className="w-0.5 flex-1 bg-border mt-2" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-base font-semibold text-foreground">
+                                      {role}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">{company}</p>
+                                    {period && (
+                                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                          />
+                                        </svg>
+                                        {period}
+                                      </p>
+                                    )}
+                                    {achievements.length > 0 && (
+                                      <ul className="mt-2 space-y-1">
+                                        {achievements.slice(0, 3).map((achievement, i) => (
+                                          <li
+                                            key={i}
+                                            className="text-xs text-foreground flex items-start gap-2"
+                                          >
+                                            <span className="text-primary mt-0.5">•</span>
+                                            <span>{achievement}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
 
-                    {/* Experience Timeline */}
-                    {profile.experience_timeline &&
-                      Array.isArray(profile.experience_timeline) &&
-                      profile.experience_timeline.length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-4">
-                            Professional Experience
-                          </h3>
-                          <div className="space-y-4">
-                            {profile.experience_timeline.map((exp, idx) => {
-                              // Ensure exp is an object and not a primitive
-                              if (typeof exp !== 'object' || exp === null) return null;
+                    {/* Education Section */}
+                    {educationData && educationData.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground mb-4">Education</h3>
+                        <div className="space-y-3">
+                          {educationData.map((edu, idx) => {
+                            // Ensure edu is an object
+                            if (typeof edu !== 'object' || edu === null) return null;
 
-                              // Extract string values safely
-                              const role =
-                                typeof exp.role === 'string'
-                                  ? exp.role
-                                  : typeof exp.title === 'string'
-                                    ? exp.title
-                                    : 'Position';
-                              const company =
-                                typeof exp.company === 'string' ? exp.company : 'Company';
-                              const period =
-                                typeof exp.period === 'string'
-                                  ? exp.period
-                                  : typeof exp.duration === 'string'
-                                    ? exp.duration
-                                    : typeof exp.startDate === 'string' &&
-                                        typeof exp.endDate === 'string'
-                                      ? `${exp.startDate} - ${exp.endDate}`
-                                      : '';
+                            const degree = typeof edu.degree === 'string' ? edu.degree : 'Degree';
+                            const institution =
+                              typeof edu.institution === 'string' ? edu.institution : 'Institution';
+                            const field = typeof edu.field === 'string' ? edu.field : '';
+                            const year = typeof edu.year === 'string' ? edu.year : '';
 
-                              return (
-                                <div key={idx} className="flex gap-4">
-                                  <div className="flex flex-col items-center">
-                                    <div className="w-3 h-3 bg-primary rounded-full" />
-                                    {idx < profile.experience_timeline.length - 1 && (
-                                      <div className="w-0.5 h-full bg-border mt-1" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 pb-6">
-                                    <p className="text-sm font-semibold text-foreground">{role}</p>
-                                    <p className="text-sm text-muted-foreground">{company}</p>
-                                    {period && (
-                                      <p className="text-xs text-muted-foreground mt-1">{period}</p>
+                            return (
+                              <div
+                                key={idx}
+                                className="p-4 bg-accent rounded-lg border border-border"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <svg
+                                    className="w-6 h-6 text-primary flex-shrink-0 mt-0.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 14l9-5-9-5-9 5 9 5z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                                    />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-foreground">
+                                      {degree}
+                                      {field && ` in ${field}`}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">{institution}</p>
+                                    {year && (
+                                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                          />
+                                        </svg>
+                                        {year}
+                                      </p>
                                     )}
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                    {/* Education */}
-                    {education && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-4">
-                          Education & Qualifications
-                        </h3>
-                        <div className="p-4 bg-accent rounded-lg">
-                          <div className="flex items-start gap-3">
-                            <svg
-                              className="w-6 h-6 text-primary mt-0.5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 14l9-5-9-5-9 5 9 5z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
-                              />
-                            </svg>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{education}</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {experience} of experience
-                              </p>
-                            </div>
-                          </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}

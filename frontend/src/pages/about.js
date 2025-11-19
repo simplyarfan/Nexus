@@ -151,7 +151,9 @@ export default function About() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-16">
                 <h2 className="text-4xl font-bold text-white mb-4">Our Values</h2>
-                <p className="text-lg text-muted-foreground">The principles that guide everything we do</p>
+                <p className="text-lg text-muted-foreground">
+                  The principles that guide everything we do
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -204,7 +206,9 @@ export default function About() {
                       <value.icon className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{value.description}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {value.description}
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -308,7 +312,9 @@ export default function About() {
               <h2 className="text-4xl font-bold text-white mb-4">
                 Powered By Cutting-Edge Technology
               </h2>
-              <p className="text-lg text-muted-foreground">Built with the best tools and frameworks</p>
+              <p className="text-lg text-muted-foreground">
+                Built with the best tools and frameworks
+              </p>
             </div>
 
             <div className="max-w-6xl mx-auto px-6">
@@ -383,7 +389,9 @@ export default function About() {
                   <span className="text-lg font-bold text-white">Nexus</span>
                 </div>
 
-                <div className="text-sm text-muted-foreground">© 2025 Nexus. All rights reserved.</div>
+                <div className="text-sm text-muted-foreground">
+                  © 2025 Nexus. All rights reserved.
+                </div>
               </div>
             </div>
           </footer>

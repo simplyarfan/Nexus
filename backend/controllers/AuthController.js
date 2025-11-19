@@ -26,24 +26,24 @@ const generateTokens = (userId, email, role, rememberMe = false) => {
   );
 
   // Extended expiration if remember me is enabled
-  const refreshTokenExpiry = rememberMe ? '90d' : '30d';
+  const refreshTokenExpiry = rememberMe ? '14d' : '7d';
 
   const refreshToken = jwt.sign({ userId, type: 'refresh' }, refreshSecret, {
     expiresIn: refreshTokenExpiry,
   });
 
-  return { accessToken, refreshToken, expiresIn: rememberMe ? 90 : 30 };
+  return { accessToken, refreshToken, expiresIn: rememberMe ? 14 : 7 };
 };
 
 // Register new user - With Email Verification
 const register = async (req, res) => {
   try {
-    let { email, password, firstName, lastName, department, jobTitle } = req.body;
+    let { email, password, firstName, lastName, phone, jobTitle } = req.body;
 
     // SECURITY: Sanitize text inputs to prevent XSS
     firstName = sanitizeStrict(firstName);
     lastName = sanitizeStrict(lastName);
-    department = sanitizeStrict(department);
+    phone = phone ? sanitizeStrict(phone) : null;
     jobTitle = sanitizeStrict(jobTitle);
 
     // Basic validation
@@ -115,12 +115,12 @@ const register = async (req, res) => {
     // Generate verification code
     const { code, hashedCode, expiresAt } = generate2FACode();
 
-    // Create user (unverified)
+    // Create user (unverified) - Department will be assigned by admin later
     const result = await database.run(
       `
       INSERT INTO users (
-        email, password_hash, first_name, last_name, 
-        department, job_title, role, is_active, is_verified,
+        email, password_hash, first_name, last_name,
+        phone, job_title, role, is_active, is_verified,
         verification_token, verification_expiry,
         created_at, updated_at
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -131,7 +131,7 @@ const register = async (req, res) => {
         hashedPassword,
         firstName,
         lastName,
-        department || null,
+        phone,
         jobTitle || null,
         'user', // Default role
         true, // Active by default
@@ -1476,7 +1476,13 @@ const requestPasswordReset = async (req, res) => {
     try {
       await emailService.sendPasswordReset(user.email, resetToken, user.first_name);
     } catch (emailError) {
-      // Intentionally empty - reset token is stored, email failure is non-critical
+      console.error('Password reset email failed:', emailError.message);
+      // Return error to user so they know email wasn't sent
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send password reset email. Please try again or contact support.',
+        error: process.env.NODE_ENV === 'development' ? emailError.message : undefined,
+      });
     }
 
     res.json({
@@ -1553,6 +1559,19 @@ const resetPassword = async (req, res) => {
 
     // Invalidate all existing sessions for security
     await database.run('DELETE FROM user_sessions WHERE user_id = $1', [matchedUser.id]);
+
+    // Get user's first name for email
+    const userDetails = await database.get('SELECT first_name, email FROM users WHERE id = $1', [
+      matchedUser.id,
+    ]);
+
+    // Send confirmation email (don't block response if email fails)
+    try {
+      await emailService.sendPasswordResetConfirmation(userDetails.email, userDetails.first_name);
+    } catch (emailError) {
+      console.error('Failed to send password reset confirmation email:', emailError.message);
+      // Continue - password was reset successfully, email is just a notification
+    }
 
     res.json({
       success: true,

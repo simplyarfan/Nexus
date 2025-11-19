@@ -14,13 +14,22 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex space-x-8 text-sm font-medium">
-          <Link href="/features" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/features"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
             Features
           </Link>
-          <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/about"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
             About
           </Link>
-          <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/contact"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
             Contact
           </Link>
         </div>

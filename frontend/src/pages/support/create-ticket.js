@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
+import { supportAPI } from '../../utils/supportAPI';
+import toast from 'react-hot-toast';
 
 export default function CreateTicket() {
   const router = useRouter();
@@ -28,23 +30,43 @@ export default function CreateTicket() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    setShowSuccess(true);
-
-    // Reset form and redirect after showing success
-    setTimeout(() => {
-      setFormData({
-        subject: '',
-        description: '',
-        priority: 'medium',
-        category: 'general',
+    try {
+      // Call the real API to create the ticket
+      const response = await supportAPI.createTicket({
+        subject: formData.subject,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
       });
-      setShowSuccess(false);
-      router.push(getDashboardPath()); // Redirect to user dashboard
-    }, 2000);
+
+      // Only show success if the API call was successful
+      if (response.data && response.data.success) {
+        setIsSubmitting(false);
+        setShowSuccess(true);
+
+        // Reset form and redirect after showing success
+        setTimeout(() => {
+          setFormData({
+            subject: '',
+            description: '',
+            priority: 'medium',
+            category: 'general',
+          });
+          setShowSuccess(false);
+          router.push('/support/my-tickets'); // Redirect to my tickets page
+        }, 2000);
+      } else {
+        throw new Error(response.data?.message || 'Failed to create ticket');
+      }
+    } catch (error) {
+      setIsSubmitting(false);
+      console.error('Error creating ticket:', error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to create ticket. Please try again.',
+      );
+    }
   };
 
   const handleChange = (e) => {
@@ -55,7 +77,7 @@ export default function CreateTicket() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-4xl mx-auto px-8 py-6">
@@ -113,7 +135,10 @@ export default function CreateTicket() {
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-semibold text-foreground mb-2">
+              <label
+                htmlFor="category"
+                className="block text-sm font-semibold text-foreground mb-2"
+              >
                 Category <span className="text-destructive">*</span>
               </label>
               <select
@@ -131,12 +156,17 @@ export default function CreateTicket() {
                 <option value="bug">Bug Report</option>
                 <option value="other">Other</option>
               </select>
-              {errors.category && <p className="text-sm text-destructive mt-1">{errors.category}</p>}
+              {errors.category && (
+                <p className="text-sm text-destructive mt-1">{errors.category}</p>
+              )}
             </div>
 
             {/* Priority */}
             <div>
-              <label htmlFor="priority" className="block text-sm font-semibold text-foreground mb-2">
+              <label
+                htmlFor="priority"
+                className="block text-sm font-semibold text-foreground mb-2"
+              >
                 Priority <span className="text-destructive">*</span>
               </label>
               <select
@@ -148,10 +178,12 @@ export default function CreateTicket() {
                 className={`w-full px-4 py-3 bg-secondary border rounded-lg text-foreground focus:ring-2 focus:ring-primary focus:border-transparent ${errors.priority ? 'border-destructive' : 'border-border'}`}
               >
                 <option value="low">Low - General question or minor issue</option>
-                <option value="medium">Medium - Affects my work but h</option>
+                <option value="medium">Medium - Affects my work but has workaround</option>
                 <option value="high">High - Blocking my work, needs urgent attention</option>
               </select>
-              {errors.priority && <p className="text-sm text-destructive mt-1">{errors.priority}</p>}
+              {errors.priority && (
+                <p className="text-sm text-destructive mt-1">{errors.priority}</p>
+              )}
             </div>
 
             {/* Description */}
@@ -294,7 +326,9 @@ export default function CreateTicket() {
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-2">Ticket Submitted!</h3>
-                <p className="text-muted-foreground mb-1">Your support ticket h created successfully.</p>
+                <p className="text-muted-foreground mb-1">
+                  Your support ticket has been created successfully.
+                </p>
                 <p className="text-sm text-muted-foreground">We&apos;ll get back to you soon.</p>
               </div>
             </motion.div>

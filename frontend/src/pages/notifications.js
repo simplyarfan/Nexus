@@ -10,7 +10,7 @@ export default function NotificationsPage() {
   const { user, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, unread
+  const [filter, setFilter] = useState('unread'); // unread, read
   const [pagination, setPagination] = useState({ page: 1, limit: 50 });
 
   useEffect(() => {
@@ -28,14 +28,26 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
+
       const params = {
         page: pagination.page,
         limit: pagination.limit,
-        unread_only: filter === 'unread',
       };
 
+      // Unread tab: get only unread notifications from backend
+      if (filter === 'unread') {
+        params.unread_only = true;
+      }
+
       const result = await notificationsAPI.getNotifications(params);
-      setNotifications(result.data.notifications || []);
+      let fetchedNotifications = result.data.notifications || [];
+
+      // Read tab: filter for is_read = true on client side
+      if (filter === 'read') {
+        fetchedNotifications = fetchedNotifications.filter((n) => n.is_read);
+      }
+
+      setNotifications(fetchedNotifications);
       setPagination((prev) => ({ ...prev, ...result.data.pagination }));
     } catch (error) {
       toast.error('Failed to load notifications');
@@ -44,15 +56,12 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleMarkAsRead = async (notificationId) => {
+  const handleMarkAsRead = async (notificationId, e) => {
+    e.stopPropagation();
     try {
       await notificationsAPI.markAsRead(notificationId);
-      // Update local state
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, is_read: true, read_at: new Date() } : n,
-        ),
-      );
+      toast.success('Marked as read');
+      fetchNotifications();
     } catch (error) {
       toast.error('Failed to mark as read');
     }
@@ -68,13 +77,35 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleDelete = async (notificationId) => {
-    try {
-      await notificationsAPI.deleteNotification(notificationId);
-      toast.success('Notification deleted');
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-    } catch (error) {
-      toast.error('Failed to delete notification');
+  const handleNotificationClick = (notification) => {
+    // Mark as read if unread
+    if (!notification.is_read) {
+      notificationsAPI.markAsRead(notification.id).catch(() => {
+        // Silently fail, user will still navigate
+      });
+    }
+
+    // Navigate based on notification type
+    const metadata = notification.metadata || notification.enriched_metadata || {};
+
+    // Handle all ticket-related notifications
+    if (
+      notification.type === 'ticket_response' ||
+      notification.type === 'ticket_status_change' ||
+      notification.type === 'ticket_comment' ||
+      notification.type === 'ticket_created'
+    ) {
+      const ticketId = metadata.ticket_id;
+      if (ticketId) {
+        // Navigate to specific ticket detail page based on user role
+        if (user?.role === 'superadmin') {
+          router.push(`/superadmin/tickets/${ticketId}`);
+        } else if (user?.role === 'admin') {
+          router.push(`/admin/tickets/${ticketId}`);
+        } else {
+          router.push(`/support/tickets/${ticketId}`);
+        }
+      }
     }
   };
 
@@ -119,16 +150,16 @@ export default function NotificationsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-border bg-card sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -157,7 +188,7 @@ export default function NotificationsPage() {
             </div>
             <button
               onClick={handleMarkAllAsRead}
-              className="px-4 py-2 text-sm font-medium text-primary hover:text-primary border border-primary rounded-lg hover:bg-accent transition-colors"
+              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               Mark All as Read
             </button>
@@ -166,26 +197,62 @@ export default function NotificationsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filter Tabs */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setFilter('all')}
-            className={
-              'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'all' ? 'bg-accent text-white' : 'text-muted-foreground hover:bg-muted')
-            }
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('unread')}
-            className={
-              'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
-              (filter === 'unread' ? 'bg-accent text-white' : 'text-muted-foreground hover:bg-muted')
-            }
-          >
-            Unread
-          </button>
+        {/* Filter Tabs and Pagination */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilter('unread')}
+              className={
+                'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
+                (filter === 'unread'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted')
+              }
+            >
+              Unread
+            </button>
+            <button
+              onClick={() => setFilter('read')}
+              className={
+                'px-4 py-2 text-sm font-medium rounded-lg transition-colors ' +
+                (filter === 'read'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted')
+              }
+            >
+              Read
+            </button>
+          </div>
+
+          {/* Pagination at top */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() =>
+                  setPagination((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
+                }
+                disabled={pagination.page === 1}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setPagination((prev) => ({
+                    ...prev,
+                    page: Math.min(prev.totalPages, prev.page + 1),
+                  }))
+                }
+                disabled={pagination.page === pagination.totalPages}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Notifications List */}
@@ -213,15 +280,18 @@ export default function NotificationsPage() {
               <p className="text-sm">You're all caught up!</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
               {notifications.map((notification) => (
                 <motion.div
                   key={notification.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  onClick={() => handleNotificationClick(notification)}
                   className={
-                    'p-6 hover:bg-secondary transition-colors ' +
-                    (!notification.is_read ? 'bg-blue-50/30' : '')
+                    'p-6 transition-all cursor-pointer ' +
+                    (notification.is_read
+                      ? 'hover:bg-muted opacity-60'
+                      : 'hover:bg-muted bg-primary/5')
                   }
                 >
                   <div className="flex items-start gap-4">
@@ -230,50 +300,39 @@ export default function NotificationsPage() {
                         'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ' +
                         (notification.is_read
                           ? 'bg-muted text-muted-foreground'
-                          : 'bg-accent text-primary')
+                          : 'bg-primary/10 text-primary')
                       }
                     >
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-foreground mb-1">
+                          <p
+                            className={
+                              'text-sm mb-1 ' +
+                              (notification.is_read
+                                ? 'font-medium text-muted-foreground'
+                                : 'font-semibold text-foreground')
+                            }
+                          >
                             {notification.title}
                           </p>
-                          <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {notification.message}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(notification.created_at).toLocaleString()}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          {!notification.is_read && (
-                            <button
-                              onClick={() => handleMarkAsRead(notification.id)}
-                              className="text-xs text-primary hover:text-primary font-medium"
-                            >
-                              Mark as read
-                            </button>
-                          )}
+                        {!notification.is_read && (
                           <button
-                            onClick={() => handleDelete(notification.id)}
-                            className="text-muted-foreground hover:text-red-600 transition-colors"
+                            onClick={(e) => handleMarkAsRead(notification.id, e)}
+                            className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium whitespace-nowrap transition-colors"
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
+                            Mark as read
                           </button>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -291,7 +350,7 @@ export default function NotificationsPage() {
                 setPagination((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
               }
               disabled={pagination.page === 1}
-              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
@@ -306,7 +365,7 @@ export default function NotificationsPage() {
                 }))
               }
               disabled={pagination.page === pagination.totalPages}
-              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>

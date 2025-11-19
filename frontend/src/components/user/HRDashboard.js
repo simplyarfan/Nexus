@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { tokenManager } from '../../utils/api';
+import { notificationsAPI } from '../../utils/notificationsAPI';
 
 export default function HRDashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -55,13 +56,6 @@ export default function HRDashboard() {
           },
         );
 
-        const notificationsResponse = await fetch(`${API_BASE_URL}/api/notifications`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
         let activeBatches = 0;
         let totalCandidates = 0;
         let scheduledInterviews = 0;
@@ -69,7 +63,7 @@ export default function HRDashboard() {
         if (batchesResponse.ok) {
           const batchesResult = await batchesResponse.json();
           const batches = batchesResult.data || [];
-          activeBatches = batches.filter((b) => b.status !== 'completed').length;
+          activeBatches = batches.length; // Show all batches, not just non-completed ones
           totalCandidates = batches.reduce((sum, batch) => sum + (batch.candidate_count || 0), 0);
         }
 
@@ -77,11 +71,6 @@ export default function HRDashboard() {
           const interviewsResult = await interviewsResponse.json();
           const interviews = interviewsResult.data || [];
           scheduledInterviews = interviews.filter((i) => i.status === 'scheduled').length;
-        }
-
-        if (notificationsResponse.ok) {
-          const notificationsResult = await notificationsResponse.json();
-          setNotifications(notificationsResult.data || []);
         }
 
         setStats({
@@ -99,6 +88,51 @@ export default function HRDashboard() {
 
     fetchStats();
   }, []);
+
+  // Fetch notifications separately with unread_only filter
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setNotifications([]);
+        const result = await notificationsAPI.getNotifications({ limit: 5, unread_only: true });
+        setNotifications(result.data?.notifications || []);
+      } catch (error) {
+        setNotifications([]);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const fetchNotificationsData = async () => {
+    try {
+      const result = await notificationsAPI.getNotifications({ limit: 5, unread_only: true });
+      const fetchedNotifications = result.data?.notifications || [];
+      console.log('Fetched notifications:', fetchedNotifications);
+      setNotifications(fetchedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setNotifications([]);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId, e) => {
+    e.stopPropagation();
+    try {
+      await notificationsAPI.markAsRead(notificationId);
+      await fetchNotificationsData();
+    } catch (error) {
+      // Silent failure
+    }
+  };
+
+  const handleNotificationClick = () => {
+    // Refresh notifications when dropdown opens
+    if (!showNotifications) {
+      fetchNotificationsData();
+    }
+    setShowNotifications(!showNotifications);
+  };
 
   const handleLogout = async () => {
     try {
@@ -210,21 +244,18 @@ export default function HRDashboard() {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-sidebar-accent transition-colors"
           >
-            <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
+            {user?.profile_picture_url ? (
+              <img
+                src={user.profile_picture_url}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold">
+                {user?.first_name?.[0]?.toUpperCase() || ''}
+                {user?.last_name?.[0]?.toUpperCase() || ''}
+              </div>
+            )}
             <div className="flex-1 text-left">
               <p className="text-sm font-medium text-foreground">
                 {user?.first_name && user?.last_name
@@ -321,7 +352,7 @@ export default function HRDashboard() {
                     className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                   >
                     <svg
-                      className="w-5 h-5 text-destructive"
+                      className="w-5 h-5 text-red-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -333,7 +364,7 @@ export default function HRDashboard() {
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    <span className="text-sm text-destructive">Logout</span>
+                    <span className="text-sm text-red-500">Logout</span>
                   </button>
                 </motion.div>
               </>
@@ -376,7 +407,7 @@ export default function HRDashboard() {
 
                 <div className="relative">
                   <button
-                    onClick={() => setShowNotifications(!showNotifications)}
+                    onClick={handleNotificationClick}
                     className="relative p-3 rounded-lg hover:bg-muted transition-colors"
                   >
                     <svg
@@ -392,7 +423,9 @@ export default function HRDashboard() {
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                       />
                     </svg>
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
+                    {notifications.length > 0 && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
+                    )}
                   </button>
 
                   <AnimatePresence>
@@ -418,27 +451,41 @@ export default function HRDashboard() {
                                   key={notification.id || index}
                                   className="p-4 hover:bg-muted transition-colors border-b border-border last:border-0"
                                 >
-                                  <p className="font-medium text-foreground text-sm">
-                                    {notification.title || notification.message}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {notification.description || notification.detail}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground mt-2">
-                                    {notification.created_at
-                                      ? new Date(notification.created_at).toLocaleString()
-                                      : 'Just now'}
-                                  </p>
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1">
+                                      <p className="font-medium text-foreground text-sm">
+                                        {notification.title}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {notification.message}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-2">
+                                        {new Date(notification.created_at).toLocaleString()}
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={(e) => handleMarkAsRead(notification.id, e)}
+                                      className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors flex-shrink-0"
+                                      title="Mark as read"
+                                    >
+                                      ✓
+                                    </button>
+                                  </div>
                                 </div>
                               ))
                             ) : (
                               <div className="p-8 text-center">
-                                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                                <p className="text-sm text-muted-foreground">
+                                  No notifications yet
+                                </p>
                               </div>
                             )}
                           </div>
                           <div className="p-3 border-t border-border text-center">
-                            <button className="text-sm text-primary hover:opacity-80">
+                            <button
+                              onClick={() => router.push('/notifications')}
+                              className="text-sm text-primary hover:opacity-80"
+                            >
                               View all notifications
                             </button>
                           </div>
@@ -452,87 +499,6 @@ export default function HRDashboard() {
           </div>
 
           <div className="max-w-7xl mx-auto px-8 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-              {[
-                {
-                  label: 'Active Batches',
-                  value: loading ? '...' : stats.activeBatches,
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-primary/10 text-primary',
-                },
-                {
-                  label: 'Total Candidates',
-                  value: loading ? '...' : stats.totalCandidates,
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-primary/20 text-primary',
-                },
-                {
-                  label: 'Scheduled Interviews',
-                  value: loading ? '...' : stats.scheduledInterviews,
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-primary/10 text-primary',
-                },
-                {
-                  label: 'Open Positions',
-                  value: loading ? '...' : stats.openPositions,
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-primary/10 text-primary',
-                },
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
-                  className="bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center mb-3`}
-                  >
-                    {stat.icon}
-                  </div>
-                  <div className="text-3xl font-bold text-foreground mb-1">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground mb-2">AI-Powered Tools</h2>
               <p className="text-muted-foreground">
@@ -582,9 +548,23 @@ export default function HRDashboard() {
                           />
                         </svg>
                       </div>
-                      <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                        AI Powered
-                      </div>
+                      {agent.title === 'CV Intelligence' && (
+                        <div className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+                          {loading ? '...' : stats.activeBatches}{' '}
+                          {stats.activeBatches === 1 ? 'Batch' : 'Batches'}
+                        </div>
+                      )}
+                      {agent.title === 'Interview Coordinator' && (
+                        <div className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+                          {loading ? '...' : stats.scheduledInterviews} Scheduled
+                        </div>
+                      )}
+                      {agent.title !== 'CV Intelligence' &&
+                        agent.title !== 'Interview Coordinator' && (
+                          <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                            AI Powered
+                          </div>
+                        )}
                     </div>
                   </div>
                 </motion.div>

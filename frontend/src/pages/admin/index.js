@@ -8,7 +8,7 @@ import { notificationsAPI } from '../../utils/notificationsAPI';
 import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
-  const { user, isAdmin, isSuperAdmin, loading } = useAuth();
+  const { user, isAdmin, isSuperAdmin, loading, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,11 +39,11 @@ export default function AdminDashboard() {
     try {
       setLoadingData(true);
 
-      // Fetch all data in parallel
+      // Fetch all data in parallel (admins get ALL tickets and notifications - backend handles this based on role)
       const [usersResponse, ticketsResponse, notificationsResponse] = await Promise.all([
         usersAPI.getUsers({ limit: 1000 }),
         supportAPI.getMyTickets({ limit: 1000 }),
-        notificationsAPI.getNotifications({ limit: 10, unread_only: true }),
+        notificationsAPI.getNotifications({ limit: 10, unread_only: true, all: true }),
       ]);
 
       const allUsers = usersResponse.data.users || [];
@@ -78,13 +78,12 @@ export default function AdminDashboard() {
     }
   };
 
-  // Show loading while checking auth or data
-  if (loading || loadingData) {
+  // Show loading while checking auth
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -107,6 +106,21 @@ export default function AdminDashboard() {
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationsAPI.markAllAsRead();
+      setNotifications([]);
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      toast.error('Failed to mark notifications as read');
+    }
   };
 
   const agents = [
@@ -158,7 +172,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-secondary flex">
+    <div className="min-h-screen bg-background flex">
       {/* Backdrop for mobile */}
       {sidebarOpen && (
         <div
@@ -169,13 +183,17 @@ export default function AdminDashboard() {
 
       {/* Sidebar - Fixed */}
       <div
-        className={`w-64 bg-card border-r border-border flex flex-col fixed h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform z-50`}
+        className={`w-64 bg-sidebar border-r border-sidebar-border flex flex-col fixed h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform z-50`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-primary-foreground"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
               </svg>
             </div>
@@ -186,7 +204,7 @@ export default function AdminDashboard() {
         {/* Admin Tools Section */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-sidebar-foreground uppercase tracking-wider mb-3">
               ADMIN TOOLS
             </p>
             <div className="space-y-2">
@@ -194,7 +212,7 @@ export default function AdminDashboard() {
                 <button
                   key={item.href}
                   onClick={() => router.push(item.href)}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-foreground hover:bg-secondary group"
+                  className="w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-sidebar-foreground hover:bg-sidebar-accent group"
                 >
                   <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
                   <div className="flex-1 text-left">
@@ -221,12 +239,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* User Menu */}
-        <div className="p-4 border-t border-border relative">
+        <div className="p-4 border-t border-sidebar-border relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors"
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-sidebar-accent transition-colors min-w-0"
           >
-            <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 min-w-[2.5rem] bg-muted rounded-full flex items-center justify-center flex-shrink-0">
               <svg
                 className="w-6 h-6 text-muted-foreground"
                 fill="none"
@@ -241,12 +259,18 @@ export default function AdminDashboard() {
                 />
               </svg>
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-foreground">Admin User</p>
-              <p className="text-xs text-muted-foreground">admin@nexus.com</p>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">
+                {user?.first_name && user?.last_name
+                  ? `${user.first_name} ${user.last_name}`
+                  : user?.name || 'Admin'}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user?.email || 'admin@nexus.com'}
+              </p>
             </div>
             <svg
-              className="w-4 h-4 text-muted-foreground"
+              className="w-4 h-4 text-sidebar-foreground flex-shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -271,44 +295,6 @@ export default function AdminDashboard() {
                   className="absolute bottom-full left-4 right-4 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
                 >
                   <button
-                    onClick={() => router.push('/support/create-ticket')}
-                    className="w-full px-4 py-3 text-left hover:bg-secondary transition-colors flex items-center gap-3"
-                  >
-                    <svg
-                      className="w-5 h-5 text-muted-foreground"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    <span className="text-sm text-foreground">Create Ticket</span>
-                  </button>
-                  <button
-                    onClick={() => router.push('/support/my-tickets')}
-                    className="w-full px-4 py-3 text-left hover:bg-secondary transition-colors flex items-center gap-3"
-                  >
-                    <svg
-                      className="w-5 h-5 text-muted-foreground"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                      />
-                    </svg>
-                    <span className="text-sm text-foreground">My Tickets</span>
-                  </button>
-                  <button
                     onClick={() => router.push('/profile')}
                     className="w-full px-4 py-3 text-left hover:bg-secondary transition-colors flex items-center gap-3"
                   >
@@ -329,11 +315,11 @@ export default function AdminDashboard() {
                   </button>
                   <div className="border-t border-border" />
                   <button
-                    onClick={() => router.push('/auth/login')}
+                    onClick={handleLogout}
                     className="w-full px-4 py-3 text-left hover:bg-secondary transition-colors flex items-center gap-3"
                   >
                     <svg
-                      className="w-5 h-5 text-red-600"
+                      className="w-5 h-5 text-red-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -345,7 +331,7 @@ export default function AdminDashboard() {
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    <span className="text-sm text-red-600">Logout</span>
+                    <span className="text-sm text-red-500">Logout</span>
                   </button>
                 </motion.div>
               </>
@@ -356,7 +342,7 @@ export default function AdminDashboard() {
 
       {/* Main Content - Add left margin to account for fixed sidebar */}
       <div className="flex-1 lg:ml-64 overflow-auto">
-        <div className="min-h-screen bg-secondary">
+        <div className="min-h-screen bg-background">
           {/* Clean Header with Notifications */}
           <div className="border-b border-border bg-card sticky top-0 z-30">
             <div className="max-w-7xl mx-auto px-8 py-8">
@@ -424,8 +410,16 @@ export default function AdminDashboard() {
                           exit={{ opacity: 0, y: -10 }}
                           className="absolute right-0 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
                         >
-                          <div className="p-4 border-b border-border">
+                          <div className="p-4 border-b border-border flex items-center justify-between">
                             <h3 className="font-semibold text-foreground">Notifications</h3>
+                            {notifications.length > 0 && (
+                              <button
+                                onClick={handleMarkAllAsRead}
+                                className="text-xs text-primary hover:opacity-80 font-medium"
+                              >
+                                Mark all as read
+                              </button>
+                            )}
                           </div>
                           <div className="max-h-96 overflow-y-auto">
                             {notifications.length === 0 ? (
@@ -468,75 +462,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Stats Overview */}
+          {/* Management Tools Section */}
           <div className="max-w-7xl mx-auto px-8 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              {[
-                {
-                  label: 'Total Users',
-                  value: stats.totalUsers.toString(),
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-accent/10 text-primary',
-                },
-                {
-                  label: 'Open Tickets',
-                  value: stats.openTickets.toString(),
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-accent/20 text-primary',
-                },
-                {
-                  label: 'Resolved Today',
-                  value: stats.resolvedToday.toString(),
-                  icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  ),
-                  color: 'bg-accent/10 text-primary',
-                },
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
-                  className="bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center mb-3`}
-                  >
-                    {stat.icon}
-                  </div>
-                  <div className="text-3xl font-bold text-foreground mb-1">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Management Tools Section */}
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground mb-2">Management Tools</h2>
               <p className="text-muted-foreground">
@@ -559,7 +486,7 @@ export default function AdminDashboard() {
 
                   <div className="relative z-10">
                     <div className="flex flex-col items-center text-center mb-6">
-                      <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg mb-4">
                         {agent.icon}
                       </div>
                       <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
@@ -570,7 +497,7 @@ export default function AdminDashboard() {
 
                     <div className="flex items-center justify-center pt-4 border-t border-border">
                       <div className="inline-flex items-center gap-2 text-primary font-medium group-hover:gap-3 transition-all">
-                        <span>Open Tool</span>
+                        <span>Access Tool</span>
                         <svg
                           className="w-5 h-5"
                           fill="none"

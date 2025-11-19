@@ -198,7 +198,9 @@ export default function Features() {
                 </div>
                 <span className="text-lg font-bold">Nexus</span>
               </div>
-              <div className="text-sm text-muted-foreground">© 2025 Nexus. All rights reserved.</div>
+              <div className="text-sm text-muted-foreground">
+                © 2025 Nexus. All rights reserved.
+              </div>
             </div>
           </div>
         </footer>

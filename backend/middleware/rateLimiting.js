@@ -40,12 +40,12 @@ const authLimiter = rateLimit({
 // Password reset rate limiting
 const passwordResetLimiter = rateLimit({
   ...baseConfig,
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 password reset requests per hour
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 3, // 3 password reset requests per 30 minutes
   message: {
     success: false,
-    message: 'Too many password reset attempts, please try again in 1 hour.',
-    retryAfter: 60 * 60,
+    message: 'Too many password reset attempts, please try again in 30 minutes.',
+    retryAfter: 30 * 60,
   },
 });
 

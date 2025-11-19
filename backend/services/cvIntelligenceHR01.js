@@ -3,18 +3,35 @@
  * Following EXACT blueprint: Ingress → Docling → spaCy → Llama 3.1 → Pydantic → pgvector
  */
 
-const { axios } = require('../utils/axios');
+const { openAI: axios } = require('../utils/axios'); // Use OpenAI-specific instance with 5-minute timeout
 const pdf = require('pdf-parse');
 
 class CVIntelligenceHR01 {
   constructor() {
-    this.apiKey = process.env.OPENAI_API_KEY;
-    this.apiUrl = 'https://api.openai.com/v1/chat/completions';
-    this.model = 'gpt-3.5-turbo'; // Using available model instead of Llama 3.1
+    // Use Groq API (FREE & 10x faster) or fallback to OpenAI
+    const useGroq = !!process.env.GROQ_API_KEY;
+
+    this.apiKey = useGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY;
+    this.apiUrl = useGroq
+      ? 'https://api.groq.com/openai/v1/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+    this.model = useGroq
+      ? 'llama-3.3-70b-versatile' // Groq's latest Llama 3.3 70B model (3.1 was decommissioned)
+      : 'gpt-3.5-turbo';
+    this.provider = useGroq ? 'Groq' : 'OpenAI';
+
+    // DEBUG: Log API provider and key status
+    console.log(`🔑 ${this.provider} API Configuration:`);
+    console.log('   Provider:', this.provider);
+    console.log('   Model:', this.model);
+    console.log('   API URL:', this.apiUrl);
+    console.log('   Key present:', !!this.apiKey);
+    console.log('   Key length:', this.apiKey ? this.apiKey.length : 0);
+    console.log('   Key prefix:', this.apiKey ? this.apiKey.substring(0, 12) + '...' : 'N/A');
 
     // Check if API key is configured
     if (!this.apiKey) {
-      // OPENAI_API_KEY not configured
+      console.warn(`⚠️ ${this.provider}_API_KEY not configured`);
     }
 
     // Smart skill matching mappings
@@ -41,6 +58,35 @@ class CVIntelligenceHR01 {
       docker: ['containerization', 'containers'],
       kubernetes: ['k8s', 'container orchestration'],
     };
+  }
+
+  /**
+   * Helper: Make API call with automatic retry on rate limits
+   */
+  async makeAPICallWithRetry(apiCall, maxRetries = 3, retryDelay = 20000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await apiCall();
+      } catch (error) {
+        // Check if it's a rate limit error (429)
+        if (error.response?.status === 429 && attempt < maxRetries) {
+          // Extract wait time from error message if available
+          const errorMessage = error.response?.data?.error?.message || '';
+          const waitTimeMatch = errorMessage.match(/try again in ([\d.]+)s/i);
+          const waitTime = waitTimeMatch
+            ? Math.ceil(parseFloat(waitTimeMatch[1]) * 1000)
+            : retryDelay;
+
+          console.log(
+            `⏳ [${this.provider}] Rate limit hit. Waiting ${(waitTime / 1000).toFixed(1)}s before retry (attempt ${attempt}/${maxRetries})...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+          continue;
+        }
+        // If not a rate limit error, or max retries reached, throw the error
+        throw error;
+      }
+    }
   }
 
   /**
@@ -84,14 +130,21 @@ class CVIntelligenceHR01 {
    */
   async processJobDescription(fileBuffer, fileName) {
     try {
+      console.log(`\n🔍 [JD Service] Starting JD processing for: ${fileName}`);
+
       // Parse the JD document
       const fileType = fileName.split('.').pop().toLowerCase();
+      console.log(`   File type: ${fileType}`);
+
       const parsedJD = await this.parseDocument(fileBuffer, fileType);
+      console.log(`   Parsed JD result:`, parsedJD ? 'Success' : 'Failed');
 
       // parseDocument returns { rawText, layoutBlocks, metadata }
       const jdText = parsedJD.rawText || parsedJD.text || '';
+      console.log(`   Extracted text length: ${jdText.length} characters`);
 
       if (!jdText || jdText.trim().length === 0) {
+        console.error(`❌ [JD Service] Failed to extract text from JD file`);
         return {
           success: false,
           error: 'Failed to extract text from JD file',
@@ -99,8 +152,10 @@ class CVIntelligenceHR01 {
         };
       }
 
+      console.log(`   Calling AI to extract requirements...`);
       // Extract requirements using AI
       const requirements = await this.extractJobRequirements(jdText);
+      console.log(`   AI extraction complete. Skills found: ${requirements?.skills?.length || 0}`);
 
       // Normalize extracted skills
       if (requirements.skills) {
@@ -110,12 +165,15 @@ class CVIntelligenceHR01 {
         requirements.mustHave = this.normalizeSkills(requirements.mustHave);
       }
 
+      console.log(`✅ [JD Service] JD processing successful`);
       return {
         success: true,
         requirements: requirements,
         fileName: fileName,
       };
     } catch (error) {
+      console.error(`❌ [JD Service] Error processing JD:`, error.message);
+      console.error(`   Stack:`, error.stack);
       return {
         success: false,
         error: error.message,
@@ -186,20 +244,24 @@ Extract EXACT phrases from the document, not generic terms.
 Return valid JSON only:`;
 
     try {
-      const response = await axios.post(
-        this.apiUrl,
-        {
-          model: this.model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 1500,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
+      // Use retry helper for rate limit handling
+      const response = await this.makeAPICallWithRetry(() =>
+        axios.post(
+          this.apiUrl,
+          {
+            model: this.model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            max_tokens: 1500,
           },
-        },
+          {
+            timeout: 300000, // 5 minutes - explicitly set to prevent override
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
       );
 
       const content = response.data.choices[0].message.content.trim();
@@ -223,8 +285,37 @@ Return valid JSON only:`;
 
       return requirements;
     } catch (error) {
+      // Enhanced error logging for API failures
+      console.error(`❌ [${this.provider} API Error] JD Extraction Failed:`);
+      console.error('   Error Message:', error.message);
+      console.error('   Error Code:', error.code);
+      console.error('   HTTP Status:', error.response?.status);
+      console.error('   Response Data:', JSON.stringify(error.response?.data, null, 2));
+
+      // Categorize error type
+      if (error.code === 'ECONNABORTED') {
+        const timeoutMs = error.config?.timeout || 'unknown';
+        throw new Error(`${this.provider} API timeout - JD extraction exceeded ${timeoutMs}ms`);
+      }
+
+      if (error.response?.status === 401) {
+        throw new Error(`${this.provider} API authentication failed (401) - check API key`);
+      }
+
+      if (error.response?.status === 429) {
+        throw new Error(`${this.provider} API rate limit exceeded (429) - too many requests`);
+      }
+
+      if (error.response?.status >= 500) {
+        throw new Error(
+          `${this.provider} API server error (${error.response.status}) - try again later`,
+        );
+      }
+
       // NO FALLBACK - FAIL COMPLETELY
-      throw new Error(`JD extraction failed: ${error.message}`);
+      throw new Error(
+        `JD extraction failed: ${error.message} (Status: ${error.response?.status || 'N/A'})`,
+      );
     }
   }
 
@@ -399,15 +490,16 @@ Return ONLY valid JSON matching this exact schema:
 {
   "personal": {
     "name": "string or null",
-    "email": "string or null", 
+    "email": "string or null",
     "phone": "string or null",
     "location": "string or null",
     "linkedin": "string or null"
   },
+  "summary": "string - A professional 2-3 sentence assessment summarizing the candidate's experience, key strengths, and career focus",
   "experience": [
     {
       "company": "string",
-      "role": "string", 
+      "role": "string",
       "startDate": "string",
       "endDate": "string",
       "achievements": ["string"],
@@ -418,7 +510,7 @@ Return ONLY valid JSON matching this exact schema:
     {
       "institution": "string",
       "degree": "string",
-      "field": "string", 
+      "field": "string",
       "year": "string"
     }
   ],
@@ -433,6 +525,13 @@ Return ONLY valid JSON matching this exact schema:
 }
 
 CRITICAL EXTRACTION RULES:
+
+0. SUMMARY/PROFESSIONAL ASSESSMENT - Generate a 2-3 sentence professional assessment:
+   - Summarize the candidate's years of experience and primary domain/role
+   - Highlight 2-3 key strengths or standout achievements
+   - Mention their career focus or expertise area
+   - Write in third person, professional tone
+   - Example: "Senior Full-Stack Developer with 8+ years of experience building scalable web applications. Demonstrates strong expertise in React, Node.js, and cloud infrastructure, with proven track record of leading development teams. Focused on creating high-performance solutions for enterprise clients."
 
 1. SKILLS - Extract ALL technical and professional skills from EVERYWHERE:
    - Dedicated skills sections
@@ -470,20 +569,24 @@ ${text}
 Return only the JSON object, no other text:`;
 
     try {
-      const response = await axios.post(
-        this.apiUrl,
-        {
-          model: this.model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.1,
-          max_tokens: 2000,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
+      // Use retry helper for rate limit handling
+      const response = await this.makeAPICallWithRetry(() =>
+        axios.post(
+          this.apiUrl,
+          {
+            model: this.model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            max_tokens: 2000,
           },
-        },
+          {
+            timeout: 300000, // 5 minutes - explicitly set to prevent override
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
       );
 
       const jsonText = response.data.choices[0].message.content.trim();
@@ -499,7 +602,36 @@ Return only the JSON object, no other text:`;
 
       return structuredData;
     } catch (error) {
-      throw new Error(`Failed to extract CV data: ${error.message}`);
+      // Enhanced error logging for API failures
+      console.error(`❌ [${this.provider} API Error] CV Extraction Failed:`);
+      console.error('   Error Message:', error.message);
+      console.error('   Error Code:', error.code);
+      console.error('   HTTP Status:', error.response?.status);
+      console.error('   Response Data:', JSON.stringify(error.response?.data, null, 2));
+
+      // Categorize error type
+      if (error.code === 'ECONNABORTED') {
+        const timeoutMs = error.config?.timeout || 'unknown';
+        throw new Error(`${this.provider} API timeout - CV extraction exceeded ${timeoutMs}ms`);
+      }
+
+      if (error.response?.status === 401) {
+        throw new Error(`${this.provider} API authentication failed (401) - check API key`);
+      }
+
+      if (error.response?.status === 429) {
+        throw new Error(`${this.provider} API rate limit exceeded (429) - too many requests`);
+      }
+
+      if (error.response?.status >= 500) {
+        throw new Error(
+          `${this.provider} API server error (${error.response.status}) - try again later`,
+        );
+      }
+
+      throw new Error(
+        `Failed to extract CV data: ${error.message} (Status: ${error.response?.status || 'N/A'})`,
+      );
     }
   }
 
@@ -618,26 +750,46 @@ Return only the JSON object, no other text:`;
     const processingStart = Date.now();
 
     try {
+      console.log(`\n🔍 [CV Service] Starting CV processing for: ${fileName}`);
+
       // Step 1: Ingress
+      console.log(`   Step 1/7: Ingress...`);
       const ingressData = await this.ingressDocument(fileBuffer, fileName);
+      console.log(`   ✓ Ingress complete. File ID: ${ingressData.fileId}`);
 
       // Step 2: Parsing
+      console.log(`   Step 2/7: Parsing document...`);
       const parseData = await this.parseDocument(fileBuffer, ingressData.fileType);
+      console.log(
+        `   ✓ Parsing complete. Text length: ${parseData.rawText?.length || 0} characters`,
+      );
 
       // Step 3: Entity extraction
+      console.log(`   Step 3/7: Extracting entities...`);
       const entities = await this.extractEntities(parseData.rawText);
+      console.log(`   ✓ Entity extraction complete. Found: ${entities?.length || 0} entities`);
 
       // Step 4: LLM extraction
+      console.log(`   Step 4/7: LLM structured data extraction...`);
       const structuredData = await this.extractStructuredData(parseData.rawText, entities);
+      console.log(`   ✓ LLM extraction complete. Name: ${structuredData?.name || 'N/A'}`);
 
       // Step 5: Evidence binding
+      console.log(`   Step 5/7: Binding evidence...`);
       const evidenceMap = this.bindEvidence(structuredData, entities, parseData.rawText);
+      console.log(`   ✓ Evidence binding complete`);
 
       // Step 6: Scoring
+      console.log(`   Step 6/7: Calculating scores...`);
       const scores = await this.calculateScores(structuredData, jobRequirements, entities);
+      console.log(`   ✓ Scoring complete. Match: ${scores?.overallMatch || 0}%`);
 
       // Step 7: Verification
+      console.log(`   Step 7/7: Verifying extraction...`);
       const verification = await this.verifyExtraction(structuredData, parseData.rawText, entities);
+      console.log(`   ✓ Verification complete`);
+
+      console.log(`✅ [CV Service] CV processing successful in ${Date.now() - processingStart}ms`);
 
       return {
         success: true,
@@ -656,6 +808,10 @@ Return only the JSON object, no other text:`;
         },
       };
     } catch (error) {
+      console.error(`❌ [CV Service] Error processing CV ${fileName}:`, error.message);
+      console.error(`   Stack:`, error.stack);
+      console.error(`   Processing time: ${Date.now() - processingStart}ms`);
+
       return {
         success: false,
         error: error.message,
@@ -950,8 +1106,130 @@ Return only the JSON object, no other text:`;
   }
 
   /**
+   * ASSESS CANDIDATE FOR ROLE - Compare CV against JD requirements
+   * Returns professional assessment with score for ranking
+   */
+  async assessCandidateForRole(cvData, jdRequirements) {
+    const prompt = `You are a world-class HR expert and talent acquisition specialist. Compare this candidate's CV against the job requirements and provide a professional assessment of how well they fit the role.
+
+JOB REQUIREMENTS:
+${JSON.stringify(jdRequirements, null, 2)}
+
+CANDIDATE CV DATA:
+Name: ${cvData.personal?.name || 'Not specified'}
+Email: ${cvData.personal?.email || 'Not specified'}
+Skills: ${cvData.skills?.join(', ') || 'Not specified'}
+Experience:
+${cvData.experience?.map((exp) => `- ${exp.role} at ${exp.company} (${exp.startDate} - ${exp.endDate})`).join('\n') || 'Not specified'}
+Education:
+${cvData.education?.map((edu) => `- ${edu.degree} in ${edu.field} from ${edu.institution} (${edu.year})`).join('\n') || 'Not specified'}
+
+Provide a comprehensive assessment in JSON format:
+
+{
+  "assessment": "A professional 2-3 sentence assessment summarizing how well this candidate fits the role. Focus on key strengths that match the requirements and any critical gaps.",
+  "score": 85,
+  "strengths": [
+    "Specific strength 1 that matches job requirements",
+    "Specific strength 2 that makes them a good fit",
+    "Specific strength 3 with concrete examples"
+  ],
+  "gaps": [
+    "Specific gap 1 - what's missing from requirements",
+    "Specific gap 2 - areas where they fall short"
+  ],
+  "matchedRequirements": ["requirement 1", "requirement 2", "requirement 3"],
+  "missingRequirements": ["requirement 1", "requirement 2"],
+  "recommendation": "Strong Hire | Hire | Maybe | Pass"
+}
+
+CRITICAL SCORING GUIDELINES (0-100):
+- 90-100: Exceptional fit - exceeds most requirements, strong track record
+- 75-89: Strong fit - meets most requirements, good experience
+- 60-74: Good fit - meets core requirements, some gaps
+- 45-59: Moderate fit - meets some requirements, significant gaps
+- 0-44: Poor fit - lacks key requirements
+
+ASSESSMENT GUIDELINES:
+1. Compare CV data DIRECTLY against job requirements
+2. Be specific - reference actual skills, experience, achievements from their CV
+3. Consider depth AND breadth of experience
+4. Evaluate career progression and growth potential
+5. Identify both technical skills and soft skills alignment
+6. Be honest about gaps but also recognize transferable skills
+7. Score must reflect overall fit based on requirements match
+
+Return only the JSON object:`;
+
+    try {
+      // Use retry helper for rate limit handling
+      const response = await this.makeAPICallWithRetry(() =>
+        axios.post(
+          this.apiUrl,
+          {
+            model: this.model, // Use configured model (Groq or OpenAI)
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'You are an elite HR expert and talent acquisition specialist with 20+ years of experience. You provide thorough, honest, and data-driven candidate assessments. Always return valid JSON without markdown formatting.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.2, // Lower temperature for consistent scoring
+            max_tokens: 2000,
+          },
+          {
+            timeout: 300000,
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
+
+      const jsonText = response.data.choices[0].message.content.trim();
+      const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
+      const result = JSON.parse(cleanJson);
+
+      // Validate score is a number between 0-100
+      const score = Math.max(0, Math.min(100, Number(result.score) || 0));
+
+      return {
+        assessment: result.assessment || 'Assessment unavailable',
+        score: score,
+        strengths: Array.isArray(result.strengths) ? result.strengths : [],
+        gaps: Array.isArray(result.gaps) ? result.gaps : [],
+        matchedRequirements: Array.isArray(result.matchedRequirements)
+          ? result.matchedRequirements
+          : [],
+        missingRequirements: Array.isArray(result.missingRequirements)
+          ? result.missingRequirements
+          : [],
+        recommendation: result.recommendation || 'Maybe',
+      };
+    } catch (error) {
+      console.error(`❌ [${this.provider} API Error] Assessment Failed:`, error.message);
+      return {
+        assessment: 'Unable to assess candidate due to technical error',
+        score: 0,
+        strengths: [],
+        gaps: [],
+        matchedRequirements: [],
+        missingRequirements: [],
+        recommendation: 'Pass',
+      };
+    }
+  }
+
+  /**
    * HOLISTIC CV ASSESSMENT - Let ChatGPT analyze the entire CV contextually
    * This replaces robotic skill matching with intelligent evaluation
+   * @deprecated Use assessCandidateForRole instead
    */
   async assessCVHolistically(cvText, jobRequirements) {
     const jdText = JSON.stringify(jobRequirements, null, 2);
@@ -1123,18 +1401,241 @@ Return only the JSON object:`;
   }
 
   /**
-   * RANK ALL CANDIDATES - Let ChatGPT rank them intelligently
+   * CHATGPT SKILL MATCHING - Compare CV skills with JD requirements using AI
+   * Returns matched, missing, and additional skills
+   */
+  async matchSkillsWithChatGPT(cvData, jdRequirements) {
+    const prompt = `You are a world-class expert recruiter and technical assessor with 20+ years of experience in talent acquisition across all industries. Your job is to perform an EXHAUSTIVE and INTELLIGENT comparison between a candidate's CV and job requirements.
+
+═══════════════════════════════════════════════════════════════════
+JOB REQUIREMENTS (WHAT WE'RE LOOKING FOR):
+═══════════════════════════════════════════════════════════════════
+${JSON.stringify(jdRequirements, null, 2)}
+
+═══════════════════════════════════════════════════════════════════
+CANDIDATE'S COMPLETE PROFILE:
+═══════════════════════════════════════════════════════════════════
+
+SKILLS LISTED IN CV:
+${cvData.skills?.join(', ') || 'Not specified'}
+
+WORK EXPERIENCE (WHERE SKILLS ARE PROVEN):
+${
+  cvData.experience
+    ?.map(
+      (exp) => `
+→ ${exp.role} at ${exp.company} (${exp.startDate} - ${exp.endDate})
+  Achievements: ${exp.achievements?.join('; ') || 'Not specified'}
+  Technologies/Tools: ${exp.technologies?.join(', ') || 'Derived from role'}
+`,
+    )
+    .join('\n') || 'Not specified'
+}
+
+EDUCATION (DEGREES & ACADEMIC BACKGROUND):
+${cvData.education?.map((edu) => `→ ${edu.degree} in ${edu.field} from ${edu.institution} (${edu.year})`).join('\n') || 'Not specified'}
+
+CERTIFICATIONS & PROFESSIONAL CREDENTIALS:
+${
+  cvData.certifications && cvData.certifications.length > 0
+    ? cvData.certifications
+        .map((cert) => {
+          // Handle both object and string formats
+          if (typeof cert === 'object' && cert !== null) {
+            return `→ ${cert.name || cert}${cert.issuer ? ` (${cert.issuer})` : ''}${cert.year ? ` - ${cert.year}` : ''}`;
+          }
+          return `→ ${cert}`;
+        })
+        .join('\n')
+    : 'No certifications listed'
+}
+
+TOTAL YEARS OF EXPERIENCE:
+Calculate by analyzing work history dates from experience section above.
+
+═══════════════════════════════════════════════════════════════════
+🚨 CRITICAL VERIFICATION RULES - READ CAREFULLY:
+═══════════════════════════════════════════════════════════════════
+
+BEFORE marking ANYTHING as "missing", you MUST verify it's not present in:
+1. ✓ Skills section
+2. ✓ Work experience (roles, achievements, technologies)
+3. ✓ Education section (degrees, fields of study)
+4. ✓ Certifications section
+5. ✓ Job titles (e.g., "Scrum Master" role = has Scrum, Agile skills)
+6. ✓ Years of experience (calculate from work history dates!)
+
+**EXAMPLE - EDUCATION REQUIREMENTS (CRITICAL - FOLLOW EXACTLY):**
+- If JD requires "Bachelor's degree in Computer Science, Business, or related field":
+  1. Check EDUCATION section FIRST
+  2. If they have "Bachelor of Computer Science" → ADD TO matchedSkills (NOT missingSkills!)
+  3. If they have "B.Sc Computer Science" → ADD TO matchedSkills (NOT missingSkills!)
+  4. If they have "Bachelor in Business" → ADD TO matchedSkills (NOT missingSkills!)
+  5. If they have "Bachelor in Engineering" → ADD TO matchedSkills (related field!)
+  6. If they have "Master's in Computer Science" → ADD TO matchedSkills (exceeds requirement!)
+- ONLY mark education as missing if:
+  - They have NO bachelor's degree at all
+  - Their degree is completely unrelated (e.g., Bachelor of Arts in Literature for a CS role)
+- **NEVER mark education as both matched AND missing - pick ONE category only!**
+
+**EXAMPLE - CERTIFICATION REQUIREMENTS (CRITICAL - READ TWICE):**
+- If JD requires "Certified Scrum Master (CSM)" → Check CERTIFICATIONS section FIRST!
+- If they have "Certified Scrum Master" → **MATCH FOUND** (CSM is just the acronym!)
+- If they have "Professional Scrum Master (PSM)" → **MATCH FOUND** (equivalent certification!)
+- If they have "Scrum Master Certified" → **MATCH FOUND** (same thing, different wording!)
+- If they have "SAFe 6 Scrum Master" → **MATCH FOUND** (Scrum Master certification!)
+- **IGNORE ACRONYMS in parentheses** - "Certified Scrum Master" = "Certified Scrum Master (CSM)"
+- Only mark certification as missing if NO related certification found in the list above
+
+**EXAMPLE - EXPERIENCE REQUIREMENTS:**
+- If JD requires "5+ years as Scrum Master" → CALCULATE from work history!
+- If they were "Scrum Master" from 2018-2023 → That's 5 years! DO NOT mark as missing!
+- If they were "Agile Coach" from 2015-2020 → That counts as related! DO NOT mark as missing!
+- Only mark experience as missing if they have LESS than required years OR no related roles
+
+═══════════════════════════════════════════════════════════════════
+YOUR TASK - INTELLIGENT SKILL CATEGORIZATION:
+═══════════════════════════════════════════════════════════════════
+
+Analyze the candidate's COMPLETE profile (skills + experience + education + certifications) and categorize into THREE precise categories:
+
+📊 **MATCHING RULES - BE EXTREMELY THOROUGH:**
+
+1. **matchedSkills** - Skills from JD requirements that the candidate POSSESSES:
+   ✓ Direct matches (e.g., "Python" in JD → "Python" in CV)
+   ✓ Synonyms/Equivalents (e.g., "React" = "React.js" = "ReactJS")
+   ✓ Framework variations (e.g., "Angular" includes "Angular 2+", "AngularJS")
+   ✓ Related skills that demonstrate competency (e.g., "JavaScript" → implies "ES6", "TypeScript" → implies "JavaScript")
+   ✓ Skills mentioned in EXPERIENCE (not just skills section!) - if they used it at work, they have it
+   ✓ Tool equivalents (e.g., "Jira" → "Azure DevOps", "Confluence" → "Notion")
+   ✓ Methodology equivalents (e.g., "Agile" → "Scrum", "Kanban", "SAFe")
+   ✓ **CERTIFICATION MATCHING** (CRITICAL):
+     • "Certified Scrum Master (CSM)" → matches "Certified Scrum Master" (ignore acronyms!)
+     • "Certified Scrum Master (CSM)" → matches "SAFe Scrum Master", "Professional Scrum Master"
+     • Any Scrum Master cert = matches "Certified Scrum Master (CSM)" requirement
+     • Strip acronyms in parentheses when comparing: "AWS (Amazon Web Services)" = "AWS"
+   ✓ Certification-backed skills (e.g., "AWS" if they have AWS certification)
+   ✓ Version-agnostic matching (e.g., "Node.js" matches "Node.js 14", "Node.js 16")
+
+   **IMPORTANT**: Look at their job titles, achievements, and projects. If someone was a "Senior React Developer" for 3 years, they obviously have React, Redux, JavaScript, HTML, CSS, etc. - even if not all listed in skills section!
+
+   **CERTIFICATION RULE**: If CERTIFICATIONS section shows ANY variation of a required certification, it's a MATCH!
+
+2. **missingSkills** - Skills from JD requirements that the candidate LACKS:
+   ✗ NO evidence in skills, experience, education, or certifications
+   ✗ NO equivalent, synonym, or related skill present
+   ✗ NOT demonstrated through their work history or projects
+   ✗ NOT implied by their role/title/achievements
+
+   **BE STRICT**: Only mark as missing if there's ZERO evidence they have it or something equivalent.
+
+3. **additionalSkills** - Skills the candidate HAS that are NOT in JD requirements:
+   ➕ Professional/technical skills from their CV not mentioned in JD
+   ➕ Relevant technologies they know beyond what's required
+   ➕ Certifications/specializations that add value
+   ➕ Domain expertise not explicitly required
+
+   **EXCLUDE**: Generic soft skills like "communication", "teamwork" unless JD specifically mentions them.
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL INSTRUCTIONS - FOLLOW EXACTLY:
+═══════════════════════════════════════════════════════════════════
+• Read EVERY line of experience - skills used at work COUNT
+• Consider job titles (e.g., "Scrum Master" → has Scrum, Agile, facilitation)
+• **CHECK CERTIFICATIONS SECTION CAREFULLY** - certified skills are CONFIRMED MATCHES
+• **IGNORE ACRONYMS in parentheses** - "Certified Scrum Master" = "Certified Scrum Master (CSM)"
+• **ANY Scrum Master certification** → matches "Certified Scrum Master (CSM)" requirement
+• Be GENEROUS with matches (synonyms, equivalents, related skills, cert variations)
+• Be STRICT with missing (only mark missing if NO evidence whatsoever)
+• Focus on RELEVANT technical skills for additional skills
+• **BEFORE marking a certification as missing, re-read the CERTIFICATIONS section above twice**
+
+Return ONLY a valid JSON object with this EXACT structure (no markdown, no code blocks):
+
+{
+  "matchedSkills": ["skill from JD that they have", "another matched skill"],
+  "missingSkills": ["skill from JD they lack", "another missing skill"],
+  "additionalSkills": ["extra skill they have", "another bonus skill"]
+}
+
+Think step-by-step. Be thorough. This affects hiring decisions.`;
+
+    try {
+      // Use retry helper for rate limit handling
+      const response = await this.makeAPICallWithRetry(() =>
+        axios.post(
+          this.apiUrl,
+          {
+            model: this.model, // Use configured model (Groq or OpenAI)
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'You are an expert technical recruiter and skill assessor. You must analyze CVs thoroughly and categorize skills with extreme precision. Always return valid JSON without markdown formatting.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.1, // Very low temperature for consistent, precise matching
+            max_tokens: 2000, // More tokens for detailed analysis
+          },
+          {
+            timeout: 300000, // 5 minutes for thorough analysis
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
+
+      const jsonText = response.data.choices[0].message.content.trim();
+      const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
+      const result = JSON.parse(cleanJson);
+
+      return {
+        matchedSkills: Array.isArray(result.matchedSkills) ? result.matchedSkills : [],
+        missingSkills: Array.isArray(result.missingSkills) ? result.missingSkills : [],
+        additionalSkills: Array.isArray(result.additionalSkills) ? result.additionalSkills : [],
+      };
+    } catch (error) {
+      console.error(`❌ [${this.provider} API Error] Skill Matching Failed:`, error.message);
+      // Fallback to empty arrays
+      return {
+        matchedSkills: [],
+        missingSkills: [],
+        additionalSkills: [],
+      };
+    }
+  }
+
+  /**
+   * RANK ALL CANDIDATES - Let ChatGPT rank them intelligently based on REAL-WORLD FIT
    */
   async rankCandidatesIntelligently(candidates, jobRequirements) {
     const candidateSummaries = candidates.map((c, idx) => ({
       index: idx,
       name: c.name || 'Candidate ' + (idx + 1),
-      assessment: c.assessment,
-      keySkills: c.structuredData?.skills?.slice(0, 10) || [],
-      experience: c.structuredData?.experience?.map((e) => `${e.role} at ${e.company}`) || [],
+      roleAssessment: c.roleAssessment, // Include the CV vs JD assessment
+      keySkills: c.structuredData?.skills?.slice(0, 15) || [],
+      experience:
+        c.structuredData?.experience?.map((e) => ({
+          role: e.role,
+          company: e.company,
+          duration: `${e.startDate} - ${e.endDate}`,
+          achievements: e.achievements?.slice(0, 3) || [],
+        })) || [],
+      education:
+        c.structuredData?.education?.map((e) => ({
+          degree: e.degree,
+          field: e.field,
+          institution: e.institution,
+        })) || [],
     }));
 
-    const prompt = `You are a world-class HR expert. Rank these ${candidates.length} candidates from BEST to WORST for the given position.
+    const prompt = `You are a world-class HR expert with 20+ years of hiring experience. Rank these ${candidates.length} candidates from BEST to WORST based on who will bring the MOST REAL VALUE to the role.
 
 JOB REQUIREMENTS:
 ${JSON.stringify(jobRequirements, null, 2)}
@@ -1149,38 +1650,81 @@ Return a JSON array with rankings:
     "originalIndex": 0,
     "rank": 1,
     "name": "Candidate Name",
-    "rankingReason": "Detailed explanation of why this candidate ranks here. Reference specific skills, experience, and achievements.",
+    "rankingReason": "COMPARATIVE explanation of why THIS candidate ranks #1 COMPARED TO THE OTHERS. Format: '[Name] ranks #1 because compared to other candidates, they have: (1) [specific advantage over others], (2) [another advantage], (3) [third advantage]. While [other candidate name] has [their strength], [this candidate] excels in [key differentiator].'",
     "recommendationLevel": "Strong Hire | Hire | Maybe | Pass"
   }
 ]
 
-RANKING CRITERIA:
-1. Overall fit and experience relevance (most important)
-2. Depth of required skills, not just breadth
-3. Career progression and achievements
-4. Cultural fit and soft skills
-5. Learning ability and growth potential
-6. Specific accomplishments that demonstrate capability
+**CRITICAL: rankingReason MUST be COMPARATIVE:**
+- For rank #1: Explain what makes them BETTER than candidates ranked #2, #3, etc.
+- For rank #2: Explain why they're better than #3+ but not as strong as #1
+- For rank #3+: Explain what gaps they have compared to higher-ranked candidates
+- ALWAYS compare against other candidates by name
+- Be specific about relative strengths and weaknesses
 
-Be specific in your reasoning. Reference actual experience and skills from each candidate.
+CRITICAL RANKING CRITERIA - FOCUS ON REAL-WORLD VALUE:
+
+1. **REAL EXPERIENCE OVER CERTIFICATIONS** (Most Important)
+   - Prioritize candidates who have DONE the work, not just studied it
+   - Look for hands-on achievements and deliverables
+   - Years of relevant experience beats certifications alone
+   - Real projects > theoretical knowledge
+
+2. **CAREER TRAJECTORY & PROGRESSION**
+   - Growing responsibilities over time
+   - Leadership roles and team management
+   - Impact on business outcomes
+   - Promotions and career advancement
+
+3. **DEPTH OF EXPERTISE**
+   - Deep experience in core skills (e.g., 5+ years React) > surface-level knowledge of 20 tools
+   - Mastery of key technologies for the role
+   - Proven track record of solving complex problems
+
+4. **PRACTICAL ACHIEVEMENTS**
+   - Built/shipped real products
+   - Measurable business impact (revenue, users, performance)
+   - Technical leadership and mentoring
+   - Problem-solving ability demonstrated through accomplishments
+
+5. **CULTURAL & SOFT SKILLS FIT**
+   - Communication and collaboration experience
+   - Adaptability and learning ability
+   - Work style alignment (startup vs enterprise, etc.)
+
+6. **EDUCATION & CERTIFICATIONS** (Lower Priority)
+   - Relevant degree is good but not critical if experience is strong
+   - Certifications are nice-to-have, not deal-breakers
+   - Self-taught with proven results > formal education without experience
+
+**RANKING PHILOSOPHY:**
+- A mid-level developer with 7 years of hands-on React experience outranks a fresh graduate with React certification
+- Someone who built 3 production apps is more valuable than someone who knows 20 frameworks superficially
+- Leadership experience (even if technical skills are slightly weaker) can be more valuable for senior roles
+- Look at the WHOLE picture - who will hit the ground running and deliver value?
+
+Be brutally honest and realistic. Consider what hiring managers actually value in the real world.
 
 Return only the JSON array:`;
 
     try {
-      const response = await axios.post(
-        this.apiUrl,
-        {
-          model: 'gpt-3.5-turbo', // Use GPT-3.5 for cost efficiency
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.2,
-          max_tokens: 2000,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
+      // Use retry helper for rate limit handling
+      const response = await this.makeAPICallWithRetry(() =>
+        axios.post(
+          this.apiUrl,
+          {
+            model: this.model, // Use configured model (Groq or OpenAI)
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.2,
+            max_tokens: 2000,
           },
-        },
+          {
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
       );
 
       const jsonText = response.data.choices[0].message.content.trim();
@@ -1363,6 +1907,9 @@ const deleteBatch = async (batchId, userId) => {
     batchName: batch.batchName, // Correct field name from schema
   };
 };
+
+// Export the class
+module.exports = CVIntelligenceHR01;
 
 // Export CRUD functions
 module.exports.getUserBatches = getUserBatches;

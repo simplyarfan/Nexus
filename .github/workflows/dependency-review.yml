@@ -1,0 +1,75 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Review Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-3.0, AGPL-3.0
+          comment-summary-in-pr: always
+
+  # Check for outdated dependencies
+  outdated-check:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Check backend outdated packages
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm outdated || echo "Some packages are outdated"
+
+      - name: Check frontend outdated packages
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm outdated || echo "Some packages are outdated"
+
+  # Dependency graph
+  dependency-graph:
+    name: Generate Dependency Graph
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Submit dependency graph
+        uses: github/dependency-graph/submit-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

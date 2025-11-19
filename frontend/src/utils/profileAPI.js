@@ -159,6 +159,12 @@ export const profileAPI = {
     const response = await api.put('/preferences', preferences);
     return response.data;
   },
+
+  // Toggle two-factor authentication
+  toggleTwoFactor: async (enabled) => {
+    const response = await api.put('/two-factor/toggle', { enabled });
+    return response.data;
+  },
 };
 
 export default profileAPI;

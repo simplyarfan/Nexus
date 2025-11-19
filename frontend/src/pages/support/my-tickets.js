@@ -74,28 +74,30 @@ export default function MyTickets() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'open':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-blue-500 bg-transparent border-blue-500';
       case 'in_progress':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-orange-500 bg-transparent border-orange-500';
       case 'resolved':
-        return 'text-primary bg-accent';
+        return 'text-emerald-500 bg-transparent border-emerald-500';
       case 'closed':
-        return 'text-muted-foreground bg-secondary/50';
+        return 'text-gray-500 bg-transparent border-gray-500';
       default:
-        return 'text-muted-foreground bg-secondary/50';
+        return 'text-gray-500 bg-transparent border-gray-500';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
+      case 'urgent':
+        return 'text-red-500 bg-transparent border-red-500';
       case 'high':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-500 bg-transparent border-red-500';
       case 'medium':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-amber-500 bg-transparent border-amber-500';
       case 'low':
-        return 'text-primary bg-accent';
+        return 'text-emerald-500 bg-transparent border-emerald-500';
       default:
-        return 'text-muted-foreground bg-secondary/50';
+        return 'text-gray-500 bg-transparent border-gray-500';
     }
   };
 
@@ -240,34 +242,53 @@ export default function MyTickets() {
                   className="bg-card rounded-xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">{ticket.subject}</h3>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}
-                        >
-                          {ticket.status.replace('_', ' ').toUpperCase()}
-                        </span>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}
-                        >
-                          {ticket.priority.toUpperCase()}
-                        </span>
+                    <div className="flex items-start gap-4 flex-1">
+                      {/* User Profile Picture */}
+                      <div className="flex-shrink-0 mt-1">
+                        {ticket.user?.profile_picture_url ? (
+                          <img
+                            src={ticket.user.profile_picture_url}
+                            alt={`${ticket.user.first_name} ${ticket.user.last_name}`}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-semibold">
+                            {ticket.user?.first_name?.[0]?.toUpperCase() || ''}
+                            {ticket.user?.last_name?.[0]?.toUpperCase() || ''}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-muted-foreground mb-4 line-clamp-2">
-                        {ticket.description}
-                      </p>
-                      <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          {getStatusIcon(ticket.status)}
-                          <span>Ticket #{ticket.id}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-foreground">
+                            {ticket.subject}
+                          </h3>
+                          <span
+                            className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase border-2 ${getStatusColor(ticket.status)}`}
+                          >
+                            {ticket.status.replace('_', ' ')}
+                          </span>
+                          <span
+                            className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase border-2 ${getPriorityColor(ticket.priority)}`}
+                          >
+                            {ticket.priority}
+                          </span>
                         </div>
-                        <span>Created {new Date(ticket.created_at).toLocaleDateString()}</span>
-                        <span>Category: {ticket.category}</span>
+                        <p className="text-muted-foreground mb-4 line-clamp-2">
+                          {ticket.description}
+                        </p>
+                        <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            {getStatusIcon(ticket.status)}
+                            <span>Ticket #{ticket.id}</span>
+                          </div>
+                          <span>Created {new Date(ticket.created_at).toLocaleDateString()}</span>
+                          <span>Category: {ticket.category}</span>
+                        </div>
                       </div>
                     </div>
                     <button
-                      onClick={() => router.push(`/support/ticket/${ticket.id}`)}
+                      onClick={() => router.push(`/support/tickets/${ticket.id}`)}
                       className="flex items-center px-4 py-2 text-primary hover:bg-accent rounded-lg transition-colors font-medium"
                     >
                       <Eye className="w-4 h-4 mr-2" />

@@ -1,6 +1,14 @@
 const express = require('express');
 const compression = require('compression');
-require('dotenv').config();
+
+// DEBUG: Force reload .env  explicitly with override
+const fs = require('fs');
+const path = require('path');
+const envPath = path.join(__dirname, '.env');
+console.log('🔍 Loading .env from:', envPath);
+console.log('🔍 File exists:', fs.existsSync(envPath));
+
+require('dotenv').config({ path: envPath, override: true });
 
 // Import security middleware
 const { securityHeaders } = require('./middleware/security');
@@ -30,9 +38,12 @@ try {
 }
 
 try {
-  cvRoutes = require('./routes/cv-intelligence-clean');
+  cvRoutes = require('./routes/cv-intelligence');
+  console.log('✅ CV Intelligence routes loaded successfully');
 } catch (error) {
-  // Error loading CV Intelligence routes
+  console.error('❌ Error loading CV Intelligence routes:', error.message);
+  console.error('Stack:', error.stack);
+  cvRoutes = null;
 }
 
 try {
@@ -58,8 +69,10 @@ try {
 
 try {
   notificationRoutes = require('./routes/notifications');
+  console.log('✅ Notifications routes loaded successfully');
 } catch (error) {
-  // Error loading notification routes
+  console.error('❌ Error loading notification routes:', error.message);
+  notificationRoutes = null;
 }
 
 try {
@@ -70,8 +83,10 @@ try {
 
 try {
   interviewRoutes = require('./routes/interview-coordinator');
+  console.log('✅ Interview coordinator routes loaded successfully');
 } catch (error) {
-  // Error loading interview coordinator routes
+  console.error('❌ Error loading interview coordinator routes:', error.message);
+  console.error('Stack:', error.stack);
 }
 
 try {

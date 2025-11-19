@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { scaleIn } from '../../lib/motion';
 
 export default function ResetPasswordPage() {
+  const router = useRouter();
+  const { token } = router.query;
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -54,16 +58,52 @@ export default function ResetPasswordPage() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    if (!token) {
+      newErrors.general =
+        'Invalid or missing reset token. Please request a new password reset link.';
+    }
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: token,
+            newPassword: password,
+          }),
+        });
 
-      setIsLoading(false);
-      setIsSuccess(true);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          setErrors({ general: data.message || 'Failed to reset password. Please try again.' });
+          setIsLoading(false);
+          return;
+        }
+
+        // Success! Clear all tokens and localStorage to ensure user is logged out
+        if (typeof window !== 'undefined') {
+          // Clear all auth-related localStorage
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          // Clear session storage too
+          sessionStorage.clear();
+        }
+
+        setIsLoading(false);
+        setIsSuccess(true);
+      } catch (err) {
+        setErrors({ general: 'Network error. Please check your connection and try again.' });
+        setIsLoading(false);
+      }
     }
   };
 
@@ -237,6 +277,30 @@ export default function ResetPasswordPage() {
             <h1 className="text-3xl font-bold text-foreground mb-2">Reset Your Password</h1>
             <p className="text-muted-foreground">Choose a strong password for your account</p>
           </motion.div>
+
+          {/* General Error Message */}
+          {errors.general && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 bg-red-600/10 border border-destructive/50 rounded-lg p-4"
+            >
+              <div className="flex items-center gap-3">
+                <svg
+                  className="w-5 h-5 text-red-600 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p className="text-sm text-red-600">{errors.general}</p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Form */}
           <motion.form

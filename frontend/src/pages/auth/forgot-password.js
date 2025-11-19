@@ -16,18 +16,30 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.toLowerCase() }),
+      });
 
-    // Simulate validation
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.message || 'Failed to send reset email. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Success - show the "check your email" screen
       setIsLoading(false);
-      return;
+      setIsSubmitted(true);
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-    setIsSubmitted(true);
   };
 
   if (isSubmitted) {

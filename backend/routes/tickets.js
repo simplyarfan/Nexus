@@ -4,6 +4,40 @@ const { prisma } = require('../lib/prisma');
 const { authenticateToken } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleCheck');
 const { sanitizeFields, sanitizeStrict, sanitizeRich } = require('../utils/sanitize');
+const database = require('../models/database');
+
+// Helper function to create notifications for all admins/superadmins
+async function notifyAdmins(type, title, message, metadata = {}) {
+  try {
+    // Get all admin and superadmin users
+    const admins = await database.all(
+      `SELECT id FROM users WHERE role IN ('admin', 'superadmin')`,
+      [],
+    );
+
+    // Create notification for each admin
+    for (const admin of admins) {
+      await database.run(
+        `INSERT INTO notifications (user_id, type, title, message, metadata) VALUES ($1, $2, $3, $4, $5)`,
+        [admin.id, type, title, message, JSON.stringify(metadata)],
+      );
+    }
+  } catch (error) {
+    console.error('Error creating admin notifications:', error);
+  }
+}
+
+// Helper function to create notification for a specific user
+async function notifyUser(userId, type, title, message, metadata = {}) {
+  try {
+    await database.run(
+      `INSERT INTO notifications (user_id, type, title, message, metadata) VALUES ($1, $2, $3, $4, $5)`,
+      [userId, type, title, message, JSON.stringify(metadata)],
+    );
+  } catch (error) {
+    console.error('Error creating user notification:', error);
+  }
+}
 
 /**
  * @swagger
@@ -258,6 +292,21 @@ router.post(
 
         return newTicket;
       });
+
+      // Notify all admins about new ticket (if user is not admin)
+      if (!['admin', 'superadmin'].includes(user.role)) {
+        await notifyAdmins(
+          'ticket_created',
+          `New Ticket: ${subject}`,
+          `${user.first_name} ${user.last_name} created a new ${priority} priority ticket.`,
+          {
+            ticket_id: ticket.id,
+            user_id: user.id,
+            priority: priority,
+            category: category || null,
+          },
+        );
+      }
 
       res.status(201).json({
         success: true,
@@ -579,6 +628,49 @@ router.post(
         });
       }
 
+      // Create notifications based on who commented
+      const ticket = await prisma.supportTicket.findUnique({
+        where: { id: ticketId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+            },
+          },
+        },
+      });
+
+      if (ticket) {
+        // If admin/superadmin commented, notify the ticket owner
+        if (['admin', 'superadmin'].includes(user.role) && ticket.user_id !== user.id) {
+          await notifyUser(
+            ticket.user_id,
+            'ticket_comment',
+            `New Comment on Ticket: ${ticket.subject}`,
+            `${user.first_name} ${user.last_name} commented on your ticket.`,
+            {
+              ticket_id: ticketId,
+              commenter_id: user.id,
+              commenter_role: user.role,
+            },
+          );
+        }
+        // If regular user commented on their own ticket, notify all admins
+        else if (!['admin', 'superadmin'].includes(user.role)) {
+          await notifyAdmins(
+            'ticket_comment',
+            `New Comment on Ticket: ${ticket.subject}`,
+            `${user.first_name} ${user.last_name} added a comment to their ticket.`,
+            {
+              ticket_id: ticketId,
+              user_id: user.id,
+            },
+          );
+        }
+      }
+
       res.status(201).json({
         success: true,
         message: 'Comment added successfully',
@@ -749,6 +841,20 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
       });
     }
 
+    // Get current ticket to check old status
+    const currentTicket = await prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!currentTicket) {
+      return res.status(404).json({
+        success: false,
+        error: 'Ticket not found',
+      });
+    }
+
+    const oldStatus = currentTicket.status;
+
     const updateData = {
       status,
       updated_at: new Date(),
@@ -763,6 +869,45 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
       where: { id: ticketId },
       data: updateData,
     });
+
+    // Create a system comment for status change
+    if (oldStatus !== status) {
+      const statusLabels = {
+        open: 'Open',
+        in_progress: 'In Progress',
+        resolved: 'Resolved',
+        closed: 'Closed',
+      };
+
+      await prisma.ticketComment.create({
+        data: {
+          ticket_id: ticketId,
+          user_id: req.user.id,
+          comment: `Status changed from ${statusLabels[oldStatus]} to ${statusLabels[status]}`,
+          is_internal: false,
+        },
+      });
+
+      // Notify ticket owner about status change (if they're not the one changing it)
+      if (currentTicket.user_id !== req.user.id) {
+        const ticketWithUser = await prisma.supportTicket.findUnique({
+          where: { id: ticketId },
+        });
+
+        await notifyUser(
+          currentTicket.user_id,
+          'ticket_status_change',
+          `Ticket Status Updated: ${currentTicket.subject}`,
+          `Your ticket status changed from ${statusLabels[oldStatus]} to ${statusLabels[status]}.`,
+          {
+            ticket_id: ticketId,
+            old_status: oldStatus,
+            new_status: status,
+            updated_by: req.user.id,
+          },
+        );
+      }
+    }
 
     res.json({
       success: true,

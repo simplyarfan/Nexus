@@ -274,7 +274,9 @@ const InterviewCoordinator = () => {
               <div key={interview.id} className="p-6 hover:bg-secondary transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{interview.title}</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {interview.title}
+                    </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4" />
@@ -315,8 +317,8 @@ const InterviewCoordinator = () => {
 
       {/* Schedule Interview Modal */}
       {showScheduleModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-card rounded-2xl p-8 w-full max-w-2xl my-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-foreground">Schedule Interview</h2>
               <button

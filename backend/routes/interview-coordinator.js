@@ -6,6 +6,7 @@
 const express = require('express');
 const multer = require('multer');
 const database = require('../models/database');
+const { prisma } = require('../lib/prisma');
 const auth = require('../middleware/auth');
 const authenticateToken = auth.authenticateToken;
 const { generalLimiter } = require('../middleware/rateLimiting');
@@ -13,6 +14,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { sanitizeBasic } = require('../utils/sanitize');
 const InterviewCoordinatorService = require('../services/interview-coordinator.service');
+const NotificationController = require('../controllers/NotificationController');
 
 const interviewService = new InterviewCoordinatorService();
 
@@ -43,11 +45,162 @@ let OutlookEmailService = null;
 try {
   const OutlookEmailServiceClass = require('../services/outlook-email.service.js');
   OutlookEmailService = new OutlookEmailServiceClass();
+  console.log('✅ OutlookEmailService loaded successfully');
 } catch (error) {
-  // Intentionally empty - error is handled by caller
+  console.error('❌ Failed to load OutlookEmailService:', error.message);
+  console.error('Stack:', error.stack);
 }
 
 const router = express.Router();
+
+/**
+ * GET /outlook/connection-status - Check if Outlook email is connected and valid
+ */
+router.get('/outlook/connection-status', authenticateToken, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        outlook_access_token: true,
+        outlook_refresh_token: true,
+        outlook_token_expires_at: true,
+        outlook_email: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        connected: false,
+        message: 'User not found',
+      });
+    }
+
+    // Check if user has Outlook credentials
+    if (!user.outlook_access_token || !user.outlook_refresh_token) {
+      return res.json({
+        success: true,
+        connected: false,
+        expired: false,
+        email: null,
+        message: 'Outlook email not connected',
+      });
+    }
+
+    // Check if token is expired
+    const now = new Date();
+    const expiresAt = user.outlook_token_expires_at
+      ? new Date(user.outlook_token_expires_at)
+      : null;
+    const isExpired = expiresAt && expiresAt < now;
+
+    res.json({
+      success: true,
+      connected: true,
+      expired: isExpired,
+      email: user.outlook_email,
+      expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      message: isExpired ? 'Outlook token expired, please reconnect' : 'Outlook connected',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      connected: false,
+      message: 'Failed to check Outlook connection status',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/interview-coordinator/stats:
+ *   get:
+ *     tags: [Interview Coordinator]
+ *     summary: Get interview statistics
+ *     description: Retrieve count statistics for interviews by status
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                       description: Total number of interviews
+ *                     awaiting_response:
+ *                       type: integer
+ *                       description: Number of interviews awaiting response
+ *                     scheduled:
+ *                       type: integer
+ *                       description: Number of scheduled interviews
+ *                     completed:
+ *                       type: integer
+ *                       description: Number of completed interviews
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.get('/stats', authenticateToken, generalLimiter, async (req, res) => {
+  try {
+    // Use Prisma groupBy to count interviews by status in a single query
+    const statusCounts = await prisma.interview.groupBy({
+      by: ['status'],
+      where: {
+        scheduled_by: req.user.id,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get total count
+    const total = await prisma.interview.count({
+      where: {
+        scheduled_by: req.user.id,
+      },
+    });
+
+    // Transform the results into a more usable format
+    const stats = {
+      total,
+      awaiting_response: 0,
+      scheduled: 0,
+      completed: 0,
+    };
+
+    // Map the grouped results
+    statusCounts.forEach((item) => {
+      if (item.status === 'awaiting_response') {
+        stats.awaiting_response = item._count.id;
+      } else if (item.status === 'scheduled') {
+        stats.scheduled = item._count.id;
+      } else if (item.status === 'completed') {
+        stats.completed = item._count.id;
+      }
+    });
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error('Error fetching interview stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch interview statistics',
+    });
+  }
+});
 
 /**
  * @swagger
@@ -94,36 +247,42 @@ const router = express.Router();
 router.get('/interviews', authenticateToken, generalLimiter, async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
-    await database.connect();
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
 
     // Get total count
-    const countResult = await database.get(
-      'SELECT COUNT(*) as total FROM interviews WHERE scheduled_by = $1',
-      [req.user.id],
-    );
-    const total = countResult?.total || 0;
+    const total = await prisma.interview.count({
+      where: {
+        scheduled_by: req.user.id,
+      },
+    });
 
-    // Get paginated interviews
-    const interviews = await database.all(
-      `
-      SELECT * FROM interviews
-      WHERE scheduled_by = $1
-      ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
-    `,
-      [req.user.id, parseInt(limit), offset],
-    );
+    // Get paginated interviews using Prisma
+    const interviews = await prisma.interview.findMany({
+      where: {
+        scheduled_by: req.user.id,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+      skip,
+      take,
+    });
 
-    const totalPages = Math.ceil(total / parseInt(limit));
+    // Debug logging
+    console.log('📋 Interviews query result:', {
+      count: interviews?.length || 0,
+      firstInterview: interviews?.[0] || null,
+    });
+
+    const totalPages = Math.ceil(total / take);
 
     res.json({
       success: true,
       data: interviews || [],
       pagination: {
         currentPage: parseInt(page),
-        pageSize: parseInt(limit),
+        pageSize: take,
         totalItems: total,
         totalPages,
         hasNextPage: parseInt(page) < totalPages,
@@ -132,6 +291,7 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
       message: 'Interviews retrieved successfully',
     });
   } catch (error) {
+    console.error('Error fetching interviews:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve interviews',
@@ -284,8 +444,12 @@ router.get('/interview/:id', authenticateToken, async (req, res) => {
  *       429:
  *         $ref: '#/components/responses/TooManyRequests'
  */
-router.post('/request-availability', authenticateToken, generalLimiter, async (req, res) => {
+router.post('/request-availability', authenticateToken, async (req, res) => {
   try {
+    console.log('🔵 /request-availability endpoint hit');
+    console.log('📦 Request body:', req.body);
+    console.log('👤 User ID:', req.user?.id);
+
     // Do not require Google Calendar for availability emails; just warn optionally elsewhere
 
     const {
@@ -340,17 +504,47 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
     const generatedCandidateId =
       candidateId || `candidate_${candidateEmail.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
 
+    // Get user info for sender details
+    const userInfo = await database.get(
+      `
+      SELECT first_name, last_name, email, job_title
+      FROM users
+      WHERE id = $1
+    `,
+      [req.user.id],
+    );
+
     try {
+      console.log('✉️  About to send email with user info:', userInfo);
+      console.log(
+        '📧 Sender Name:',
+        userInfo ? `${userInfo.first_name} ${userInfo.last_name}` : 'HR Team',
+      );
+
+      // Check if OutlookEmailService is loaded
+      if (!OutlookEmailService) {
+        throw new Error(
+          'Email service is not available. Please ensure Outlook integration is configured.',
+        );
+      }
+
       // Use the proper email service which handles token refresh
       await OutlookEmailService.sendAvailabilityRequest(req.user.id, candidateEmail, {
         candidateName,
         position,
         googleFormLink,
         customSubject: emailSubject,
-        customContent: emailContent,
+        // Only pass customContent if it's explicitly different from default
+        // Don't pass emailContent here to use the professional HTML template
         ccEmails: ccEmails || [],
         bccEmails: bccEmails || [],
+        // Sender information for professional email template
+        senderName: userInfo ? `${userInfo.first_name} ${userInfo.last_name}` : 'HR Team',
+        senderDesignation: userInfo?.job_title || 'Human Resources',
+        companyName: 'SecureMax',
       });
+
+      console.log('✅ Email sent successfully!');
 
       await database.run(
         `
@@ -371,6 +565,23 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
         ],
       );
 
+      // Create notification for the user who requested availability
+      try {
+        await NotificationController.createInterviewNotification(
+          req.user.id,
+          {
+            id: interviewId,
+            candidateName,
+            candidateEmail,
+            position,
+          },
+          'availability_requested',
+        );
+      } catch (notifError) {
+        console.error('Failed to create notification:', notifError);
+        // Don't fail the request if notification fails
+      }
+
       res.json({
         success: true,
         data: { interviewId, status: 'awaiting_response' },
@@ -384,6 +595,8 @@ router.post('/request-availability', authenticateToken, generalLimiter, async (r
       });
     }
   } catch (error) {
+    console.error('❌ Error in /request-availability:', error);
+    console.error('Stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to send availability request',
@@ -582,8 +795,10 @@ router.post(
           status = 'scheduled',
           scheduled_at = $7,
           teams_meeting_id = $8,
+          cc_emails = $9,
+          bcc_emails = $10,
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      WHERE id = $11
     `,
         [
           interviewType || 'technical',
@@ -594,6 +809,8 @@ router.post(
           notes || '',
           new Date(),
           teamsMeetingId,
+          JSON.stringify(ccEmails || []),
+          JSON.stringify(bccEmails || []),
           interviewId,
         ],
       );
@@ -668,6 +885,25 @@ router.post(
         } catch (error) {
           // Intentionally empty - error is handled by caller
         }
+      }
+
+      // Create notification for the user who scheduled the interview
+      try {
+        await NotificationController.createInterviewNotification(
+          req.user.id,
+          {
+            id: interviewId,
+            candidateName: interview.candidate_name,
+            candidateEmail: interview.candidate_email,
+            position: interview.job_title,
+            scheduledTime,
+            type: interviewType || 'technical',
+          },
+          'interview_scheduled',
+        );
+      } catch (notifError) {
+        console.error('Failed to create notification:', notifError);
+        // Don't fail the request if notification fails
       }
 
       res.json({
@@ -801,13 +1037,33 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
       [scheduledTime, duration || null, notes || null, id],
     );
 
-    // Keep existing meeting link (Microsoft Teams)
-    const updatedMeetingLink = interview.meeting_link;
+    // Update the Teams meeting if it exists
+    let updatedMeetingLink = interview.meeting_link;
+    if (interview.teams_meeting_id && OutlookEmailService) {
+      try {
+        const updateResult = await OutlookEmailService.updateTeamsMeeting(
+          req.user.id,
+          interview.teams_meeting_id,
+          {
+            subject: `Interview: ${interview.job_title}`,
+            scheduledTime,
+            duration: duration || interview.duration,
+            notes: notes || interview.notes,
+          },
+        );
+        if (updateResult.success) {
+          updatedMeetingLink = updateResult.meetingLink;
+        }
+      } catch (error) {
+        console.error('Failed to update Teams meeting:', error.message);
+        // Continue with email notification even if Teams update fails
+      }
+    }
 
     // Send reschedule notification email if requested
     if (notifyRecipients !== false && OutlookEmailService) {
       try {
-        // Generate new ICS file
+        // Generate new ICS file as a fallback
         let icsContent = null;
         if (interviewService) {
           icsContent = interviewService.generateICSInvite({
@@ -824,10 +1080,14 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
         }
 
         // Parse CC and BCC emails (stored as JSON strings)
-        const ccEmails = [];
-        const bccEmails = [];
-        // TODO: Load CC/BCC from interview table when columns are added
-        // For now, using empty arrays
+        let ccEmails = [];
+        let bccEmails = [];
+        try {
+          ccEmails = interview.cc_emails ? JSON.parse(interview.cc_emails) : [];
+          bccEmails = interview.bcc_emails ? JSON.parse(interview.bcc_emails) : [];
+        } catch (e) {
+          // If parsing fails, use empty arrays
+        }
 
         await OutlookEmailService.sendRescheduleNotification(
           req.user.id,
@@ -848,8 +1108,29 @@ router.put('/interview/:id/reschedule', authenticateToken, generalLimiter, async
           icsContent,
         );
       } catch (error) {
-        // Intentionally empty - error is handled by caller
+        console.error('Failed to send reschedule notification:', error.message);
+        // Continue even if email fails
       }
+    }
+
+    // Create notification for the user who rescheduled the interview
+    try {
+      await NotificationController.createInterviewNotification(
+        req.user.id,
+        {
+          id: interview.id,
+          candidateName: interview.candidate_name,
+          candidateEmail: interview.candidate_email,
+          position: interview.job_title,
+          oldScheduledTime: interview.scheduled_time,
+          newScheduledTime: scheduledTime,
+          type: interview.interview_type,
+        },
+        'interview_rescheduled',
+      );
+    } catch (notifError) {
+      console.error('Failed to create notification:', notifError);
+      // Don't fail the request if notification fails
     }
 
     res.json({
@@ -1227,8 +1508,25 @@ router.delete('/interview/:id', authenticateToken, async (req, res) => {
       }
     }
 
-    // Delete the interview
+    // Create notification before deleting the interview
+    try {
+      await NotificationController.createInterviewNotification(
+        req.user.id,
+        {
+          id: interview.id,
+          candidateName: interview.candidate_name,
+          candidateEmail: interview.candidate_email,
+          position: interview.job_title,
+          scheduledTime: interview.scheduled_time,
+        },
+        'interview_canceled',
+      );
+    } catch (notifError) {
+      console.error('Failed to create notification:', notifError);
+      // Don't fail the request if notification fails
+    }
 
+    // Delete the interview
     await database.run(`DELETE FROM interviews WHERE id = $1`, [id]);
 
     res.json({
@@ -1245,4 +1543,74 @@ router.delete('/interview/:id', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/interview-coordinator/request-availability:
+ *   post:
+ *     tags: [Interview Coordinator]
+ *     summary: Send availability request email to candidate (Stage 1)
+ *     description: Send an initial email to candidate requesting their availability for an interview
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - candidateName
+ *               - candidateEmail
+ *               - position
+ *             properties:
+ *               candidateName:
+ *                 type: string
+ *                 example: John Doe
+ *               candidateEmail:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               position:
+ *                 type: string
+ *                 example: Senior Software Engineer
+ *               googleFormLink:
+ *                 type: string
+ *                 example: https://forms.gle/M4ed3ojoYPAUxSzH6
+ *               emailSubject:
+ *                 type: string
+ *                 example: Interview Opportunity - Senior Software Engineer
+ *               emailContent:
+ *                 type: string
+ *                 example: Dear John, we would like to invite you for an interview...
+ *               ccEmails:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: email
+ *               bccEmails:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: email
+ *     responses:
+ *       200:
+ *         description: Availability request email sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Availability request sent successfully
+ *                 interview:
+ *                   type: object
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         description: Failed to send availability request
+ */
 module.exports = router;

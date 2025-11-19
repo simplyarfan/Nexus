@@ -121,7 +121,7 @@ class Database {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
-      const result = await callback(this);
+      const result = await callback(client);
       await client.query('COMMIT');
       return result;
     } catch (error) {
@@ -182,12 +182,12 @@ class Database {
         'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_code_expires_at TIMESTAMP',
       );
 
-      // Google Calendar columns
-      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_access_token TEXT');
-      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_refresh_token TEXT');
-      await this.run(
-        'ALTER TABLE users ADD COLUMN IF NOT EXISTS google_token_expires_at TIMESTAMP',
-      );
+      // Google Calendar integration removed (unused)
+
+      // Profile columns
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture_url TEXT');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20)');
+      await this.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT');
     } catch (error) {
       // Columns already exist
     }
@@ -219,20 +219,7 @@ class Database {
       'CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at)',
     );
 
-    await this.run(`
-        CREATE TABLE IF NOT EXISTS user_preferences (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER UNIQUE NOT NULL,
-          theme VARCHAR(20) DEFAULT 'light',
-          notifications_email BOOLEAN DEFAULT true,
-          notifications_browser BOOLEAN DEFAULT true,
-          language VARCHAR(10) DEFAULT 'en',
-          timezone VARCHAR(50) DEFAULT 'UTC',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        )
-      `);
+    // user_preferences table removed (unused)
 
     // User analytics table
     await this.run(`
@@ -249,21 +236,7 @@ class Database {
         )
       `);
 
-    // Agent usage stats table
-    await this.run(`
-        CREATE TABLE IF NOT EXISTS agent_usage_stats (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
-          agent_id VARCHAR(100) NOT NULL,
-          usage_count INTEGER DEFAULT 0,
-          total_time_spent INTEGER DEFAULT 0,
-          date DATE NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-          UNIQUE(user_id, agent_id, date)
-        )
-      `);
+    // agent_usage_stats table removed (unused)
 
     // SIMPLIFIED CV INTELLIGENCE SCHEMA - NO FOREIGN KEY CONSTRAINTS
     // This will prevent the foreign key constraint errors
@@ -303,9 +276,29 @@ class Database {
           location VARCHAR(255),
           profile_json TEXT,
           overall_score INTEGER DEFAULT 0,
+          professional_assessment TEXT,
+          experience TEXT,
+          education TEXT,
+          matched_skills TEXT,
+          missing_skills TEXT,
+          additional_skills TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+    // Add new columns if they don't exist (for existing databases)
+    try {
+      await this.run(
+        'ALTER TABLE candidates ADD COLUMN IF NOT EXISTS professional_assessment TEXT',
+      );
+      await this.run('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS experience TEXT');
+      await this.run('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS education TEXT');
+      await this.run('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS matched_skills TEXT');
+      await this.run('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS missing_skills TEXT');
+      await this.run('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS additional_skills TEXT');
+    } catch (error) {
+      // Columns already exist
+    }
 
     // Create essential indexes only
     await this.run('CREATE INDEX IF NOT EXISTS idx_candidates_batch_id ON candidates(batch_id)');
@@ -366,17 +359,7 @@ class Database {
         )
       `);
 
-    // System settings table
-    await this.run(`
-        CREATE TABLE IF NOT EXISTS system_settings (
-          id SERIAL PRIMARY KEY,
-          key VARCHAR(100) UNIQUE NOT NULL,
-          value TEXT NOT NULL,
-          description TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
+    // system_settings table removed (unused - settings in .env file)
 
     // Interview Coordinator tables (HR-02)
 
@@ -424,34 +407,13 @@ class Database {
       await this.run(
         'ALTER TABLE interviews ADD COLUMN IF NOT EXISTS teams_meeting_id VARCHAR(255)',
       );
+      await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS cc_emails TEXT');
+      await this.run('ALTER TABLE interviews ADD COLUMN IF NOT EXISTS bcc_emails TEXT');
     } catch (error) {
       // Intentionally empty - error is handled by caller
     }
 
-    await this.run(`
-        CREATE TABLE IF NOT EXISTS interview_reminders (
-          id VARCHAR(255) PRIMARY KEY,
-          interview_id VARCHAR(255) NOT NULL,
-          reminder_type VARCHAR(50) NOT NULL,
-          recipient_email VARCHAR(255) NOT NULL,
-          message TEXT NOT NULL,
-          send_at TIMESTAMP NOT NULL,
-          sent BOOLEAN DEFAULT FALSE,
-          sent_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (interview_id) REFERENCES interviews(id) ON DELETE CASCADE
-        )
-      `);
-
-    await this.run(
-      'CREATE INDEX IF NOT EXISTS idx_interview_reminders_interview_id ON interview_reminders(interview_id)',
-    );
-    await this.run(
-      'CREATE INDEX IF NOT EXISTS idx_interview_reminders_send_at ON interview_reminders(send_at)',
-    );
-    await this.run(
-      'CREATE INDEX IF NOT EXISTS idx_interview_reminders_sent ON interview_reminders(sent)',
-    );
+    // interview_reminders table removed (reminder system not implemented)
 
     // PERFORMANCE OPTIMIZATION INDEXES
     // ============================================
@@ -473,9 +435,7 @@ class Database {
     await this.run(
       'CREATE INDEX IF NOT EXISTS idx_analytics_user_action_date ON user_analytics(user_id, action, created_at DESC)',
     );
-    await this.run(
-      'CREATE INDEX IF NOT EXISTS idx_analytics_agent_date ON agent_usage_stats(agent_id, date DESC)',
-    );
+    // agent_usage_stats indexes removed (table deleted)
 
     await this.run(
       'CREATE INDEX IF NOT EXISTS idx_candidates_batch_score ON candidates(batch_id, overall_score DESC)',
@@ -487,9 +447,7 @@ class Database {
     await this.run(
       'CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_time_status ON interviews(scheduled_time, status)',
     );
-    await this.run(
-      'CREATE INDEX IF NOT EXISTS idx_reminders_send_at_sent ON interview_reminders(send_at, sent)',
-    );
+    // interview_reminders indexes removed (table deleted)
 
     await this.createDefaultAdmin();
     this.tablesInitialized = true;

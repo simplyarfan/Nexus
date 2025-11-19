@@ -1,17 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Button from '@/components/ui/Button';
 import { fadeIn, scaleIn } from '../../lib/motion';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function VerifyEmailPage() {
-  const [countdown, setCountdown] = useState(60);
+  const router = useRouter();
+  const { verifyEmail: verifyEmailAuth, resendVerification } = useAuth();
+
+  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [email, setEmail] = useState('');
+  const [currentUserId, setCurrentUserId] = useState(null);
 
-  // Email from URL params or default
-  const email = 'you@company.com'; // In real app, get from URL params
+  const inputRefs = useRef([]);
+
+  useEffect(() => {
+    // SECURITY: Get userId and email ONLY from localStorage (never from URL)
+    if (typeof window !== 'undefined') {
+      const storedUserId = localStorage.getItem('pendingVerificationUserId');
+      const storedEmail = localStorage.getItem('pendingVerificationEmail');
+
+      if (storedUserId) {
+        setCurrentUserId(storedUserId);
+      } else {
+        // No userId in localStorage, redirect to register
+        setError('Session expired. Please register again.');
+        setTimeout(() => router.push('/auth/register'), 2000);
+      }
+
+      if (storedEmail) {
+        setEmail(storedEmail);
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
+    // Auto-focus first input
+    inputRefs.current[0]?.focus();
+  }, []);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -22,17 +56,113 @@ export default function VerifyEmailPage() {
     }
   }, [countdown]);
 
-  const handleResend = async () => {
-    setIsResending(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsResending(false);
-    setResendSuccess(true);
-    setCountdown(60);
-    setCanResend(false);
+  const handleChange = (index, value) => {
+    // Only allow numbers
+    if (value && !/^\d$/.test(value)) return;
 
-    // Hide success message after 3 seconds
-    setTimeout(() => setResendSuccess(false), 3000);
+    const newCode = [...code];
+    newCode[index] = value;
+    setCode(newCode);
+    setError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all fields are filled
+    if (newCode.every((digit) => digit !== '')) {
+      handleVerify(newCode.join(''));
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+
+    if (!/^\d+$/.test(pastedData)) return;
+
+    const newCode = pastedData.split('').concat(Array(6).fill('')).slice(0, 6);
+    setCode(newCode);
+
+    // Focus last filled input or next empty
+    const lastIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[lastIndex]?.focus();
+
+    // Auto-submit if complete
+    if (pastedData.length === 6) {
+      handleVerify(pastedData);
+    }
+  };
+
+  const handleVerify = async (codeString) => {
+    if (!currentUserId) {
+      setError('Missing user ID. Please try registering again.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = await verifyEmailAuth(currentUserId, codeString);
+
+      if (result.success) {
+        // Clear pending verification data
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pendingVerificationEmail');
+          localStorage.removeItem('pendingVerificationUserId');
+        }
+
+        // Redirect to login
+        router.push('/auth/login?verified=true');
+      } else {
+        setError(result.message || 'Invalid code. Please try again.');
+        setCode(['', '', '', '', '', '']);
+        inputRefs.current[0]?.focus();
+      }
+    } catch (err) {
+      setError('Verification failed. Please try again.');
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!currentUserId) {
+      setError('Cannot resend email. Please try registering again.');
+      return;
+    }
+
+    setIsResending(true);
+    setError('');
+
+    try {
+      const result = await resendVerification(currentUserId);
+
+      if (result.success) {
+        setResendSuccess(true);
+        setCountdown(30);
+        setCanResend(false);
+
+        // Hide success message after 3 seconds
+        setTimeout(() => setResendSuccess(false), 3000);
+      } else {
+        setError(result.message || 'Failed to resend email. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to resend email. Please try again.');
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -94,18 +224,56 @@ export default function VerifyEmailPage() {
             className="text-center mb-8"
           >
             <h1 className="text-3xl font-bold text-foreground mb-3">Check your email</h1>
-            <p className="text-muted-foreground mb-4">We&apos;ve sent a verification link to</p>
-            <p className="text-primary font-semibold text-lg mb-4">{email}</p>
-            <p className="text-sm text-muted-foreground">
-              Click the link in the email to verify your account and get started.
+            <p className="text-muted-foreground mb-4">
+              We&apos;ve sent a 6-digit verification code to
             </p>
+            <p className="text-primary font-semibold text-lg mb-4">{email || 'your email'}</p>
+            <p className="text-sm text-muted-foreground">
+              Enter the code below to verify your account and get started.
+            </p>
+          </motion.div>
+
+          {/* Code Input */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-6"
+          >
+            <div className="flex gap-2 justify-center mb-4">
+              {code.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={index === 0 ? handlePaste : undefined}
+                  disabled={isLoading}
+                  className="w-12 h-14 text-center text-2xl font-bold border-2 border-border rounded-lg bg-background text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-50"
+                />
+              ))}
+            </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-destructive/10 border border-destructive/50 rounded-lg p-3 mb-4"
+              >
+                <p className="text-sm text-destructive text-center">{error}</p>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Instructions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.5 }}
             className="bg-secondary rounded-lg p-4 mb-6"
           >
             <p className="text-sm text-foreground font-medium mb-2">
@@ -138,7 +306,7 @@ export default function VerifyEmailPage() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Make sure {email} is correct</span>
+                <span>Make sure {email || 'your email'} is correct</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg
@@ -183,7 +351,7 @@ export default function VerifyEmailPage() {
           )}
 
           {/* Resend Button */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
             <Button
               variant="primary"
               size="lg"
@@ -200,7 +368,7 @@ export default function VerifyEmailPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.7 }}
             className="mt-6 text-center"
           >
             <Link href="/auth/login" className="text-sm link">
@@ -214,7 +382,7 @@ export default function VerifyEmailPage() {
           variants={fadeIn}
           initial="hidden"
           animate="visible"
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.8 }}
           className="mt-6 text-center text-sm text-muted-foreground"
         >
           <p>© 2025 Nexus. All rights reserved.</p>

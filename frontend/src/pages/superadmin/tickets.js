@@ -47,11 +47,20 @@ export default function SupportManagement() {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (priorityFilter !== 'all') params.priority = priorityFilter;
 
-      const result = await supportAPI.getMyTickets(params);
-      setTickets(result.data.tickets || []);
-      setPagination((prev) => ({ ...prev, ...result.data.pagination }));
+      // Use getAllTickets for superadmins
+      const result = await supportAPI.getAllTickets(params);
+      console.log('API Response:', result);
+      console.log('Tickets:', result.data?.data?.tickets || result.data?.tickets);
+
+      // Handle both response structures
+      const tickets = result.data?.data?.tickets || result.data?.tickets || [];
+      const paginationData = result.data?.data?.pagination || result.data?.pagination || {};
+
+      setTickets(tickets);
+      setPagination((prev) => ({ ...prev, ...paginationData }));
     } catch (error) {
-      toast.error('Failed to load tickets');
+      console.error('Failed to load tickets:', error);
+      toast.error('Failed to load tickets: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -122,36 +131,36 @@ export default function SupportManagement() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'open':
-        return 'bg-blue-100 text-blue-700';
+        return 'text-blue-500 bg-transparent border-blue-500';
       case 'in_progress':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'text-orange-500 bg-transparent border-orange-500';
       case 'resolved':
-        return 'bg-accent text-primary';
+        return 'text-emerald-500 bg-transparent border-emerald-500';
       case 'closed':
-        return 'bg-muted text-muted-foreground';
+        return 'text-gray-500 bg-transparent border-gray-500';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'text-gray-500 bg-transparent border-gray-500';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 text-red-700';
+        return 'text-red-500 bg-transparent border-red-500';
       case 'high':
-        return 'bg-orange-100 text-orange-700';
+        return 'text-red-500 bg-transparent border-red-500';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'text-amber-500 bg-transparent border-amber-500';
       case 'low':
-        return 'bg-accent text-primary';
+        return 'text-emerald-500 bg-transparent border-emerald-500';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'text-gray-500 bg-transparent border-gray-500';
     }
   };
 
   if (authLoading || (!isAdmin && !isSuperAdmin)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -165,7 +174,7 @@ export default function SupportManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
@@ -298,10 +307,12 @@ export default function SupportManagement() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="hover:bg-secondary transition-colors cursor-pointer"
-                        onClick={() => openTicketDetails(ticket)}
+                        onClick={() => router.push(`/superadmin/tickets/${ticket.id}`)}
                       >
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-foreground">{ticket.subject}</div>
+                          <div className="text-sm font-medium text-foreground">
+                            {ticket.subject}
+                          </div>
                           <div className="text-sm text-muted-foreground line-clamp-1">
                             {ticket.description}
                           </div>
@@ -315,7 +326,7 @@ export default function SupportManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={
-                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              'inline-flex px-4 py-1.5 text-xs font-semibold uppercase rounded-full border-2 ' +
                               getPriorityColor(ticket.priority)
                             }
                           >
@@ -325,7 +336,7 @@ export default function SupportManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={
-                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              'inline-flex px-4 py-1.5 text-xs font-semibold uppercase rounded-full border-2 ' +
                               getStatusColor(ticket.status)
                             }
                           >
@@ -339,7 +350,7 @@ export default function SupportManagement() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openTicketDetails(ticket);
+                              router.push(`/superadmin/tickets/${ticket.id}`);
                             }}
                             className="text-primary hover:text-primary"
                           >
@@ -375,7 +386,7 @@ export default function SupportManagement() {
                   <div className="flex items-center gap-4">
                     <span
                       className={
-                        'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                        'inline-flex px-4 py-1.5 text-xs font-semibold uppercase rounded-full border-2 ' +
                         getStatusColor(selectedTicket.status)
                       }
                     >
@@ -383,7 +394,7 @@ export default function SupportManagement() {
                     </span>
                     <span
                       className={
-                        'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                        'inline-flex px-4 py-1.5 text-xs font-semibold uppercase rounded-full border-2 ' +
                         getPriorityColor(selectedTicket.priority)
                       }
                     >
@@ -445,7 +456,9 @@ export default function SupportManagement() {
                           {new Date(comment.created_at).toLocaleString()}
                         </p>
                       </div>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{comment.comment}</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {comment.comment}
+                      </p>
                     </div>
                   ))}
                 </div>

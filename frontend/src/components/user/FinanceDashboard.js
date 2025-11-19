@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { AnimatePresence, motion } from 'framer-motion';
+import { notificationsAPI } from '../../utils/notificationsAPI';
 import {
   Users,
   FileText,
@@ -26,6 +28,49 @@ export default function FinanceDashboard() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setNotifications([]);
+        const result = await notificationsAPI.getNotifications({ limit: 5, unread_only: true });
+        setNotifications(result.data?.notifications || []);
+      } catch (error) {
+        setNotifications([]);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const fetchNotificationsData = async () => {
+    try {
+      const result = await notificationsAPI.getNotifications({ limit: 5, unread_only: true });
+      setNotifications(result.data?.notifications || []);
+    } catch (error) {
+      setNotifications([]);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId, e) => {
+    e.stopPropagation();
+    try {
+      await notificationsAPI.markAsRead(notificationId);
+      await fetchNotificationsData();
+    } catch (error) {
+      // Silent failure
+    }
+  };
+
+  const handleNotificationClick = () => {
+    if (!showNotifications) {
+      fetchNotificationsData();
+    }
+    setShowNotifications(!showNotifications);
+  };
 
   const handleLogout = async () => {
     try {
@@ -144,9 +189,9 @@ export default function FinanceDashboard() {
                     handleLogout();
                     setUserDropdownOpen(false);
                   }}
-                  className="w-full flex items-center px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center px-4 py-2 text-left text-red-500 hover:bg-red-50 transition-colors"
                 >
-                  <LogOut className="w-4 h-4 mr-3" />
+                  <LogOut className="w-4 h-4 mr-3 text-red-500" />
                   <span className="text-sm font-medium">Logout</span>
                 </button>
               </div>
@@ -157,9 +202,18 @@ export default function FinanceDashboard() {
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-muted transition-colors"
             >
-              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-muted-foreground" />
-              </div>
+              {user?.profile_picture_url ? (
+                <img
+                  src={user.profile_picture_url}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-semibold">
+                  {user?.first_name?.[0]?.toUpperCase() || ''}
+                  {user?.last_name?.[0]?.toUpperCase() || ''}
+                </div>
+              )}
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
                 <p className="text-xs text-muted-foreground truncate">Finance Department</p>
@@ -198,9 +252,81 @@ export default function FinanceDashboard() {
                   className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
-              <button className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted">
-                <Bell className="w-5 h-5" />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={handleNotificationClick}
+                  className="relative p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted"
+                >
+                  <Bell className="w-5 h-5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full"></span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {showNotifications && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowNotifications(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
+                      >
+                        <div className="p-4 border-b border-border">
+                          <h3 className="font-semibold text-foreground">Notifications</h3>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
+                          {notifications.length > 0 ? (
+                            notifications.map((notification, index) => (
+                              <div
+                                key={notification.id || index}
+                                className="p-4 hover:bg-muted transition-colors border-b border-border last:border-0"
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-foreground text-sm">
+                                      {notification.title}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {notification.message}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      {new Date(notification.created_at).toLocaleString()}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={(e) => handleMarkAsRead(notification.id, e)}
+                                    className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors flex-shrink-0"
+                                    title="Mark as read"
+                                  >
+                                    ✓
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center">
+                              <p className="text-sm text-muted-foreground">No notifications yet</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3 border-t border-border text-center">
+                          <button
+                            onClick={() => router.push('/notifications')}
+                            className="text-sm text-primary hover:opacity-80"
+                          >
+                            View all notifications
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>

@@ -36,8 +36,11 @@
     --muted-foreground: #202020;
     --accent: #ededed;
     --accent-foreground: #202020;
-    --destructive: #ca3214;
+    --destructive: #ef4444;
     --destructive-foreground: #fffcfc;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
     --border: #dfdfdf;
     --input: #f6f6f6;
     --ring: #72e3ad;
@@ -91,8 +94,11 @@
     --muted-foreground: #a2a2a2;
     --accent: #313131;
     --accent-foreground: #fafafa;
-    --destructive: #541c15;
-    --destructive-foreground: #ede9e8;
+    --destructive: #f87171;
+    --destructive-foreground: #fffcfc;
+    --error: #f87171;
+    --warning: #fbbf24;
+    --success: #34d399;
     --border: #292929;
     --input: #242424;
     --ring: #4ade80;
@@ -147,6 +153,9 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -452,7 +461,8 @@
   }
 
   .form-error {
-    @apply text-sm text-destructive mt-1;
+    @apply text-sm mt-1;
+    color: var(--error);
   }
 
   .form-hint {

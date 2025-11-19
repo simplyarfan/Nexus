@@ -293,7 +293,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   const verifyEmail = useCallback(
-    async (token) => {
+    async (userId, code) => {
       try {
         const response = await fetch(`${API_BASE}/api/auth/verify-email`, {
           method: 'POST',
@@ -301,28 +301,27 @@ export const AuthProvider = ({ children }) => {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ userId, code }),
         });
 
         const data = await response.json();
 
         if (data.success) {
           toast.success('Email verified successfully!');
-          return { success: true };
+          return { success: true, message: data.message };
         } else {
-          throw new Error(data.message || 'Email verification failed');
+          return { success: false, message: data.message || 'Email verification failed' };
         }
       } catch (error) {
         const errorMessage = error.message || 'Email verification failed';
-        toast.error(errorMessage);
-        return { success: false, error: errorMessage };
+        return { success: false, message: errorMessage };
       }
     },
     [API_BASE],
   );
 
   const resendVerification = useCallback(
-    async (email) => {
+    async (userId) => {
       try {
         const response = await fetch(`${API_BASE}/api/auth/resend-verification`, {
           method: 'POST',
@@ -330,21 +329,20 @@ export const AuthProvider = ({ children }) => {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ userId }),
         });
 
         const data = await response.json();
 
         if (data.success) {
           toast.success('Verification email sent!');
-          return { success: true };
+          return { success: true, message: data.message };
         } else {
-          throw new Error(data.message || 'Failed to resend verification email');
+          return { success: false, message: data.message || 'Failed to resend verification email' };
         }
       } catch (error) {
         const errorMessage = error.message || 'Failed to resend verification email';
-        toast.error(errorMessage);
-        return { success: false, error: errorMessage };
+        return { success: false, message: errorMessage };
       }
     },
     [API_BASE],
@@ -356,7 +354,7 @@ export const AuthProvider = ({ children }) => {
         const token = tokenManager.getAccessToken();
         const endpoint = logoutAll ? '/auth/logout-all' : '/auth/logout';
 
-        await fetch(`${API_BASE}${endpoint}`, {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -365,9 +363,14 @@ export const AuthProvider = ({ children }) => {
           credentials: 'include',
         });
 
+        if (!response.ok) {
+          console.error('Logout API call failed:', response.status, response.statusText);
+        }
+
         toast.success(logoutAll ? 'Logged out from all devices' : 'Logged out successfully');
       } catch (error) {
-        // Silent failure
+        console.error('Logout error:', error);
+        // Continue with logout even if API call fails
       } finally {
         // Clear tokens and state regardless of API call success
         tokenManager.clearTokens();

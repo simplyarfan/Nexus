@@ -35,7 +35,7 @@ export const tokenManager = {
     });
 
     Cookies.set('refreshToken', refreshToken, {
-      expires: 30, // 30 days for refresh token
+      expires: 7, // 7 days for refresh token (14 with remember me)
       path: '/',
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
@@ -43,8 +43,52 @@ export const tokenManager = {
   },
 
   clearTokens: () => {
-    Cookies.remove('accessToken', { path: '/' });
-    Cookies.remove('refreshToken', { path: '/' });
+    console.log('🧹 Clearing tokens...');
+    console.log('Before clear - accessToken:', Cookies.get('accessToken') ? 'EXISTS' : 'NOT FOUND');
+    console.log(
+      'Before clear - refreshToken:',
+      Cookies.get('refreshToken') ? 'EXISTS' : 'NOT FOUND',
+    );
+
+    // Remove cookies with all possible path/domain combinations
+    const cookieOptions = [
+      { path: '/' },
+      { path: '/', domain: window.location.hostname },
+      { path: '/', domain: `.${window.location.hostname}` },
+    ];
+
+    cookieOptions.forEach((options) => {
+      Cookies.remove('accessToken', options);
+      Cookies.remove('refreshToken', options);
+    });
+
+    // Also clear from localStorage as a fallback
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+
+      // Clear session storage as well
+      sessionStorage.clear();
+
+      // Also try to clear all cookies manually
+      document.cookie.split(';').forEach((c) => {
+        const cookie = c.trim();
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+      });
+    }
+
+    console.log(
+      'After clear - accessToken:',
+      Cookies.get('accessToken') ? 'STILL EXISTS!' : 'CLEARED',
+    );
+    console.log(
+      'After clear - refreshToken:',
+      Cookies.get('refreshToken') ? 'STILL EXISTS!' : 'CLEARED',
+    );
+    console.log('✅ Token clearing complete');
   },
 
   isTokenExpired: (token) => {

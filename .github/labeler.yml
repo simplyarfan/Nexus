@@ -1,0 +1,56 @@
+# Automatic PR labeling configuration
+
+# Backend labels
+'backend':
+  - backend/**/*
+  - backend/*
+
+'api':
+  - backend/routes/**/*
+  - backend/api/**/*
+
+'database':
+  - backend/models/**/*
+  - backend/migrations/**/*
+  - backend/prisma/**/*
+
+'services':
+  - backend/services/**/*
+
+# Frontend labels
+'frontend':
+  - frontend/**/*
+  - frontend/*
+
+'ui':
+  - frontend/src/components/**/*
+
+'pages':
+  - frontend/src/pages/**/*
+
+# Documentation
+'documentation':
+  - '**/*.md'
+  - docs/**/*
+
+# Configuration
+'config':
+  - '**/*.config.js'
+  - '**/*.config.ts'
+  - '**/.*rc'
+  - '**/.env*'
+
+# CI/CD
+'ci/cd':
+  - .github/**/*
+
+# Tests
+'tests':
+  - '**/*.test.js'
+  - '**/*.spec.js'
+  - '**/__tests__/**/*'
+
+# Dependencies
+'dependencies':
+  - '**/package.json'
+  - '**/package-lock.json'

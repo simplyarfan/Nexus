@@ -6,7 +6,7 @@ import * as Icons from 'lucide-react';
 import axios from 'axios';
 import emailService from '../../services/emailService';
 import toast from 'react-hot-toast';
-import DateTimePicker from '../../components/ui/DateTimePicker';
+import ImprovedDateTimePicker from '../../components/ui/ImprovedDateTimePicker';
 
 const ScheduleInterview = () => {
   const { user, getAuthHeaders } = useAuth();
@@ -168,7 +168,9 @@ ${user?.email || ''}`;
                   </div>
                   <div>
                     <h1 className="text-xl font-semibold text-foreground">Schedule Interview</h1>
-                    <p className="text-sm text-muted-foreground">Create and send interview invitations</p>
+                    <p className="text-sm text-muted-foreground">
+                      Create and send interview invitations
+                    </p>
                   </div>
                 </div>
               </div>
@@ -272,14 +274,18 @@ ${user?.email || ''}`;
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <DateTimePicker
+                  <ImprovedDateTimePicker
                     label="Scheduled Date & Time"
                     value={formData.scheduledTime}
-                    onChange={handleInputChange}
+                    onChange={(isoString) =>
+                      setFormData((prev) => ({ ...prev, scheduledTime: isoString }))
+                    }
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">Location</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
+                    Location
+                  </label>
                   <input
                     type="text"
                     name="location"

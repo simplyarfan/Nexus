@@ -108,15 +108,15 @@ api.interceptors.response.use(
 );
 
 export const supportAPI = {
-  // Get all tickets for current user
+  // Get all tickets for current user (also returns ALL tickets for admin/superadmin - backend handles this)
   getMyTickets: async (params = {}) => {
     const response = await api.get('/', { params });
     return response;
   },
 
-  // Get all tickets (admin only)
+  // Get all tickets (admin only) - same as getMyTickets, backend automatically returns all tickets for admins
   getAllTickets: async (params = {}) => {
-    const response = await api.get('/all', { params });
+    const response = await api.get('/', { params });
     return response;
   },
 
@@ -186,6 +186,18 @@ export const supportAPI = {
   // Get ticket statistics (admin only)
   getTicketStats: async () => {
     const response = await api.get('/stats');
+    return response;
+  },
+
+  // Get ticket details with comments
+  getTicketDetails: async (ticketId) => {
+    const response = await api.get(`/${ticketId}`);
+    return response.data;
+  },
+
+  // Resolve ticket
+  resolveTicket: async (ticketId, resolution) => {
+    const response = await api.patch(`/${ticketId}/resolve`, { resolution });
     return response;
   },
 };

@@ -354,7 +354,9 @@ const InterviewDetailPage = () => {
                 </button>
                 <div>
                   <h1 className="text-xl font-semibold text-foreground">Interview Details</h1>
-                  <p className="text-sm text-muted-foreground">Manage and track interview progress</p>
+                  <p className="text-sm text-muted-foreground">
+                    Manage and track interview progress
+                  </p>
                 </div>
               </div>
             </div>
@@ -393,7 +395,9 @@ const InterviewDetailPage = () => {
 
                 <div className="px-6 py-6 space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground block mb-1">Position</label>
+                    <label className="text-sm font-medium text-muted-foreground block mb-1">
+                      Position
+                    </label>
                     <p className="text-lg font-semibold text-foreground">{interview.job_title}</p>
                   </div>
 
@@ -480,7 +484,9 @@ const InterviewDetailPage = () => {
 
                   {interview.notes && (
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground block mb-1">Notes</label>
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">
+                        Notes
+                      </label>
                       <p className="text-muted-foreground whitespace-pre-wrap bg-secondary p-4 rounded-lg border border-border">
                         {interview.notes}
                       </p>

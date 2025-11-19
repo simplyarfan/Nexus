@@ -100,7 +100,7 @@ export default function AnalyticsDashboard() {
 
   if (loading || loadingStats) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
       </div>
     );
@@ -109,7 +109,7 @@ export default function AnalyticsDashboard() {
   if (!isAdmin && !isSuperAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center gap-4">

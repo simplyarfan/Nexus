@@ -48,7 +48,11 @@ const Input = forwardRef(
           )}
         </div>
 
-        {error && <p className="text-sm text-destructive mt-1">{error}</p>}
+        {error && (
+          <p className="text-sm mt-1" style={{ color: 'var(--error)' }}>
+            {error}
+          </p>
+        )}
 
         {hint && !error && <p className="text-sm text-muted-foreground mt-1">{hint}</p>}
       </div>

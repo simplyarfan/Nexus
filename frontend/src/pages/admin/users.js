@@ -20,12 +20,14 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0 });
+  const [openDropdownId, setOpenDropdownId] = useState(null);
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     first_name: '',
     last_name: '',
+    phone: '',
     department: '',
     job_title: '',
     role: 'user',
@@ -49,6 +51,27 @@ export default function UserManagement() {
       fetchUsers();
     }
   }, [isAdmin, isSuperAdmin, pagination.page, filterRole, filterDepartment]);
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside any dropdown
+      const isDropdownButton = event.target.closest('[data-dropdown-button]');
+      const isDropdownMenu = event.target.closest('[data-dropdown-menu]');
+
+      if (!isDropdownButton && !isDropdownMenu) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdownId]);
 
   const fetchUsers = async () => {
     try {
@@ -97,6 +120,7 @@ export default function UserManagement() {
       password: '',
       first_name: userToEdit.first_name,
       last_name: userToEdit.last_name,
+      phone: userToEdit.phone || '',
       department: userToEdit.department || '',
       job_title: userToEdit.job_title || '',
       role: userToEdit.role,
@@ -137,6 +161,7 @@ export default function UserManagement() {
       const updateData = {
         first_name: formData.first_name,
         last_name: formData.last_name,
+        phone: formData.phone,
         department: formData.department,
         job_title: formData.job_title,
       };
@@ -213,7 +238,7 @@ export default function UserManagement() {
 
   if (authLoading || (!isAdmin && !isSuperAdmin)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -228,7 +253,7 @@ export default function UserManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-8 py-6">
@@ -260,7 +285,7 @@ export default function UserManagement() {
             {isSuperAdmin && (
               <button
                 onClick={openAddModal}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-white rounded-lg hover:bg-primary transition-colors font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -359,6 +384,9 @@ export default function UserManagement() {
                       Department
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Job Title
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -369,7 +397,7 @@ export default function UserManagement() {
                 <tbody className="divide-y divide-gray-200">
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center">
+                      <td colSpan={6} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-muted-foreground">
                           <p className="text-lg font-medium mb-1">No users found</p>
                           <p className="text-sm">Try adjusting your filters or search criteria</p>
@@ -387,12 +415,18 @@ export default function UserManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
-                                <span className="text-sm font-medium text-white">
-                                  {u.first_name?.[0]}
-                                  {u.last_name?.[0]}
-                                </span>
-                              </div>
+                              {u.profile_picture_url ? (
+                                <img
+                                  src={u.profile_picture_url}
+                                  alt={`${u.first_name} ${u.last_name}`}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold">
+                                  {u.first_name?.[0]?.toUpperCase() || ''}
+                                  {u.last_name?.[0]?.toUpperCase() || ''}
+                                </div>
+                              )}
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-foreground">
@@ -405,8 +439,12 @@ export default function UserManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={
-                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
-                              getRoleBadgeColor(u.role)
+                              'inline-flex px-4 py-1.5 text-xs font-semibold uppercase rounded-full border-2 bg-transparent ' +
+                              (u.role === 'superadmin'
+                                ? 'text-purple-500 border-purple-500'
+                                : u.role === 'admin'
+                                  ? 'text-blue-500 border-blue-500'
+                                  : 'text-gray-500 border-gray-500')
                             }
                           >
                             {u.role}
@@ -415,46 +453,84 @@ export default function UserManagement() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {u.department || '-'}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {u.job_title || '-'}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={
-                              'inline-flex px-3 py-1 text-xs font-semibold rounded-full ' +
+                              'inline-flex px-4 py-1.5 text-xs font-semibold uppercase rounded-full border-2 bg-transparent ' +
                               (u.is_active
-                                ? 'bg-accent text-primary'
-                                : 'bg-red-100 text-red-700')
+                                ? 'text-emerald-500 border-emerald-500'
+                                : 'text-red-500 border-red-500')
                             }
                           >
                             {u.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center gap-2">
+                          <div className="relative">
                             <button
-                              onClick={() => openEditModal(u)}
-                              className="text-blue-600 hover:text-blue-900"
+                              data-dropdown-button
+                              onClick={() =>
+                                setOpenDropdownId(openDropdownId === u.id ? null : u.id)
+                              }
+                              className="p-2 hover:bg-secondary rounded-lg transition-colors"
                             >
-                              Edit
+                              <svg
+                                className="w-5 h-5 text-foreground"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                />
+                              </svg>
                             </button>
-                            {isSuperAdmin && (
-                              <>
-                                <span className="text-border">|</span>
-                                <button
-                                  onClick={() => openPasswordModal(u)}
-                                  className="text-yellow-600 hover:text-yellow-900"
-                                >
-                                  Password
-                                </button>
-                                <span className="text-border">|</span>
-                                <button
-                                  onClick={() => {
-                                    setSelectedUser(u);
-                                    setShowDeleteModal(true);
-                                  }}
-                                  className="text-red-600 hover:text-red-900"
-                                >
-                                  Delete
-                                </button>
-                              </>
+                            {openDropdownId === u.id && (
+                              <div
+                                data-dropdown-menu
+                                className="absolute right-0 top-full mt-2 min-w-[200px] bg-card border border-border rounded-lg shadow-lg z-50"
+                              >
+                                <div className="flex flex-col py-1">
+                                  <button
+                                    onClick={() => {
+                                      openEditModal(u);
+                                      setOpenDropdownId(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors whitespace-nowrap"
+                                  >
+                                    Edit User
+                                  </button>
+                                  {isSuperAdmin && (
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          openPasswordModal(u);
+                                          setOpenDropdownId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors whitespace-nowrap"
+                                      >
+                                        Change Password
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedUser(u);
+                                          setShowDeleteModal(true);
+                                          setOpenDropdownId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-secondary transition-colors whitespace-nowrap"
+                                      >
+                                        Delete User
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
                         </td>
@@ -481,77 +557,107 @@ export default function UserManagement() {
               <h2 className="text-2xl font-bold text-foreground mb-4">Add New User</h2>
               <form onSubmit={handleCreateUser} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="First Name"
+                      value={formData.first_name}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Last Name"
+                      value={formData.last_name}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Email</label>
                   <input
-                    type="text"
-                    placeholder="First Name"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    type="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    required
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
                   />
                 </div>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                />
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                  <option value="superadmin">Superadmin</option>
-                </select>
-                <select
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                >
-                  <option value="">No Department</option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Sales & Marketing">Sales & Marketing</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Job Title"
-                  value={formData.job_title}
-                  onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Role</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="superadmin">Superadmin</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Department
+                  </label>
+                  <select
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">No Department</option>
+                    <option value="Human Resources">Human Resources</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Sales & Marketing">Sales & Marketing</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Job Title
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Job Title"
+                    value={formData.job_title}
+                    onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  />
+                </div>
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
+                    className="flex-1 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
                     {isSubmitting ? 'Creating...' : 'Create User'}
                   </button>
@@ -575,60 +681,99 @@ export default function UserManagement() {
               <h2 className="text-2xl font-bold text-foreground mb-4">Edit User</h2>
               <form onSubmit={handleUpdateUser} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="First Name"
+                      value={formData.first_name}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      required
+                      disabled={!isSuperAdmin}
+                      className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Last Name"
+                      value={formData.last_name}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      required
+                      disabled={!isSuperAdmin}
+                      className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Email</label>
                   <input
-                    type="text"
-                    placeholder="First Name"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    required
-                    disabled={!isSuperAdmin}
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    required
-                    disabled={!isSuperAdmin}
-                    className="px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="w-full px-4 py-2 bg-muted border border-border text-foreground rounded-lg"
                   />
                 </div>
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="w-full px-4 py-2 border border-border rounded-lg bg-muted"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={formData.phone || ''}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    disabled={!isSuperAdmin}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
+                  />
+                </div>
                 {isSuperAdmin && (
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                    <option value="superadmin">Superadmin</option>
-                  </select>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Role</label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                      <option value="superadmin">Superadmin</option>
+                    </select>
+                  </div>
                 )}
-                <select
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                >
-                  <option value="">No Department</option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Sales & Marketing">Sales & Marketing</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder="Job Title"
-                  value={formData.job_title}
-                  onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                  disabled={!isSuperAdmin}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Department
+                  </label>
+                  <select
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">No Department</option>
+                    <option value="Human Resources">Human Resources</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Sales & Marketing">Sales & Marketing</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Job Title
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Job Title"
+                    value={formData.job_title}
+                    onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                    disabled={!isSuperAdmin}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring disabled:bg-muted"
+                  />
+                </div>
                 {!isSuperAdmin && (
                   <p className="text-sm text-muted-foreground">
                     As an admin, you can only change the department
@@ -638,14 +783,14 @@ export default function UserManagement() {
                   <button
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
+                    className="flex-1 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
                     {isSubmitting ? 'Updating...' : 'Update User'}
                   </button>
@@ -671,40 +816,50 @@ export default function UserManagement() {
                 Changing password for: <strong>{selectedUser.email}</strong>
               </p>
               <form onSubmit={handleChangePassword} className="space-y-4">
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  value={passwordData.new_password}
-                  onChange={(e) =>
-                    setPasswordData({ ...passwordData, new_password: e.target.value })
-                  }
-                  required
-                  minLength={8}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  value={passwordData.confirm_password}
-                  onChange={(e) =>
-                    setPasswordData({ ...passwordData, confirm_password: e.target.value })
-                  }
-                  required
-                  minLength={8}
-                  className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    value={passwordData.new_password}
+                    onChange={(e) =>
+                      setPasswordData({ ...passwordData, new_password: e.target.value })
+                    }
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={passwordData.confirm_password}
+                    onChange={(e) =>
+                      setPasswordData({ ...passwordData, confirm_password: e.target.value })
+                    }
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+                  />
+                </div>
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowPasswordModal(false)}
-                    className="flex-1 px-4 py-2 border border-border text-muted-foreground rounded-lg hover:bg-secondary"
+                    className="flex-1 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
                     {isSubmitting ? 'Changing...' : 'Change Password'}
                   </button>

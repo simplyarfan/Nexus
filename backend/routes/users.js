@@ -46,6 +46,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
           job_title: true,
           is_active: true,
           is_verified: true,
+          profile_picture_url: true,
           created_at: true,
           last_login: true,
         },

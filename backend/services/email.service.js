@@ -104,6 +104,16 @@ class EmailService {
   }
 
   /**
+   * Send password reset confirmation email
+   */
+  async sendPasswordResetConfirmation(email, firstName) {
+    const subject = 'Password Reset Successful - Enterprise AI Hub';
+    const html = this.generatePasswordResetConfirmationTemplate(firstName);
+
+    return await this.sendEmail(email, subject, html);
+  }
+
+  /**
    * Core email sending function - NO FALLBACKS, FAIL PROPERLY
    */
   async sendEmail(to, subject, html) {
@@ -298,15 +308,15 @@ class EmailService {
     <html>
     <head>
         <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              line-height: 1.6; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
               color: #333;
               margin: 0;
               padding: 0;
               background: #f3f4f6;
             }
-            .container { 
+            .container {
               max-width: 600px;
               margin: 40px auto;
               background: #ffffff;
@@ -314,16 +324,16 @@ class EmailService {
               overflow: hidden;
               box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }
-            .header { 
+            .header {
               background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
               color: white;
-              padding: 32px; 
+              padding: 32px;
               text-align: center;
             }
-            .content { 
+            .content {
               padding: 40px;
             }
-            .footer { 
+            .footer {
               background: #f9fafb;
               padding: 24px;
               text-align: center;
@@ -345,6 +355,91 @@ class EmailService {
             </div>
             <div class="footer">
                 <p style="margin: 0;">Enterprise AI Hub - SecureMaxTech</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+  }
+
+  /**
+   * Generate password reset confirmation email template
+   */
+  generatePasswordResetConfirmationTemplate(firstName) {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              margin: 0;
+              padding: 0;
+              background: #f3f4f6;
+            }
+            .container {
+              max-width: 600px;
+              margin: 40px auto;
+              background: #ffffff;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+              color: white;
+              padding: 32px;
+              text-align: center;
+            }
+            .content {
+              padding: 40px;
+            }
+            .alert-box {
+              background: #10b981;
+              border-left: 4px solid #059669;
+              padding: 16px;
+              border-radius: 8px;
+              margin: 24px 0;
+            }
+            .alert-box p {
+              margin: 0;
+              color: white;
+              font-weight: 600;
+            }
+            .footer {
+              background: #f9fafb;
+              padding: 24px;
+              text-align: center;
+              font-size: 14px;
+              color: #6b7280;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1 style="margin: 0;">✅ Password Reset Successful</h1>
+            </div>
+            <div class="content">
+                <p>Hi ${firstName},</p>
+                <p>This is a confirmation that your password for your Enterprise AI Hub account has been successfully reset.</p>
+                <div class="alert-box">
+                    <p>🔒 Your account is now secure with your new password</p>
+                </div>
+                <p><strong>What happened?</strong></p>
+                <p>Your password was changed on ${new Date().toLocaleString('en-US', {
+                  dateStyle: 'full',
+                  timeStyle: 'short',
+                })}. For your security, all active sessions have been logged out.</p>
+                <p><strong>Was this you?</strong></p>
+                <p>If you made this change, no further action is needed. You can now log in with your new password.</p>
+                <p><strong>Didn't make this change?</strong></p>
+                <p style="color: #dc2626; font-weight: 600;">If you did NOT request this password reset, please contact our support team immediately at support@securemaxtech.com. Your account may have been compromised.</p>
+            </div>
+            <div class="footer">
+                <p style="margin: 0;">Enterprise AI Hub - SecureMaxTech</p>
+                <p style="margin: 8px 0 0 0;">This is an automated message, please do not reply.</p>
             </div>
         </div>
     </body>

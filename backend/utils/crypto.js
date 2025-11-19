@@ -121,6 +121,35 @@ class CryptoUtil {
   generateSecureToken(bytes = 32) {
     return crypto.randomBytes(bytes).toString('hex');
   }
+
+  /**
+   * Generate PKCE code verifier and challenge for OAuth 2.0
+   * @returns {{codeVerifier: string, codeChallenge: string}}
+   */
+  generatePKCEChallenge() {
+    // Generate random code verifier (43-128 characters, base64url encoded)
+    const codeVerifier = crypto
+      .randomBytes(32)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+
+    // Create SHA256 hash of verifier
+    const hash = crypto.createHash('sha256').update(codeVerifier).digest();
+
+    // Base64url encode the hash for the challenge
+    const codeChallenge = hash
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+
+    return {
+      codeVerifier,
+      codeChallenge,
+    };
+  }
 }
 
 // Export singleton instance

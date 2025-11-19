@@ -140,9 +140,9 @@ const WaitingDashboard = () => {
                     handleLogout();
                     setUserDropdownOpen(false);
                   }}
-                  className="w-full flex items-center px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center px-4 py-2 text-left text-red-500 hover:bg-red-50 transition-colors"
                 >
-                  <LogOut className="w-4 h-4 mr-3" />
+                  <LogOut className="w-4 h-4 mr-3 text-red-500" />
                   <span className="text-sm font-medium">Logout</span>
                 </button>
               </div>
@@ -153,9 +153,18 @@ const WaitingDashboard = () => {
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-muted transition-colors"
             >
-              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-muted-foreground" />
-              </div>
+              {user?.profile_picture_url ? (
+                <img
+                  src={user.profile_picture_url}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-semibold">
+                  {user?.first_name?.[0]?.toUpperCase() || ''}
+                  {user?.last_name?.[0]?.toUpperCase() || ''}
+                </div>
+              )}
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-medium text-foreground truncate">
                   {user?.first_name} {user?.last_name}
@@ -342,11 +351,7 @@ const WaitingDashboard = () => {
                           }
                         }}
                         className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center cursor-pointer transition-all ${
-                          !gameStarted
-                            ? 'bg-muted'
-                            : reactionGreen
-                              ? 'bg-primary'
-                              : 'bg-red-400'
+                          !gameStarted ? 'bg-muted' : reactionGreen ? 'bg-primary' : 'bg-red-400'
                         }`}
                       >
                         <span

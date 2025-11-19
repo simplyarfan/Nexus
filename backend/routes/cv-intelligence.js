@@ -14,8 +14,10 @@ let CVIntelligenceHR01 = null;
 try {
   const CVIntelligenceHR01Service = require('../services/cvIntelligenceHR01');
   CVIntelligenceHR01 = new CVIntelligenceHR01Service();
+  console.log('✅ CV Intelligence HR-01 service loaded successfully');
 } catch (error) {
-  // Intentionally empty - error is handled by caller
+  console.error('❌ Failed to load CV Intelligence HR-01 service:', error.message);
+  console.error('Stack:', error.stack);
 }
 
 // Optional multer with fallback
@@ -59,7 +61,34 @@ function normalizeName(name) {
     .join(' ');
 }
 
-// Test route to verify CV Intelligence is working
+/**
+ * @swagger
+ * /api/cv-intelligence/test:
+ *   get:
+ *     tags: [CV Intelligence]
+ *     summary: Test CV Intelligence service
+ *     description: Verify that the CV Intelligence service is running and available
+ *     responses:
+ *       200:
+ *         description: Service is operational
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: CV Intelligence routes are working!
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 service:
+ *                   type: string
+ *                   example: HR-01 Service Available
+ */
 router.get('/test', (req, res) => {
   res.json({
     success: true,
@@ -69,7 +98,55 @@ router.get('/test', (req, res) => {
   });
 });
 
-// POST /api/cv-intelligence/ - Create batch (frontend compatibility)
+/**
+ * @swagger
+ * /api/cv-intelligence:
+ *   post:
+ *     tags: [CV Intelligence]
+ *     summary: Create new CV batch
+ *     description: Create a new batch for processing CVs with job description
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Senior Developer Batch - Q1 2025
+ *     responses:
+ *       200:
+ *         description: Batch created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     batchId:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       example: created
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post('/', authenticateToken, cvBatchLimiter, async (req, res) => {
   try {
     const { name } = req.body;
@@ -125,7 +202,69 @@ router.post('/', authenticateToken, cvBatchLimiter, async (req, res) => {
   }
 });
 
-// POST /api/cv-intelligence/batch/:id/process - Process CVs for existing batch
+/**
+ * @swagger
+ * /api/cv-intelligence/batch/{id}/process:
+ *   post:
+ *     tags: [CV Intelligence]
+ *     summary: Upload and process CVs for batch
+ *     description: Upload CVs and job description for intelligent analysis and ranking
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Batch ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cvFiles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 maxItems: 10
+ *               jdFile:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: CVs processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     batchId:
+ *                       type: string
+ *                     processed:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     candidates:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Candidate'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
+ */
 router.post(
   '/batch/:id/process',
   authenticateToken,
@@ -170,6 +309,7 @@ router.post(
 
       if (jdFile && CVIntelligenceHR01) {
         try {
+          console.log('📄 Processing JD file:', jdFile.originalname);
           const jdResult = await CVIntelligenceHR01.processJobDescription(
             jdFile.buffer,
             jdFile.originalname,
@@ -177,32 +317,39 @@ router.post(
 
           if (jdResult.success && jdResult.requirements) {
             parsedRequirements = jdResult.requirements;
+            console.log('✅ JD parsed successfully:', Object.keys(parsedRequirements));
           } else {
-            // JD parsing failed - will use default requirements
+            console.warn('⚠️ JD parsing returned unsuccessful result');
           }
         } catch (error) {
-          // Intentionally empty - error is handled by caller
+          console.error('❌ JD processing failed:', error.message);
+          console.error('Stack:', error.stack);
+          // Continue with default requirements
         }
       }
 
       // Update batch status, file count, and JD requirements (if database available)
+      // IMPORTANT: Use transaction to ensure batch update and candidate deletion are atomic
       if (databaseAvailable) {
         try {
           const jdRequirementsJSON = JSON.stringify(parsedRequirements);
 
-          // FORCE UPDATE - Clear any cached/corrupted JD requirements
-          await database.run(
-            `
-          UPDATE cv_batches 
-          SET status = 'processing', total_resumes = $1, jd_requirements = $2, updated_at = CURRENT_TIMESTAMP
-          WHERE id = $3 AND user_id = $4
-        `,
-            [cvFiles.length, jdRequirementsJSON, batchId, req.user.id],
-          );
+          await database.transaction(async (client) => {
+            // FORCE UPDATE - Clear any cached/corrupted JD requirements
+            await client.query(
+              `
+              UPDATE cv_batches
+              SET status = 'processing', total_resumes = $1, jd_requirements = $2, updated_at = CURRENT_TIMESTAMP
+              WHERE id = $3 AND user_id = $4
+            `,
+              [cvFiles.length, jdRequirementsJSON, batchId, req.user.id],
+            );
 
-          // Also clear any existing candidates to force re-processing
-          await database.run('DELETE FROM candidates WHERE batch_id = $1', [batchId]);
+            // Also clear any existing candidates to force re-processing
+            await client.query('DELETE FROM candidates WHERE batch_id = $1', [batchId]);
+          });
         } catch (dbError) {
+          console.error('⚠️ Transaction failed:', dbError.message);
           databaseAvailable = false;
         }
       }
@@ -210,9 +357,13 @@ router.post(
       // Process each CV file with holistic assessment
       const candidates = [];
       const cvTexts = []; // Store raw CV texts for ranking
+      const processingErrors = []; // Track errors per CV
+
+      console.log(`\n🔄 Starting to process ${cvFiles.length} CVs...`);
 
       for (let i = 0; i < cvFiles.length; i++) {
         const file = cvFiles[i];
+        console.log(`\n📄 Processing CV ${i + 1}/${cvFiles.length}: ${file.originalname}`);
 
         try {
           // Process with HR-01 service
@@ -223,47 +374,53 @@ router.post(
           );
 
           if (result.success) {
+            console.log(`✅ CV processed successfully: ${file.originalname}`);
+
             const candidateId = CVIntelligenceHR01.generateId();
 
-            // Get raw CV text for holistic assessment
+            // STEP 1: Assess candidate for role (CV vs JD comparison)
+            console.log(`   🔍 Assessing candidate fit against JD...`);
+            const roleAssessment = await CVIntelligenceHR01.assessCandidateForRole(
+              result.structuredData,
+              parsedRequirements,
+            );
+            console.log(`   ✅ Assessment complete. Score: ${roleAssessment.score}/100`);
+
+            // Get raw CV text for interview questions
             const parseData = await CVIntelligenceHR01.parseDocument(
               file.buffer,
               file.originalname.split('.').pop().toLowerCase(),
             );
             const cvText = parseData.rawText || '';
-            cvTexts.push(cvText);
 
-            // Perform holistic assessment
-            const assessment = await CVIntelligenceHR01.assessCVHolistically(
-              cvText,
-              parsedRequirements,
-            );
-
-            // Generate interview questions
+            // STEP 2: Generate interview questions based on assessment
+            console.log(`   📝 Generating interview questions...`);
             const interviewQuestions = await CVIntelligenceHR01.generateInterviewQuestions(
               cvText,
               result.structuredData,
-              assessment,
+              {
+                ...roleAssessment,
+                overallFit: roleAssessment.score, // Map score to overallFit for compatibility
+                weaknesses: roleAssessment.gaps,
+              },
               parsedRequirements,
             );
 
-            // Perform smart skill matching
-            const candidateSkills = result.structuredData.skills || [];
-            const requiredSkills = parsedRequirements.skills || [];
+            // STEP 3: Use ChatGPT for intelligent skill matching (not manual matching)
+            console.log(`   🤖 Using ChatGPT to match skills against JD requirements...`);
+            const skillMatching = await CVIntelligenceHR01.matchSkillsWithChatGPT(
+              result.structuredData,
+              parsedRequirements,
+            );
+            console.log(
+              `   ✅ Skill matching complete. Matched: ${skillMatching.matchedSkills.length}, Missing: ${skillMatching.missingSkills.length}`,
+            );
 
-            const matchedSkills = [];
-            const missingSkills = [];
+            const matchedSkills = skillMatching.matchedSkills;
+            const missingSkills = skillMatching.missingSkills;
+            const additionalSkills = skillMatching.additionalSkills;
 
-            // Check each required skill with smart matching
-            for (const reqSkill of requiredSkills) {
-              if (CVIntelligenceHR01.smartSkillMatch(reqSkill, candidateSkills)) {
-                matchedSkills.push(reqSkill);
-              } else {
-                missingSkills.push(reqSkill);
-              }
-            }
-
-            // Store candidate with assessment, interview questions, and smart skill matching
+            // Store candidate with NEW assessment structure
             const candidateData = {
               id: candidateId,
               name: normalizeName(result.structuredData.personal?.name || 'Name not found'),
@@ -271,23 +428,39 @@ router.post(
               phone: result.structuredData.personal?.phone || 'Phone not found',
               location: result.structuredData.personal?.location || 'Location not specified',
               structuredData: result.structuredData,
-              assessment: assessment,
+              // NEW: Store role assessment (CV vs JD comparison)
+              roleAssessment: roleAssessment,
+              // Store assessment score for ranking
+              assessmentScore: roleAssessment.score,
               interviewQuestions: interviewQuestions,
               matchedSkills: matchedSkills,
               missingSkills: missingSkills,
-              cvText: cvText,
+              additionalSkills: additionalSkills,
             };
 
             candidates.push(candidateData);
 
-            // Store in database (if available) - use assessment score instead of old scoring
+            // Store in database (if available) - use NEW assessment score
             if (databaseAvailable) {
               try {
+                // Use the NEW assessment as professional_assessment
+                const professionalAssessment = roleAssessment.assessment;
+                const experience = JSON.stringify(result.structuredData.experience || []);
+                const education = JSON.stringify(result.structuredData.education || []);
+
+                // Store skills as JSON arrays (will be TEXT in PostgreSQL)
+                const matchedSkillsJSON = JSON.stringify(matchedSkills);
+                const missingSkillsJSON = JSON.stringify(missingSkills);
+                const additionalSkillsJSON = JSON.stringify(additionalSkills);
+
                 await database.run(
                   `
                 INSERT INTO candidates (
-                  id, batch_id, name, email, phone, location, profile_json, overall_score
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                  id, batch_id, name, email, phone, location,
+                  professional_assessment, experience, education,
+                  matched_skills, missing_skills, additional_skills,
+                  profile_json, overall_score
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
               `,
                   [
                     candidateId,
@@ -296,35 +469,54 @@ router.post(
                     candidateData.email,
                     candidateData.phone,
                     candidateData.location,
+                    professionalAssessment, // NEW: Store OpenAI assessment
+                    experience,
+                    education,
+                    matchedSkillsJSON, // Store as JSON array
+                    missingSkillsJSON, // Store as JSON array
+                    additionalSkillsJSON, // Store as JSON array
                     JSON.stringify({
                       ...result.structuredData,
-                      assessment: assessment,
+                      roleAssessment: roleAssessment, // Store full assessment
                       interviewQuestions: interviewQuestions,
                       matchedSkills: matchedSkills,
                       missingSkills: missingSkills,
+                      additionalSkills: additionalSkills,
                     }),
-                    Math.round(assessment.overallFit || 0),
+                    roleAssessment.score, // NEW: Store assessment score for ranking
                   ],
                 );
               } catch (dbError) {
-                // Intentionally empty - error is handled by caller
+                console.error('   ⚠️ Database insert failed:', dbError.message);
               }
             }
           } else {
-            // CV parsing failed
+            console.warn(`⚠️ CV processing returned unsuccessful: ${file.originalname}`);
+            processingErrors.push({
+              file: file.originalname,
+              error: 'Processing returned unsuccessful result',
+            });
           }
         } catch (error) {
-          // Intentionally empty - error is handled by caller
+          console.error(`❌ Error processing CV ${file.originalname}:`, error.message);
+          console.error('Stack:', error.stack);
+          processingErrors.push({ file: file.originalname, error: error.message });
         }
       }
 
-      // Let ChatGPT rank all candidates intelligently
+      console.log(`\n📊 Processing Summary:`);
+      console.log(`   Total CVs: ${cvFiles.length}`);
+      console.log(`   Successfully processed: ${candidates.length}`);
+      console.log(`   Failed: ${processingErrors.length}`);
+
+      // LET CHATGPT RANK ALL CANDIDATES INTELLIGENTLY
+      console.log(`\n🏆 Letting ChatGPT rank candidates based on real-world fit...`);
       const rankings = await CVIntelligenceHR01.rankCandidatesIntelligently(
         candidates,
         parsedRequirements,
       );
 
-      // Apply rankings to candidates
+      // Apply ChatGPT rankings to candidates
       const rankedCandidates = rankings.map((ranking) => {
         const candidate = candidates[ranking.originalIndex];
         return {
@@ -335,52 +527,104 @@ router.post(
         };
       });
 
-      // Update database with rankings
+      console.log(`   Ranking complete:`);
+      rankedCandidates.forEach((c) => {
+        console.log(`     Rank ${c.rank}: ${c.name} - ${c.recommendationLevel}`);
+      });
+
+      // Update database with ChatGPT rankings
+      // IMPORTANT: Use transaction to ensure all ranking updates are atomic
       if (databaseAvailable) {
-        for (const rankedCandidate of rankedCandidates) {
+        try {
+          await database.transaction(async (client) => {
+            for (const rankedCandidate of rankedCandidates) {
+              // Also update the skill arrays during ranking
+              const matchedSkillsJSON = JSON.stringify(rankedCandidate.matchedSkills || []);
+              const missingSkillsJSON = JSON.stringify(rankedCandidate.missingSkills || []);
+              const additionalSkillsJSON = JSON.stringify(rankedCandidate.additionalSkills || []);
+
+              await client.query(
+                `
+                UPDATE candidates
+                SET profile_json = $1, overall_score = $2,
+                    matched_skills = $3, missing_skills = $4, additional_skills = $5
+                WHERE id = $6
+              `,
+                [
+                  JSON.stringify({
+                    ...rankedCandidate.structuredData,
+                    roleAssessment: rankedCandidate.roleAssessment,
+                    interviewQuestions: rankedCandidate.interviewQuestions,
+                    matchedSkills: rankedCandidate.matchedSkills,
+                    missingSkills: rankedCandidate.missingSkills,
+                    additionalSkills: rankedCandidate.additionalSkills,
+                    rank: rankedCandidate.rank,
+                    rankingReason: rankedCandidate.rankingReason,
+                    recommendationLevel: rankedCandidate.recommendationLevel,
+                  }),
+                  rankedCandidate.rank, // Use rank for sorting (1 = best)
+                  matchedSkillsJSON,
+                  missingSkillsJSON,
+                  additionalSkillsJSON,
+                  rankedCandidate.id,
+                ],
+              );
+            }
+          });
+        } catch (dbError) {
+          console.error('   ⚠️ Ranking update transaction failed:', dbError.message);
+        }
+      }
+
+      // Check if any candidates were successfully processed
+      if (candidates.length === 0) {
+        console.error('🚨 CRITICAL: No candidates were successfully processed!');
+
+        // Mark batch as failed
+        if (databaseAvailable) {
           try {
             await database.run(
-              `
-            UPDATE candidates 
-            SET profile_json = $1, overall_score = $2
-            WHERE id = $3
-          `,
-              [
-                JSON.stringify({
-                  ...rankedCandidate.structuredData,
-                  assessment: rankedCandidate.assessment,
-                  interviewQuestions: rankedCandidate.interviewQuestions,
-                  matchedSkills: rankedCandidate.matchedSkills,
-                  missingSkills: rankedCandidate.missingSkills,
-                  rank: rankedCandidate.rank,
-                  rankingReason: rankedCandidate.rankingReason,
-                  recommendationLevel: rankedCandidate.recommendationLevel,
-                }),
-                rankedCandidate.rank, // Use rank as score for sorting
-                rankedCandidate.id,
-              ],
+              `UPDATE cv_batches SET status = 'failed', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+              [batchId],
             );
           } catch (dbError) {
-            // Intentionally empty - error is handled by caller
+            console.error('Failed to update batch status:', dbError);
           }
         }
+
+        return res.status(500).json({
+          success: false,
+          message: 'CV processing failed - No candidates could be processed',
+          data: {
+            batchId: batchId,
+            processed: 0,
+            total: cvFiles.length,
+            errors: processingErrors,
+          },
+        });
       }
 
       // Update batch status to completed (if database available)
       if (databaseAvailable) {
         try {
+          const status = processingErrors.length > 0 ? 'completed_with_warnings' : 'completed';
           await database.run(
             `
-          UPDATE cv_batches 
-          SET status = 'completed', processed_resumes = $1, updated_at = CURRENT_TIMESTAMP 
-          WHERE id = $2
+          UPDATE cv_batches
+          SET status = $1, processed_resumes = $2, updated_at = CURRENT_TIMESTAMP
+          WHERE id = $3
         `,
-            [candidates.length, batchId],
+            [status, candidates.length, batchId],
           );
         } catch (dbError) {
-          // Intentionally empty - error is handled by caller
+          console.error('Failed to update batch:', dbError);
         }
       }
+
+      const responseMessage =
+        processingErrors.length > 0
+          ? `Batch processed with warnings. ${candidates.length}/${cvFiles.length} CVs processed successfully. ${processingErrors.length} failed.`
+          : `Batch processed successfully. ${candidates.length}/${cvFiles.length} CVs processed.`;
 
       res.json({
         success: true,
@@ -389,9 +633,11 @@ router.post(
           processed: candidates.length,
           total: cvFiles.length,
           candidates: candidates,
+          errors: processingErrors,
           databaseStatus: databaseAvailable ? 'connected' : 'offline',
         },
-        message: `Batch processed successfully. ${candidates.length}/${cvFiles.length} CVs processed.${databaseAvailable ? '' : ' (Database offline - results not saved)'}`,
+        message:
+          responseMessage + (databaseAvailable ? '' : ' (Database offline - results not saved)'),
       });
     } catch (error) {
       try {
@@ -416,7 +662,48 @@ router.post(
   },
 );
 
-// GET /api/cv-intelligence/batches - Get all batches
+/**
+ * @swagger
+ * /api/cv-intelligence/batches:
+ *   get:
+ *     tags: [CV Intelligence]
+ *     summary: Get all CV batches
+ *     description: Retrieve all CV processing batches for the authenticated user
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Batches retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [created, processing, completed, failed]
+ *                       total_resumes:
+ *                         type: integer
+ *                       processed_resumes:
+ *                         type: integer
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
 router.get('/batches', authenticateToken, async (req, res) => {
   try {
     await database.connect();
@@ -434,14 +721,14 @@ router.get('/batches', authenticateToken, async (req, res) => {
       [req.user.id],
     );
 
-    // Get candidates for each batch
+    // Get candidates for each batch (sorted by rank ASC - rank 1 is best)
     for (const batch of batches) {
       const candidates = await database.all(
         `
         SELECT id, name, email, phone, overall_score
-        FROM candidates 
-        WHERE batch_id = $1 
-        ORDER BY overall_score DESC
+        FROM candidates
+        WHERE batch_id = $1
+        ORDER BY overall_score ASC, id ASC
       `,
         [batch.id],
       );
@@ -462,7 +749,56 @@ router.get('/batches', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/cv-intelligence/batch/:id - Get batch details
+/**
+ * @swagger
+ * /api/cv-intelligence/batch/{id}:
+ *   get:
+ *     tags: [CV Intelligence]
+ *     summary: Get batch details
+ *     description: Retrieve detailed information about a specific CV batch including all candidates
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Batch ID
+ *     responses:
+ *       200:
+ *         description: Batch details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     batch:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         status:
+ *                           type: string
+ *                         jd_requirements:
+ *                           type: object
+ *                     candidates:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Candidate'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Batch not found
+ */
 router.get('/batch/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -484,11 +820,12 @@ router.get('/batch/:id', authenticateToken, async (req, res) => {
       });
     }
 
+    // Sort candidates by rank ASC (rank 1 = best, rank 2 = second best, etc.)
     const candidates = await database.all(
       `
       SELECT * FROM candidates
       WHERE batch_id = $1
-      ORDER BY overall_score ASC
+      ORDER BY overall_score ASC, id ASC
     `,
       [id],
     );
@@ -504,28 +841,65 @@ router.get('/batch/:id', authenticateToken, async (req, res) => {
       jd_requirements: jdRequirements,
     };
 
-    // Parse candidates with ChatGPT rankings and assessments
+    // Parse candidates with ChatGPT ranking and assessment
     const rankedCandidates = candidates.map((candidate) => {
       const profileData = candidate.profile_json ? JSON.parse(candidate.profile_json) : {};
 
-      // Extract ChatGPT ranking and assessment from profile
+      // Extract ChatGPT rank and reasoning
       const rank = profileData.rank || candidate.overall_score || 999;
-      const rankingReason = profileData.rankingReason || 'Ranking analysis pending';
-      const assessment = profileData.assessment || {};
-      const recommendationLevel =
-        profileData.recommendationLevel || assessment.recommendation || 'Maybe';
+      const rankingReason = profileData.rankingReason || 'Ranking pending';
+      const recommendationLevel = profileData.recommendationLevel || 'Maybe';
+
+      // Extract role assessment
+      const roleAssessment = profileData.roleAssessment || {};
+
+      // Parse skill arrays from JSON strings
+      let matchedSkills = [];
+      let missingSkills = [];
+      let additionalSkills = [];
+
+      try {
+        matchedSkills = candidate.matched_skills ? JSON.parse(candidate.matched_skills) : [];
+      } catch (e) {
+        matchedSkills = [];
+      }
+
+      try {
+        missingSkills = candidate.missing_skills ? JSON.parse(candidate.missing_skills) : [];
+      } catch (e) {
+        missingSkills = [];
+      }
+
+      try {
+        additionalSkills = candidate.additional_skills
+          ? JSON.parse(candidate.additional_skills)
+          : [];
+      } catch (e) {
+        additionalSkills = [];
+      }
 
       return {
         ...candidate,
-        rank: rank,
-        rankingReason: rankingReason,
-        recommendationLevel: recommendationLevel,
-        assessment: assessment,
+        rank: rank, // ChatGPT-assigned rank (1 = best)
+        rankingReason: rankingReason, // Why they got this rank
+        recommendationLevel: recommendationLevel, // Strong Hire / Hire / Maybe / Pass
+        // Assessment details (hide score, show qualitative data)
+        professionalAssessment:
+          candidate.professional_assessment ||
+          roleAssessment.assessment ||
+          'Assessment unavailable',
+        strengths: roleAssessment.strengths || [],
+        gaps: roleAssessment.gaps || [],
+        matchedRequirements: roleAssessment.matchedRequirements || [],
+        missingRequirements: roleAssessment.missingRequirements || [],
+        recommendation: roleAssessment.recommendation || 'Maybe',
+        // Skill arrays properly parsed
+        matchedSkills: matchedSkills,
+        missingSkills: missingSkills,
+        additionalSkills: additionalSkills,
+        // Keep profile data for backward compatibility
         name: candidate.name ? normalizeName(candidate.name) : 'Name not found',
         profile_json: profileData,
-        // Remove score field completely - ChatGPT does the ranking
-        score: undefined,
-        overall_score: undefined,
       };
     });
 
@@ -619,7 +993,41 @@ router.post('/batch/:id/reset', authenticateToken, async (req, res) => {
 
 // Interview scheduling disabled - route removed for cleanup
 
-// DELETE /api/cv-intelligence/batch/:id - Delete batch and all associated candidates
+/**
+ * @swagger
+ * /api/cv-intelligence/batch/{id}:
+ *   delete:
+ *     tags: [CV Intelligence]
+ *     summary: Delete CV batch
+ *     description: Delete a CV batch and all associated candidate data
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Batch ID
+ *     responses:
+ *       200:
+ *         description: Batch deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Batch and all associated candidates deleted successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Batch not found
+ */
 router.delete('/batch/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;

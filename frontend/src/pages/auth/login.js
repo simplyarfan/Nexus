@@ -78,7 +78,6 @@ const Login = () => {
             },
           });
         } else {
-          toast.success('Welcome back!');
           const returnUrl = router.query.returnUrl || '/';
           router.push(returnUrl);
         }
@@ -188,11 +187,16 @@ const Login = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 bg-destructive/10 border border-destructive/30 rounded-lg p-4"
+              className="mb-6 rounded-lg p-4"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
             >
               <div className="flex items-center gap-3">
                 <svg
-                  className="w-5 h-5 text-destructive flex-shrink-0"
+                  className="w-5 h-5 flex-shrink-0"
+                  style={{ color: 'var(--error)' }}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -202,7 +206,9 @@ const Login = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm" style={{ color: 'var(--error)' }}>
+                  {error}
+                </p>
               </div>
             </motion.div>
           )}
@@ -360,7 +366,7 @@ const Login = () => {
               </Link>
             </div>
 
-            <Button type="submit" variant="secondary" size="lg" fullWidth isLoading={isLoading}>
+            <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isLoading}>
               Sign in
             </Button>
           </motion.form>

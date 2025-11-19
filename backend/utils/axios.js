@@ -7,7 +7,7 @@ const axios = require('axios');
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
-  timeout: 10000, // 10 seconds timeout for all requests
+  timeout: 60000, // 60 seconds timeout for most requests (increased from 10s)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -66,8 +66,24 @@ graphAPIInstance.interceptors.response.use(
   axiosInstance.interceptors.response.handlers[0].rejected,
 );
 
+// Create dedicated instance for OpenAI API (very long timeout for AI processing)
+const openAIInstance = axios.create({
+  timeout: 300000, // 5 minutes for OpenAI API (multi-step CV processing can take 2-3 minutes)
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Apply same interceptors to OpenAI instance
+openAIInstance.interceptors.request.use(axiosInstance.interceptors.request.handlers[0].fulfilled);
+openAIInstance.interceptors.response.use(
+  axiosInstance.interceptors.response.handlers[0].fulfilled,
+  axiosInstance.interceptors.response.handlers[0].rejected,
+);
+
 module.exports = {
   axios: axiosInstance,
   graphAPI: graphAPIInstance,
+  openAI: openAIInstance,
   default: axiosInstance,
 };

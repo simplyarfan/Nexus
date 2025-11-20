@@ -159,14 +159,14 @@ export function isValidEmail(email) {
  */
 export function generateGradient(text) {
   const gradients = [
-    'from-orange-500 to-red-600',
-    'from-red-500 to-orange-600',
-    'from-orange-600 to-amber-500',
-    'from-amber-500 to-orange-600',
-    'from-red-600 to-orange-500',
-    'from-orange-400 to-red-500',
-    'from-amber-600 to-red-600',
-    'from-orange-600 to-red-600',
+    'from-green-500 to-green-700',
+    'from-green-600 to-green-800',
+    'from-green-400 to-green-600',
+    'from-emerald-500 to-green-600',
+    'from-green-600 to-emerald-700',
+    'from-green-500 to-emerald-600',
+    'from-teal-600 to-green-700',
+    'from-green-600 to-teal-700',
   ];
 
   const hash = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);

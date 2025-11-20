@@ -32,7 +32,7 @@ export default function About() {
 
       <div className="relative min-h-screen bg-black text-white overflow-hidden">
         {/* Static Dot Grid Background */}
-        <StaticDotGrid dotSize={1} dotColor="#f97316" spacing={40} />
+        <StaticDotGrid dotSize={1} dotColor="#006239" spacing={40} />
 
         {/* StaggeredMenu Navigation */}
         <ClientOnly>
@@ -57,7 +57,7 @@ export default function About() {
             menuButtonColor="#fff"
             openMenuButtonColor="#000"
             changeMenuColorOnOpen={true}
-            accentColor="#f97316"
+            accentColor="#006239"
             logoUrl="/images/logo.png"
           />
         </ClientOnly>
@@ -75,7 +75,7 @@ export default function About() {
                 <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
                   Building the Future of
                   <br />
-                  <div className="flex justify-center mt-4">
+                  <div className="flex justify-center mt-8">
                     <RotatingText
                       texts={[
                         'Artificial Intelligence',
@@ -83,7 +83,7 @@ export default function About() {
                         'Smart Solutions',
                         'Digital Innovation',
                       ]}
-                      mainClassName="text-4xl md:text-5xl px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-2xl inline-block"
+                      mainClassName="text-4xl md:text-5xl px-6 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-2xl inline-block"
                       staggerFrom="last"
                       initial={{ y: '100%' }}
                       animate={{ y: 0 }}
@@ -133,11 +133,11 @@ export default function About() {
                   transition={{ duration: 0.6 }}
                   viewport={{ once: true }}
                   whileHover={{ scale: 1.05 }}
-                  className="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-12 text-white text-center"
+                  className="bg-gradient-to-br from-green-600 to-green-800 rounded-3xl p-12 text-white text-center"
                 >
                   <Rocket className="w-16 h-16 mx-auto mb-6" />
                   <h3 className="text-2xl font-bold mb-4">Innovation First</h3>
-                  <p className="text-orange-100">
+                  <p className="text-green-100">
                     We push the boundaries of what&apos;s possible with AI, constantly exploring new
                     frontiers in machine learning and artificial intelligence.
                   </p>
@@ -184,7 +184,7 @@ export default function About() {
                     title: 'Global Impact',
                     description:
                       'We believe AI should benefit everyone. Our platform democratizes access worldwide.',
-                    gradient: 'from-orange-500 to-red-600',
+                    gradient: 'from-green-600 to-green-800',
                   },
                 ].map((value, index) => (
                   <motion.div
@@ -198,12 +198,12 @@ export default function About() {
                       y: -10,
                       transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                     }}
-                    className="text-center bg-card/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
+                    className="group text-center bg-card/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:bg-card/10 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 ease-out cursor-pointer"
                   >
                     <div
                       className={`w-16 h-16 bg-gradient-to-br ${value.gradient} rounded-2xl flex items-center justify-center mx-auto mb-6`}
                     >
-                      <value.icon className="w-8 h-8 text-white" />
+                      <value.icon className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
@@ -226,7 +226,7 @@ export default function About() {
               </div>
 
               <div className="relative max-w-4xl mx-auto">
-                <div className="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-gradient-to-b from-orange-500 to-red-600"></div>
+                <div className="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-gradient-to-b from-green-600 to-green-800"></div>
 
                 <div className="space-y-16">
                   {[
@@ -278,9 +278,9 @@ export default function About() {
                             <h3 className="text-xl font-bold text-white">{milestone.title}</h3>
                             <p className="text-muted-foreground">{milestone.description}</p>
                           </div>
-                          <div className="w-4 h-4 bg-orange-500 rounded-full relative z-10"></div>
+                          <div className="w-4 h-4 bg-green-500 rounded-full relative z-10"></div>
                           <div className="flex-1 pl-8">
-                            <div className="text-sm font-semibold text-orange-500">
+                            <div className="text-sm font-semibold text-green-400">
                               {milestone.year}
                             </div>
                           </div>
@@ -288,11 +288,11 @@ export default function About() {
                       ) : (
                         <>
                           <div className="flex-1 text-right pr-8">
-                            <div className="text-sm font-semibold text-orange-500">
+                            <div className="text-sm font-semibold text-green-400">
                               {milestone.year}
                             </div>
                           </div>
-                          <div className="w-4 h-4 bg-orange-500 rounded-full relative z-10"></div>
+                          <div className="w-4 h-4 bg-green-500 rounded-full relative z-10"></div>
                           <div className="flex-1 pl-8">
                             <h3 className="text-xl font-bold text-white">{milestone.title}</h3>
                             <p className="text-muted-foreground">{milestone.description}</p>
@@ -353,7 +353,7 @@ export default function About() {
             </div>
           </section>
 
-          <section className="py-16 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-y border-orange-500/20">
+          <section className="py-16 bg-gradient-to-br from-green-500/10 to-green-700/10 border-y border-green-500/20">
             <div className="max-w-4xl mx-auto px-6 text-center">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
@@ -368,10 +368,10 @@ export default function About() {
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                   Be part of the AI revolution and transform your business today.
                 </p>
-                <Link href="/auth/register">
-                  <button className="group relative px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 overflow-hidden">
+                <Link href="/auth/register" className="inline-block mt-6">
+                  <button className="group relative px-8 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-green-500/50 hover:scale-105 transition-all duration-300 overflow-hidden">
                     <span className="relative z-10">Start Your Free Trial</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
                 </Link>
               </motion.div>
@@ -383,7 +383,7 @@ export default function About() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-gradient-to-br from-green-600 to-green-800 rounded-lg flex items-center justify-center">
                     <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                   </div>
                   <span className="text-lg font-bold text-white">Nexus</span>

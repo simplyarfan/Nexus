@@ -9,7 +9,7 @@ import { useEffect, useRef } from 'react';
 
 export default function StaticDotGrid({
   dotSize = 1,
-  dotColor = '#ff6b35',
+  dotColor = '#006239',
   backgroundColor = 'transparent',
   spacing = 40,
   className = '',

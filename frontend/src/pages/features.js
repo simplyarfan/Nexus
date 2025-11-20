@@ -20,7 +20,7 @@ export default function Features() {
 
       <div className="relative min-h-screen bg-black text-white overflow-hidden">
         {/* Static Dot Grid Background */}
-        <StaticDotGrid dotSize={1} dotColor="#f97316" spacing={40} />
+        <StaticDotGrid dotSize={1} dotColor="#006239" spacing={40} />
 
         {/* StaggeredMenu Navigation */}
         <ClientOnly>
@@ -45,7 +45,7 @@ export default function Features() {
             menuButtonColor="#fff"
             openMenuButtonColor="#000"
             changeMenuColorOnOpen={true}
-            accentColor="#f97316"
+            accentColor="#006239"
             logoUrl="/images/logo.png"
           />
         </ClientOnly>
@@ -60,7 +60,7 @@ export default function Features() {
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
                 <GradientText
-                  colors={['#ef4444', '#f97316', '#eab308']}
+                  colors={['#006239', '#33a077', '#66cfa5']}
                   className="text-5xl md:text-7xl"
                 >
                   Powerful AI Agents
@@ -148,12 +148,12 @@ export default function Features() {
                     y: -10,
                     transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                   }}
-                  className="bg-card/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
+                  className="group bg-card/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-card/10 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 ease-out cursor-pointer"
                 >
                   <div
                     className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4`}
                   >
-                    <feature.icon className="w-6 h-6 text-white" />
+                    <feature.icon className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm">{feature.description}</p>
@@ -164,7 +164,7 @@ export default function Features() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 bg-gradient-to-br from-orange-500/10 to-red-500/10 border-y border-orange-500/20">
+        <section className="py-16 bg-gradient-to-br from-green-500/10 to-green-700/10 border-y border-green-500/20">
           <div className="max-w-4xl mx-auto px-6 text-center">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -178,10 +178,10 @@ export default function Features() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                 Join thousands of businesses automating with AI.
               </p>
-              <Link href="/auth/register">
-                <button className="group relative px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 overflow-hidden">
+              <Link href="/auth/register" className="inline-block mt-6">
+                <button className="group relative px-8 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-green-500/50 hover:scale-105 transition-all duration-300 overflow-hidden">
                   <span className="relative z-10">Start Free Trial</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
               </Link>
             </motion.div>
@@ -193,7 +193,7 @@ export default function Features() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
+                <div className="w-6 h-6 bg-gradient-to-br from-green-600 to-green-800 rounded-lg flex items-center justify-center">
                   <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                 </div>
                 <span className="text-lg font-bold">Nexus</span>

@@ -6,16 +6,16 @@
 export const COLORS = {
   // Primary Brand Colors
   primary: {
-    50: '#fff7ed',
-    100: '#ffedd5',
-    200: '#fed7aa',
-    300: '#fdba74',
-    400: '#fb923c',
-    500: '#f97316', // Main orange
-    600: '#ea580c',
-    700: '#c2410c',
-    800: '#9a3412',
-    900: '#7c2d12',
+    50: '#e6f7f0',
+    100: '#ccefe1',
+    200: '#99dfc3',
+    300: '#66cfa5',
+    400: '#33a077',
+    500: '#006239', // Main dark green
+    600: '#005030',
+    700: '#003e27',
+    800: '#002c1e',
+    900: '#001a14',
   },
 
   // Secondary Brand Colors
@@ -73,7 +73,7 @@ export const COLORS = {
 
   // Gradients
   gradients: {
-    primary: 'from-orange-500 to-red-600',
+    primary: 'from-green-600 to-green-800',
     secondary: 'from-purple-500 to-pink-600',
     dark: 'from-gray-800 to-gray-900',
     success: 'from-green-500 to-emerald-600',

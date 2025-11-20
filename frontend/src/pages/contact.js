@@ -32,7 +32,7 @@ export default function Contact() {
 
       <div className="relative min-h-screen bg-black text-white overflow-hidden">
         {/* Static Dot Grid Background */}
-        <StaticDotGrid dotSize={1} dotColor="#f97316" spacing={40} />
+        <StaticDotGrid dotSize={1} dotColor="#006239" spacing={40} />
 
         {/* StaggeredMenu Navigation */}
         <ClientOnly>
@@ -57,7 +57,7 @@ export default function Contact() {
             menuButtonColor="#fff"
             openMenuButtonColor="#000"
             changeMenuColorOnOpen={true}
-            accentColor="#f97316"
+            accentColor="#006239"
             logoUrl="/images/logo.png"
           />
         </ClientOnly>
@@ -72,7 +72,7 @@ export default function Contact() {
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
                 <GradientText
-                  colors={['#ef4444', '#f97316', '#eab308']}
+                  colors={['#006239', '#33a077', '#66cfa5']}
                   className="text-5xl md:text-7xl"
                 >
                   Get in Touch
@@ -100,48 +100,48 @@ export default function Contact() {
                 <h2 className="text-2xl font-bold text-white mb-6">Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-border mb-2">Name</label>
+                    <label className="block text-sm font-medium text-white mb-2">Name</label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 transition-colors"
                       placeholder="Your name"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-border mb-2">Email</label>
+                    <label className="block text-sm font-medium text-white mb-2">Email</label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 transition-colors"
                       placeholder="your@email.com"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-border mb-2">Subject</label>
+                    <label className="block text-sm font-medium text-white mb-2">Subject</label>
                     <input
                       type="text"
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 transition-colors"
                       placeholder="How can we help?"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-border mb-2">Message</label>
+                    <label className="block text-sm font-medium text-white mb-2">Message</label>
                     <textarea
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       rows={6}
-                      className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-transparent border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 transition-colors resize-none"
                       placeholder="Tell us more about your needs..."
                       required
                     />
@@ -149,7 +149,7 @@ export default function Contact() {
 
                   <button
                     type="submit"
-                    className="w-full px-6 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300"
+                    className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-green-500/50 hover:scale-105 transition-all duration-300"
                   >
                     Send Message
                   </button>
@@ -212,7 +212,7 @@ export default function Contact() {
                         x: 10,
                         transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                       }}
-                      className="flex items-start space-x-4 bg-card/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 cursor-pointer"
+                      className="flex items-start space-x-4 bg-card/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 cursor-pointer"
                     >
                       <div
                         className={`w-12 h-12 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center flex-shrink-0`}
@@ -221,7 +221,7 @@ export default function Contact() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white mb-1">{item.title}</h3>
-                        <p className="text-orange-400 font-medium mb-1">{item.content}</p>
+                        <p className="text-green-400 font-medium mb-1">{item.content}</p>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
                       </div>
                     </motion.div>
@@ -237,7 +237,7 @@ export default function Contact() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
+                <div className="w-6 h-6 bg-gradient-to-br from-green-600 to-green-800 rounded-lg flex items-center justify-center">
                   <div className="w-3 h-3 bg-card rounded-sm transform rotate-45"></div>
                 </div>
                 <span className="text-lg font-bold">Nexus</span>

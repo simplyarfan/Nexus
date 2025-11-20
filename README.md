@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/header.svg" alt="Nexus - AI-Powered Recruitment Platform" width="100%"/>
+<img src=".github/header.svg" alt="Nexus - AI-Powered Enterprise Platform" width="100%"/>
 
 <br/>
 
@@ -18,22 +18,22 @@
 
 ## ✧ The Vision
 
-In today's fast-paced hiring landscape, HR teams waste **countless hours** manually reviewing CVs, scheduling interviews, and coordinating with candidates. **Nexus** transforms this chaos into an intelligent, automated workflow that lets you focus on what truly matters: **finding the right talent**.
+Modern enterprises struggle with **fragmented systems**—one for HR, another for sales, a third for finance. Teams drown in manual processes, disconnected workflows, and data silos. **Nexus** changes the game by unifying your entire enterprise into one **AI-powered platform**.
 
-Built from the ground up with cutting-edge AI and modern web technologies, Nexus isn't just another HR tool—it's your **intelligent hiring co-pilot**.
+Built from the ground up with cutting-edge AI and modern web technologies, Nexus isn't just another business tool—it's your **intelligent enterprise operating system**.
 
 ---
 
 ## ✧ What is Nexus?
 
-Nexus is an **AI-native recruitment platform** that brings together:
+Nexus is a **unified AI-native enterprise platform** that brings together:
 
-➜ **CV Intelligence** — AI-powered resume analysis with GPT-4 and Groq (llama-3.3-70b)
-➜ **Smart Ranking** — Comparative candidate assessment against job requirements
-➜ **Interview Coordination** — Automated scheduling with calendar integration
-➜ **Support System** — Built-in ticketing for HR team collaboration
-➜ **Enterprise Security** — Role-based access, 2FA, session management
-➜ **Real-time Analytics** — Live dashboards tracking hiring pipeline metrics
+➜ **HR Intelligence** — AI-powered CV analysis, candidate ranking, and interview automation
+➜ **Sales Operations** — Pipeline management, lead tracking, and performance dashboards
+➜ **Finance Management** — Budget oversight, expense tracking, and financial analytics
+➜ **Enterprise Security** — Role-based access control, 2FA, and session management
+➜ **Support System** — Cross-department ticketing and collaboration tools
+➜ **Real-time Analytics** — Unified dashboards for HR, Sales, Finance, and Admin teams
 
 ---
 
@@ -43,22 +43,44 @@ Nexus is an **AI-native recruitment platform** that brings together:
 <tr>
 <td width="50%">
 
-### AI-Powered CV Analysis
-➜ Batch processing (up to 10 CVs at once)
-➜ Intelligent matching against job descriptions
-➜ Education, experience, and skills verification
-➜ Comparative ranking with detailed reasoning
+### AI-Powered HR Intelligence
+➜ Batch CV processing (up to 10 at once)
+➜ Intelligent candidate-job matching
+➜ Comparative ranking with reasoning
+➜ Automated interview scheduling
 ➜ Groq AI integration (10x faster, FREE)
 
 </td>
 <td width="50%">
 
-### Interview Coordination
-➜ Auto-generate interview questions
-➜ Calendar integration (Google, Outlook)
-➜ ICS invite generation (RFC 5545 compliant)
-➜ Email templates with customization
-➜ Conflict detection & alternative slots
+### Sales Operations
+➜ Pipeline management & tracking
+➜ Lead conversion analytics
+➜ Performance dashboards
+➜ Territory management
+➜ Real-time reporting
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Finance Management
+➜ Budget oversight & tracking
+➜ Expense management
+➜ Financial analytics & forecasting
+➜ Department allocation
+➜ Cost center reporting
+
+</td>
+<td width="50%">
+
+### Enterprise-Grade Security
+➜ JWT + Refresh token authentication
+➜ Two-factor authentication (TOTP)
+➜ Role-based access control (RBAC)
+➜ AES-256 data encryption
+➜ Rate limiting & DDoS prevention
 
 </td>
 </tr>
@@ -75,12 +97,12 @@ Nexus is an **AI-native recruitment platform** that brings together:
 </td>
 <td width="50%">
 
-### Enterprise-Grade Security
-➜ JWT + Refresh token authentication
-➜ Two-factor authentication (TOTP)
-➜ AES-256 data encryption
-➜ CSRF protection
-➜ Rate limiting & DDoS prevention
+### Cross-Department Tools
+➜ Unified support ticketing system
+➜ Email integration (Gmail, Outlook)
+➜ Calendar synchronization
+➜ Real-time notifications
+➜ Collaborative workspaces
 
 </td>
 </tr>
@@ -175,20 +197,20 @@ graph TB
 ## ✧ Why Nexus?
 
 ### The Problem
-Traditional hiring processes are:
+Traditional enterprise operations are broken:
 
-➜ **Time-consuming** — 40+ hours per position spent on CV screening
-➜ **Error-prone** — Human bias and missed qualifications
-➜ **Repetitive** — Same questions, same scheduling headaches
-➜ **Unscalable** — Can't handle hiring spikes efficiently
+➜ **Fragmented Systems** — Separate platforms for HR, Sales, Finance costing $1000s/month
+➜ **Data Silos** — Teams can't access cross-department insights
+➜ **Manual Processes** — Hours wasted on repetitive tasks across all departments
+➜ **No Unified View** — Leadership lacks real-time enterprise visibility
 
 ### The Solution
-Nexus automates the mundane, amplifies the important:
+Nexus unifies, automates, and amplifies:
 
-➜ **10-second CV analysis** vs. 10 minutes manual review
-➜ **AI-backed decisions** with transparent reasoning
-➜ **Automated workflows** from screening to scheduling
-➜ **Scalable architecture** handling 100s of CVs simultaneously
+➜ **One Platform** — HR, Sales, Finance in a single unified system
+➜ **AI Automation** — 10-second CV analysis, automated reporting, intelligent insights
+➜ **Cross-Department Intelligence** — Unified analytics across all business units
+➜ **Enterprise Scale** — Built to handle growth from startup to enterprise
 
 ---
 
@@ -200,7 +222,7 @@ Nexus automates the mundane, amplifies the important:
 
 </div>
 
-➜ **User-First** — Built for HR professionals, not engineers
+➜ **User-First** — Built for business professionals, not engineers
 ➜ **AI-Native** — Intelligence baked into every feature, not bolted on
 ➜ **Performance** — Sub-second page loads, real-time updates
 ➜ **Accessibility** — WCAG 2.1 compliant, keyboard navigation
@@ -214,10 +236,12 @@ Nexus automates the mundane, amplifies the important:
 
 | Metric | Before Nexus | With Nexus | Improvement |
 |:------:|:------------:|:----------:|:-----------:|
+| Platform Cost | $3,000/mo | $0* | **100% savings** |
 | CV Screening Time | 10 min/CV | 10 sec/CV | **98% faster** |
-| Interview Scheduling | 30 min/candidate | 2 min/candidate | **93% faster** |
-| Candidate Response Rate | 45% | 78% | **+73%** |
-| Cost per Hire | $4,500 | $1,200 | **73% cheaper** |
+| Report Generation | 2 hours | 5 minutes | **95% faster** |
+| Cross-Dept Collaboration | Email chaos | Unified system | **∞ better** |
+
+*Self-hosted or cloud deployment costs only
 
 </div>
 
@@ -254,19 +278,19 @@ Not just scores—**contextual comparisons**:
 <td width="33%">
 
 ### Startups
-Hire fast without sacrificing quality. Process 100+ applications for your first 10 hires.
+Unified platform for HR, Sales, and Finance. Skip $3K/mo SaaS costs. Scale from day one with enterprise features.
+
+</td>
+<td width="33%">
+
+### SMBs
+Eliminate tool sprawl. One platform for recruiting, pipeline tracking, and budget management across all departments.
 
 </td>
 <td width="33%">
 
 ### Enterprises
-Scale recruitment across departments. Standardize hiring with AI-powered consistency.
-
-</td>
-<td width="33%">
-
-### Agencies
-Manage multiple clients. Match candidates to opportunities with intelligent filtering.
+Standardize operations across business units. Real-time visibility from leadership to individual contributors.
 
 </td>
 </tr>

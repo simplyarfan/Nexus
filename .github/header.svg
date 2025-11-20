@@ -2,32 +2,37 @@
   <defs>
     <!-- Gradient backgrounds -->
     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#312e81;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
     </linearGradient>
 
     <linearGradient id="glowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.8" />
-      <stop offset="50%" style="stop-color:#d946ef;stop-opacity:0.6" />
-      <stop offset="100%" style="stop-color:#0ea5e9;stop-opacity:0.4" />
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#059669;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:0.4" />
     </linearGradient>
 
     <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#c084fc;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#e879f9;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6ee7b7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
     </linearGradient>
 
     <!-- Grid pattern -->
     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#8b5cf6" stroke-width="0.5" opacity="0.3"/>
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10b981" stroke-width="0.5" opacity="0.2"/>
     </pattern>
 
     <!-- Star pattern for background -->
     <radialGradient id="starGradient">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
     </radialGradient>
   </defs>
 
@@ -35,35 +40,35 @@
   <rect width="1200" height="400" fill="url(#bgGradient)"/>
 
   <!-- Stars -->
-  <circle cx="100" cy="50" r="1.5" fill="url(#starGradient)" opacity="0.8"/>
-  <circle cx="250" cy="80" r="1" fill="url(#starGradient)" opacity="0.6"/>
-  <circle cx="450" cy="40" r="1.2" fill="url(#starGradient)" opacity="0.7"/>
-  <circle cx="650" cy="70" r="1" fill="url(#starGradient)" opacity="0.5"/>
-  <circle cx="850" cy="45" r="1.5" fill="url(#starGradient)" opacity="0.9"/>
-  <circle cx="1050" cy="65" r="1" fill="url(#starGradient)" opacity="0.6"/>
-  <circle cx="150" cy="90" r="0.8" fill="url(#starGradient)" opacity="0.5"/>
-  <circle cx="350" cy="55" r="1.2" fill="url(#starGradient)" opacity="0.8"/>
-  <circle cx="550" cy="85" r="1" fill="url(#starGradient)" opacity="0.6"/>
-  <circle cx="750" cy="35" r="1.5" fill="url(#starGradient)" opacity="0.7"/>
-  <circle cx="950" cy="75" r="1" fill="url(#starGradient)" opacity="0.8"/>
-  <circle cx="1100" cy="50" r="1.2" fill="url(#starGradient)" opacity="0.6"/>
+  <circle cx="100" cy="50" r="1.5" fill="#10b981" opacity="0.8"/>
+  <circle cx="250" cy="80" r="1" fill="#34d399" opacity="0.6"/>
+  <circle cx="450" cy="40" r="1.2" fill="#10b981" opacity="0.7"/>
+  <circle cx="650" cy="70" r="1" fill="#6ee7b7" opacity="0.5"/>
+  <circle cx="850" cy="45" r="1.5" fill="#10b981" opacity="0.9"/>
+  <circle cx="1050" cy="65" r="1" fill="#34d399" opacity="0.6"/>
+  <circle cx="150" cy="90" r="0.8" fill="#10b981" opacity="0.5"/>
+  <circle cx="350" cy="55" r="1.2" fill="#6ee7b7" opacity="0.8"/>
+  <circle cx="550" cy="85" r="1" fill="#10b981" opacity="0.6"/>
+  <circle cx="750" cy="35" r="1.5" fill="#34d399" opacity="0.7"/>
+  <circle cx="950" cy="75" r="1" fill="#10b981" opacity="0.8"/>
+  <circle cx="1100" cy="50" r="1.2" fill="#6ee7b7" opacity="0.6"/>
 
   <!-- Grid overlay -->
   <rect width="1200" height="400" fill="url(#grid)"/>
 
   <!-- Perspective grid lines (horizon effect) -->
-  <g opacity="0.4">
-    <line x1="0" y1="300" x2="600" y2="250" stroke="#8b5cf6" stroke-width="1"/>
-    <line x1="1200" y1="300" x2="600" y2="250" stroke="#8b5cf6" stroke-width="1"/>
-    <line x1="100" y1="320" x2="600" y2="260" stroke="#d946ef" stroke-width="0.5"/>
-    <line x1="1100" y1="320" x2="600" y2="260" stroke="#d946ef" stroke-width="0.5"/>
-    <line x1="200" y1="340" x2="600" y2="270" stroke="#0ea5e9" stroke-width="0.5"/>
-    <line x1="1000" y1="340" x2="600" y2="270" stroke="#0ea5e9" stroke-width="0.5"/>
+  <g opacity="0.3">
+    <line x1="0" y1="300" x2="600" y2="250" stroke="#10b981" stroke-width="1"/>
+    <line x1="1200" y1="300" x2="600" y2="250" stroke="#10b981" stroke-width="1"/>
+    <line x1="100" y1="320" x2="600" y2="260" stroke="#059669" stroke-width="0.5"/>
+    <line x1="1100" y1="320" x2="600" y2="260" stroke="#059669" stroke-width="0.5"/>
+    <line x1="200" y1="340" x2="600" y2="270" stroke="#047857" stroke-width="0.5"/>
+    <line x1="1000" y1="340" x2="600" y2="270" stroke="#047857" stroke-width="0.5"/>
   </g>
 
   <!-- Glow orbs -->
-  <circle cx="200" cy="200" r="80" fill="url(#glowGradient)" opacity="0.15" filter="blur(40px)"/>
-  <circle cx="1000" cy="220" r="100" fill="url(#glowGradient)" opacity="0.15" filter="blur(40px)"/>
+  <circle cx="200" cy="200" r="100" fill="url(#glowGradient)" opacity="0.15" filter="blur(40px)"/>
+  <circle cx="1000" cy="220" r="120" fill="url(#glowGradient)" opacity="0.15" filter="blur(40px)"/>
 
   <!-- Main content -->
   <g transform="translate(600, 180)">
@@ -80,6 +85,21 @@
       style="text-transform: uppercase;"
     >NEXUS</text>
 
+    <!-- Text shadow effect -->
+    <text
+      x="0"
+      y="0"
+      font-family="'Arial Black', 'Impact', sans-serif"
+      font-size="120"
+      font-weight="900"
+      fill="#10b981"
+      text-anchor="middle"
+      letter-spacing="8"
+      opacity="0.3"
+      filter="blur(10px)"
+      style="text-transform: uppercase;"
+    >NEXUS</text>
+
     <!-- Subtitle -->
     <text
       x="0"
@@ -87,7 +107,7 @@
       font-family="'Courier New', monospace"
       font-size="22"
       font-weight="400"
-      fill="#e0e7ff"
+      fill="#d1fae5"
       text-anchor="middle"
       letter-spacing="2"
       opacity="0.9"
@@ -100,7 +120,7 @@
       font-family="'Courier New', monospace"
       font-size="16"
       font-weight="300"
-      fill="#c7d2fe"
+      fill="#a7f3d0"
       text-anchor="middle"
       letter-spacing="1"
       opacity="0.7"
@@ -111,38 +131,49 @@
   <g transform="translate(600, 320)">
     <!-- Next.js badge -->
     <g transform="translate(-180, 0)">
-      <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#000000" opacity="0.8"/>
-      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Next.js</text>
+      <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#1e293b" opacity="0.9" stroke="#10b981" stroke-width="1"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#6ee7b7" text-anchor="middle" font-weight="600">Next.js</text>
     </g>
 
     <!-- AI badge -->
     <g transform="translate(-60, 0)">
-      <rect x="-35" y="-12" width="70" height="24" rx="12" fill="#8b5cf6" opacity="0.8"/>
-      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">Groq AI</text>
+      <rect x="-35" y="-12" width="70" height="24" rx="12" fill="#10b981" opacity="0.9"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="700">Groq AI</text>
     </g>
 
     <!-- PostgreSQL badge -->
     <g transform="translate(60, 0)">
-      <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#4169E1" opacity="0.8"/>
-      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">PostgreSQL</text>
+      <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#1e293b" opacity="0.9" stroke="#10b981" stroke-width="1"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#6ee7b7" text-anchor="middle" font-weight="600">PostgreSQL</text>
     </g>
 
     <!-- Deployed badge -->
     <g transform="translate(180, 0)">
-      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#10b981" opacity="0.8"/>
-      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">LIVE</text>
+      <rect x="-40" y="-12" width="80" height="24" rx="12" fill="#059669" opacity="0.9"/>
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" fill="#f0fdf4" text-anchor="middle" font-weight="700">LIVE</text>
     </g>
   </g>
 
   <!-- Decorative lines -->
-  <line x1="300" y1="150" x2="400" y2="150" stroke="url(#textGradient)" stroke-width="2" opacity="0.6"/>
-  <line x1="800" y1="150" x2="900" y2="150" stroke="url(#textGradient)" stroke-width="2" opacity="0.6"/>
+  <line x1="300" y1="150" x2="400" y2="150" stroke="url(#accentGradient)" stroke-width="2" opacity="0.6"/>
+  <line x1="800" y1="150" x2="900" y2="150" stroke="url(#accentGradient)" stroke-width="2" opacity="0.6"/>
 
   <!-- Corner accents -->
-  <g opacity="0.3">
-    <polyline points="50,50 50,100 100,100" fill="none" stroke="#8b5cf6" stroke-width="2"/>
-    <polyline points="1150,50 1150,100 1100,100" fill="none" stroke="#8b5cf6" stroke-width="2"/>
-    <polyline points="50,350 50,300 100,300" fill="none" stroke="#0ea5e9" stroke-width="2"/>
-    <polyline points="1150,350 1150,300 1100,300" fill="none" stroke="#0ea5e9" stroke-width="2"/>
+  <g opacity="0.4">
+    <polyline points="50,50 50,100 100,100" fill="none" stroke="#10b981" stroke-width="2"/>
+    <polyline points="1150,50 1150,100 1100,100" fill="none" stroke="#10b981" stroke-width="2"/>
+    <polyline points="50,350 50,300 100,300" fill="none" stroke="#059669" stroke-width="2"/>
+    <polyline points="1150,350 1150,300 1100,300" fill="none" stroke="#059669" stroke-width="2"/>
+  </g>
+
+  <!-- Subtle circuit pattern overlay -->
+  <g opacity="0.1">
+    <circle cx="150" cy="120" r="3" fill="#10b981"/>
+    <line x1="150" y1="120" x2="200" y2="120" stroke="#10b981" stroke-width="1"/>
+    <circle cx="200" cy="120" r="2" fill="#10b981"/>
+
+    <circle cx="1050" cy="140" r="3" fill="#10b981"/>
+    <line x1="1050" y1="140" x2="1000" y2="140" stroke="#10b981" stroke-width="1"/>
+    <circle cx="1000" cy="140" r="2" fill="#10b981"/>
   </g>
 </svg>

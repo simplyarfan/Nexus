@@ -164,19 +164,11 @@ const Login = () => {
             className="text-center mb-8"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
+              <img
+                src="/images/logo_N.png"
+                alt="Nexus Logo"
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back</h1>
             <p className="text-muted-foreground">Sign in to your Nexus account</p>

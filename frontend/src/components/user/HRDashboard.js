@@ -10,7 +10,6 @@ export default function HRDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
-    activeBatches: 0,
     totalCandidates: 0,
     scheduledInterviews: 0,
     openPositions: 0,
@@ -39,7 +38,14 @@ export default function HRDashboard() {
           return;
         }
 
-        const batchesResponse = await fetch(`${API_BASE_URL}/api/cv-intelligence/batches`, {
+        const candidatesResponse = await fetch(`${API_BASE_URL}/api/candidates/stats`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const positionsResponse = await fetch(`${API_BASE_URL}/api/job-positions/stats`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -56,15 +62,19 @@ export default function HRDashboard() {
           },
         );
 
-        let activeBatches = 0;
         let totalCandidates = 0;
+        let openPositions = 0;
         let scheduledInterviews = 0;
 
-        if (batchesResponse.ok) {
-          const batchesResult = await batchesResponse.json();
-          const batches = batchesResult.data || [];
-          activeBatches = batches.length; // Show all batches, not just non-completed ones
-          totalCandidates = batches.reduce((sum, batch) => sum + (batch.candidate_count || 0), 0);
+        if (candidatesResponse.ok) {
+          const candidatesResult = await candidatesResponse.json();
+          totalCandidates = candidatesResult.stats?.total || 0;
+        }
+
+        if (positionsResponse.ok) {
+          const positionsResult = await positionsResponse.json();
+          const positionsData = positionsResult.data || {};
+          openPositions = positionsData.open || 0;
         }
 
         if (interviewsResponse.ok) {
@@ -74,10 +84,9 @@ export default function HRDashboard() {
         }
 
         setStats({
-          activeBatches,
           totalCandidates,
+          openPositions,
           scheduledInterviews,
-          openPositions: 0,
         });
       } catch (error) {
         // Intentionally empty - loading state handled by finally block, fallback stats (0) shown on failure
@@ -151,13 +160,28 @@ export default function HRDashboard() {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
           />
         </svg>
       ),
-      title: 'CV Intelligence',
-      description: 'Analyze resumes and rank candidates automatically',
-      href: '/cv-intelligence',
+      title: 'Candidates',
+      description: 'Browse and manage all candidate profiles with AI matching',
+      href: '/candidates',
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+      title: 'Open Positions',
+      description: 'Create and manage job positions with AI-powered JD parsing',
+      href: '/job-positions',
     },
     {
       icon: (
@@ -548,10 +572,16 @@ export default function HRDashboard() {
                           />
                         </svg>
                       </div>
-                      {agent.title === 'CV Intelligence' && (
+                      {agent.title === 'Candidates' && (
                         <div className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
-                          {loading ? '...' : stats.activeBatches}{' '}
-                          {stats.activeBatches === 1 ? 'Batch' : 'Batches'}
+                          {loading ? '...' : stats.totalCandidates}{' '}
+                          {stats.totalCandidates === 1 ? 'Candidate' : 'Candidates'}
+                        </div>
+                      )}
+                      {agent.title === 'Open Positions' && (
+                        <div className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+                          {loading ? '...' : stats.openPositions}{' '}
+                          {stats.openPositions === 1 ? 'Position' : 'Positions'}
                         </div>
                       )}
                       {agent.title === 'Interview Coordinator' && (
@@ -559,12 +589,6 @@ export default function HRDashboard() {
                           {loading ? '...' : stats.scheduledInterviews} Scheduled
                         </div>
                       )}
-                      {agent.title !== 'CV Intelligence' &&
-                        agent.title !== 'Interview Coordinator' && (
-                          <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                            AI Powered
-                          </div>
-                        )}
                     </div>
                   </div>
                 </motion.div>

@@ -1,4 +1,3 @@
-// Prisma Schema - Matches Production Database
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,206 +7,441 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                          Int       @id @default(autoincrement())
-  email                       String    @unique
-  password_hash               String
-  first_name                  String
-  last_name                   String
-  role                        String
-  department                  String?
-  job_title                   String?
-  phone                       String?
-  bio                         String?   @db.Text
-  profile_picture_url         String?   @db.Text
-  is_active                   Boolean   @default(true)
-  is_verified                 Boolean   @default(false)
-  verification_token          String?
-  verification_expiry         DateTime?
-  reset_token                 String?
-  reset_token_expiry          DateTime?
-  last_login                  DateTime?
-  created_at                  DateTime  @default(now())
-  updated_at                  DateTime  @updatedAt
-  failed_login_attempts       Int       @default(0)
-  account_locked_until        DateTime?
-  outlook_access_token        String?
-  outlook_refresh_token       String?
-  outlook_token_expires_at    DateTime?
-  outlook_email               String?
-  two_factor_enabled          Boolean   @default(false)
-  two_factor_secret           String?
-  two_factor_code             String?
-  two_factor_code_expires_at  DateTime?
-  google_access_token         String?
-  google_refresh_token        String?
-  google_token_expires_at     DateTime?
-  outlook_pkce_verifier       String?
-  timezone                    String?   @default("Asia/Riyadh")
-  date_format                 String?   @default("MM/DD/YYYY")
+model agent_usage_stats {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  agent_id         String    @db.VarChar(100)
+  usage_count      Int?      @default(0)
+  total_time_spent Int?      @default(0)
+  date             DateTime  @db.Date
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  sessions                    UserSession[]
-  cvBatches                   CvBatch[]
-  interviews                  Interview[]
-  tickets                     SupportTicket[]  @relation("UserTickets")
-  assignedTickets             SupportTicket[]  @relation("AssignedTickets")
-  comments                    TicketComment[]  @relation("UserComments")
-  notifications               Notification[]   @relation("UserNotifications")
-
-  @@map("users")
+  @@unique([user_id, agent_id, date])
+  @@index([agent_id, date(sort: Desc)], map: "idx_analytics_agent_date")
 }
 
-model UserSession {
-  id             Int       @id @default(autoincrement())
-  user_id        Int
-  session_token  String    @unique
-  refresh_token  String    @unique
-  ip_address     String?
-  user_agent     String?
-  expires_at     DateTime
-  created_at     DateTime  @default(now())
-
-  user           User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("user_sessions")
+model candidate_notes {
+  id                 Int                @id @default(autoincrement())
+  candidate_id       String
+  author_id          Int
+  content            String
+  note_type          String?            @default("general") @db.VarChar(50)
+  created_at         DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?          @default(now()) @db.Timestamp(6)
+  candidate_profiles candidate_profiles @relation(fields: [candidate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-// CV Intelligence Models
-model CvBatch {
-  id              String      @id @default(uuid())
-  userId          Int
-  batchName       String
-  position        String
-  jobDescription  String?     @db.Text
-  status          String      @default("processing")  // processing, completed, failed
-  cvCount         Int         @default(0)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+model candidate_profiles {
+  id                   String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email                String             @unique @db.VarChar(255)
+  name                 String             @db.VarChar(255)
+  phone                String?            @db.VarChar(50)
+  location             String?            @db.VarChar(255)
+  linkedin_url         String?
+  portfolio_url        String?
+  current_company      String?            @db.VarChar(255)
+  current_title        String?            @db.VarChar(255)
+  years_of_experience  Int?
+  education_level      String?            @db.VarChar(100)
+  primary_skills       String[]
+  certifications       String[]
+  languages            String[]
+  performance_score    Int?
+  potential_score      Int?
+  overall_match_score  Int?
+  availability_status  String?            @default("available") @db.VarChar(50)
+  expected_salary_min  Int?
+  expected_salary_max  Int?
+  salary_currency      String?            @default("USD") @db.VarChar(10)
+  notice_period_days   Int?
+  willing_to_relocate  Boolean?           @default(false)
+  experience_timeline  Json?
+  strengths            String[]
+  latest_cv_url        String?
+  cv_last_updated      DateTime?          @db.Timestamp(6)
+  source_cv_batches    String[]
+  merged_candidate_ids String[]
+  created_at           DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?          @default(now()) @db.Timestamp(6)
+  candidate_notes      candidate_notes[]
+  job_applications     job_applications[]
 
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  candidates      Candidate[]
-
-  @@map("cv_batches")
+  @@index([availability_status], map: "idx_candidate_profiles_availability")
+  @@index([email], map: "idx_candidate_profiles_email")
+  @@index([overall_match_score(sort: Desc)], map: "idx_candidate_profiles_overall_score")
 }
 
-model Candidate {
-  id                      String      @id @default(uuid())
-  batchId                 String
-  name                    String
-  email                   String
-  phone                   String?
-  location                String?
-  overallScore            Int
-  experience              String?
-  education               String?
-  salary                  String?
-  matchedSkills           String[]    // Array of matched skills
-  missingSkills           String[]    // Array of missing skills
-  additionalSkills        String[]    // Array of additional skills
-  experienceTimeline      Json?       // JSON array of {company, role, period}
-  certifications          String[]    // Array of certifications
-  professionalAssessment  String?     @db.Text
-  cvFileUrl               String?
-  createdAt               DateTime    @default(now())
-  updatedAt               DateTime    @updatedAt
+model candidates {
+  id                      String    @id @db.VarChar(255)
+  batch_id                String    @db.VarChar(255)
+  name                    String?   @db.VarChar(255)
+  email                   String?   @db.VarChar(255)
+  phone                   String?   @db.VarChar(50)
+  location                String?   @db.VarChar(255)
+  profile_json            String?
+  overall_score           Int?      @default(0)
+  created_at              DateTime? @default(now()) @db.Timestamp(6)
+  professional_assessment String?
+  experience              Json?
+  education               Json?
+  rank_reasoning          String?
+  recommendation_level    String?
+  matched_skills          String?
+  missing_skills          String?
+  additional_skills       String?
 
-  batch                   CvBatch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
-
-  @@map("candidates")
+  @@index([batch_id], map: "idx_candidates_batch_id")
+  @@index([batch_id, overall_score(sort: Desc)], map: "idx_candidates_batch_score")
+  @@index([email], map: "idx_candidates_email")
+  @@index([overall_score], map: "idx_candidates_overall_score")
 }
 
-// Interview Coordinator Models
-model Interview {
-  id                  String      @id @default(uuid())
-  candidate_id        String
-  candidate_name      String
-  candidate_email     String
-  job_title           String
-  status              String
-  interview_type      String?
-  scheduled_time      DateTime?
-  duration            Int?
-  platform            String?
+model cv_batches {
+  id                String    @id @db.VarChar(255)
+  user_id           Int
+  name              String    @db.VarChar(255)
+  status            String?   @default("processing") @db.VarChar(50)
+  total_resumes     Int?      @default(0)
+  processed_resumes Int?      @default(0)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  jd_requirements   String?
+
+  @@index([user_id, status, created_at(sort: Desc)], map: "idx_batches_user_status")
+  @@index([created_at], map: "idx_cv_batches_created_at")
+  @@index([status], map: "idx_cv_batches_status")
+  @@index([user_id], map: "idx_cv_batches_user_id")
+}
+
+model interview_reminders {
+  id              String     @id @db.VarChar(255)
+  interview_id    String     @db.VarChar(255)
+  reminder_type   String     @db.VarChar(50)
+  recipient_email String     @db.VarChar(255)
+  message         String
+  send_at         DateTime   @db.Timestamp(6)
+  sent            Boolean?   @default(false)
+  sent_at         DateTime?  @db.Timestamp(6)
+  created_at      DateTime?  @default(now()) @db.Timestamp(6)
+  interviews      interviews @relation(fields: [interview_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([interview_id], map: "idx_interview_reminders_interview_id")
+  @@index([send_at], map: "idx_interview_reminders_send_at")
+  @@index([sent], map: "idx_interview_reminders_sent")
+  @@index([send_at, sent], map: "idx_reminders_send_at_sent")
+}
+
+model interviews {
+  id                  String                @id @db.VarChar(255)
+  candidate_id        String                @db.VarChar(255)
+  candidate_name      String                @db.VarChar(255)
+  candidate_email     String                @db.VarChar(255)
+  job_title           String                @db.VarChar(255)
+  interview_type      String?               @default("technical") @db.VarChar(50)
+  status              String?               @default("scheduled") @db.VarChar(50)
+  scheduled_time      DateTime?             @db.Timestamp(6)
+  duration            Int?                  @default(60)
+  location            String?               @default("Video Call") @db.VarChar(255)
   meeting_link        String?
   calendly_link       String?
   google_form_link    String?
-  panel_members       String?     @db.Text
-  generated_questions String?     @db.Text
-  notes               String?     @db.Text
+  panel_members       String?
+  generated_questions String?
+  notes               String?
   scheduled_by        Int
-  outcome             String?
-  scheduled_at        DateTime?
+  created_at          DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?             @default(now()) @db.Timestamp(6)
+  platform            String?               @db.VarChar(100)
+  outcome             String?               @db.VarChar(50)
+  scheduled_at        DateTime?             @db.Timestamp(6)
   cv_file_path        String?
-  teams_meeting_id    String?
-  created_at          DateTime    @default(now())
-  updated_at          DateTime    @updatedAt
+  google_event_id     String?               @db.VarChar(255)
+  teams_meeting_id    String?               @db.VarChar(255)
+  cc_emails           String?
+  bcc_emails          String?
+  interview_reminders interview_reminders[]
 
-  user                User        @relation(fields: [scheduled_by], references: [id], onDelete: Cascade)
-
-  @@map("interviews")
-  @@index([scheduled_by])
-  @@index([candidate_email])
-  @@index([scheduled_time])
-  @@index([status])
+  @@index([candidate_email], map: "idx_interviews_candidate_email")
+  @@index([candidate_id], map: "idx_interviews_candidate_id")
+  @@index([scheduled_at], map: "idx_interviews_scheduled_at")
+  @@index([scheduled_by], map: "idx_interviews_scheduled_by")
+  @@index([scheduled_time], map: "idx_interviews_scheduled_time")
+  @@index([scheduled_time, status], map: "idx_interviews_scheduled_time_status")
+  @@index([status], map: "idx_interviews_status")
 }
 
-// Support Ticket System
-model SupportTicket {
-  id          Int       @id @default(autoincrement())
-  user_id     Int
-  subject     String    @db.VarChar(255)
-  description String    @db.Text
-  status      String    @default("open") @db.VarChar(50)
-  priority    String    @default("medium") @db.VarChar(20)
-  category    String    @default("general") @db.VarChar(50)
-  assigned_to Int?
-  resolution  String?   @db.Text
-  resolved_at DateTime?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+model job_applications {
+  id                     String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  candidate_id           String
+  job_position_id        String
+  status                 String?            @default("applied") @db.VarChar(50)
+  current_stage          String?            @db.VarChar(100)
+  stage_number           Int?               @default(1)
+  position_match_score   Int?
+  performance_score      Int?
+  potential_score        Int?
+  // Enhanced AI Match Scoring Fields
+  skills_match_score     Int?
+  experience_match_score Int?
+  location_match_score   Int?
+  salary_match_score     Int?
+  context_match_score    Int?
+  match_reasoning        String?
+  match_strengths        String[]
+  match_concerns         String[]
+  match_category         String?            @db.VarChar(20)
+  auto_matched           Boolean?           @default(false)
+  // End Enhanced Fields
+  cover_letter           String?
+  applied_via            String?            @db.VarChar(100)
+  referrer_name          String?            @db.VarChar(255)
+  interview_ids          String[]
+  total_interviews       Int?               @default(0)
+  interviews_completed   Int?               @default(0)
+  applied_at             DateTime?          @default(now()) @db.Timestamp(6)
+  last_activity_at       DateTime?          @default(now()) @db.Timestamp(6)
+  rejected_at            DateTime?          @db.Timestamp(6)
+  offer_sent_at          DateTime?          @db.Timestamp(6)
+  offer_accepted_at      DateTime?          @db.Timestamp(6)
+  recruiter_notes        String?
+  rejection_reason       String?
+  created_at             DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at             DateTime?          @default(now()) @db.Timestamp(6)
+  candidate_profiles     candidate_profiles @relation(fields: [candidate_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  job_positions          job_positions      @relation(fields: [job_position_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  user        User            @relation("UserTickets", fields: [user_id], references: [id], onDelete: Cascade)
-  assignedTo  User?           @relation("AssignedTickets", fields: [assigned_to], references: [id], onDelete: SetNull)
-  comments    TicketComment[]
-
-  @@map("support_tickets")
-  @@index([user_id])
-  @@index([status])
-  @@index([status, created_at])
-  @@index([priority, status])
-  @@index([user_id, status])
+  @@unique([candidate_id, job_position_id])
+  @@index([candidate_id], map: "idx_job_applications_candidate")
+  @@index([job_position_id], map: "idx_job_applications_position")
+  @@index([position_match_score(sort: Desc)], map: "idx_job_applications_score")
+  @@index([match_category], map: "idx_job_applications_category")
+  @@index([auto_matched], map: "idx_job_applications_auto_matched")
 }
 
-model TicketComment {
-  id          Int      @id @default(autoincrement())
-  ticket_id   Int
-  user_id     Int
-  comment     String   @db.Text
-  is_internal Boolean  @default(false)
-  created_at  DateTime @default(now())
-
-  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
-  user        User          @relation("UserComments", fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("ticket_comments")
-  @@index([ticket_id, created_at])
+model job_positions {
+  id                String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title             String             @db.VarChar(255)
+  department        String             @db.VarChar(100)
+  location          String?            @db.VarChar(255)
+  employment_type   String?            @db.VarChar(50)
+  experience_level  String?            @db.VarChar(50)
+  salary_range_min  Int?
+  salary_range_max  Int?
+  currency          String?            @default("USD") @db.VarChar(10)
+  description       String?
+  requirements      Json?
+  responsibilities  Json?
+  required_skills   String[]
+  preferred_skills  String[]
+  benefits          Json?
+  status            String?            @default("open") @db.VarChar(50)
+  hiring_manager_id Int?
+  openings_count    Int?               @default(1)
+  remote_policy     String?            @db.VarChar(50)
+  created_by        Int?
+  created_at        DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?          @default(now()) @db.Timestamp(6)
+  filled_at         DateTime?          @db.Timestamp(6)
+  job_applications  job_applications[]
 }
 
-// Notification System
-model Notification {
+model jobs {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           Int
+  title             String    @db.VarChar(255)
+  description       String
+  requirements_json Json
+  embedding         String?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  users             users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model notifications {
   id         Int       @id @default(autoincrement())
   user_id    Int
   type       String    @db.VarChar(50)
   title      String    @db.VarChar(255)
-  message    String    @db.Text
+  message    String
+  metadata   Json?     @db.Json
+  is_read    Boolean?  @default(false)
+  read_at    DateTime? @db.Timestamp(6)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model resume_entities {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resume_id        String      @db.Uuid
+  entity_type      String      @db.VarChar(50)
+  entity_value     String
+  confidence_score Float?      @default(0.0)
+  start_offset     Int?
+  end_offset       Int?
+  spacy_label      String?     @db.VarChar(50)
+  context_window   String?
+  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+  resumes_raw      resumes_raw @relation(fields: [resume_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model resumes_raw {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           Int
+  filename          String            @db.VarChar(255)
+  file_url          String
+  file_size         Int?
+  file_type         String?           @db.VarChar(50)
+  upload_timestamp  DateTime?         @default(now()) @db.Timestamp(6)
+  raw_text          String?
+  processing_status String?           @default("pending") @db.VarChar(50)
+  resume_entities   resume_entities[]
+  users             users             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model support_tickets {
+  id                                       Int               @id @default(autoincrement())
+  user_id                                  Int
+  subject                                  String            @db.VarChar(255)
+  description                              String
+  status                                   String?           @default("open") @db.VarChar(50)
+  priority                                 String?           @default("medium") @db.VarChar(20)
+  category                                 String?           @default("general") @db.VarChar(50)
+  assigned_to                              Int?
+  resolution                               String?
+  resolved_at                              DateTime?         @db.Timestamp(6)
+  created_at                               DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime?         @default(now()) @db.Timestamp(6)
+  users_support_tickets_assigned_toTousers users?            @relation("support_tickets_assigned_toTousers", fields: [assigned_to], references: [id], onUpdate: NoAction)
+  users_support_tickets_user_idTousers     users             @relation("support_tickets_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ticket_comments                          ticket_comments[]
+
+  @@index([created_at], map: "idx_support_tickets_created_at")
+  @@index([priority], map: "idx_support_tickets_priority")
+  @@index([status], map: "idx_support_tickets_status")
+  @@index([user_id], map: "idx_support_tickets_user_id")
+  @@index([priority, status], map: "idx_tickets_priority_status")
+  @@index([status, created_at(sort: Desc)], map: "idx_tickets_status_created")
+  @@index([user_id, status], map: "idx_tickets_user_status")
+}
+
+model system_settings {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique @db.VarChar(100)
+  value       String
+  description String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ticket_comments {
+  id              Int             @id @default(autoincrement())
+  ticket_id       Int
+  user_id         Int
+  comment         String
+  is_internal     Boolean?        @default(false)
+  created_at      DateTime?       @default(now()) @db.Timestamp(6)
+  support_tickets support_tickets @relation(fields: [ticket_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([ticket_id, created_at], map: "idx_comments_ticket_created")
+}
+
+model user_analytics {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  action     String    @db.VarChar(100)
+  agent_id   String?   @db.VarChar(100)
   metadata   Json?
-  is_read    Boolean   @default(false)
-  read_at    DateTime?
-  created_at DateTime  @default(now())
+  ip_address String?   @db.VarChar(45)
+  user_agent String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  users      users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction)
 
-  user       User      @relation("UserNotifications", fields: [user_id], references: [id], onDelete: Cascade)
+  @@index([user_id, action, created_at(sort: Desc)], map: "idx_analytics_user_action_date")
+}
 
-  @@map("notifications")
-  @@index([user_id])
-  @@index([user_id, is_read])
+model user_preferences {
+  id                    Int       @id @default(autoincrement())
+  user_id               Int       @unique
+  theme                 String?   @default("light") @db.VarChar(20)
+  notifications_email   Boolean?  @default(true)
+  notifications_browser Boolean?  @default(true)
+  language              String?   @default("en") @db.VarChar(10)
+  timezone              String?   @default("UTC") @db.VarChar(50)
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  updated_at            DateTime? @default(now()) @db.Timestamp(6)
+  date_format           String?   @default("MM/DD/YYYY") @db.VarChar(20)
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_sessions {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  session_token String    @unique @db.VarChar(255)
+  refresh_token String    @unique @db.VarChar(255)
+  expires_at    DateTime  @db.Timestamp(6)
+  ip_address    String?   @db.VarChar(45)
+  user_agent    String?
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_user_sessions_expires_at")
+  @@index([session_token], map: "idx_user_sessions_session_token")
+  @@index([user_id], map: "idx_user_sessions_user_id")
+  @@index([user_id, session_token], map: "idx_user_sessions_user_token")
+}
+
+model users {
+  id                                                 Int                 @id @default(autoincrement())
+  email                                              String              @unique(map: "idx_users_email") @db.VarChar(255)
+  password_hash                                      String              @db.VarChar(255)
+  first_name                                         String              @db.VarChar(100)
+  last_name                                          String              @db.VarChar(100)
+  role                                               String?             @default("user") @db.VarChar(50)
+  department                                         String?             @db.VarChar(100)
+  job_title                                          String?             @db.VarChar(100)
+  is_active                                          Boolean?            @default(true)
+  is_verified                                        Boolean?            @default(false)
+  verification_token                                 String?             @db.VarChar(255)
+  verification_expiry                                DateTime?           @db.Timestamp(6)
+  reset_token                                        String?             @db.VarChar(255)
+  reset_token_expiry                                 DateTime?           @db.Timestamp(6)
+  last_login                                         DateTime?           @db.Timestamp(6)
+  created_at                                         DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at                                         DateTime?           @default(now()) @db.Timestamp(6)
+  failed_login_attempts                              Int?                @default(0)
+  account_locked_until                               DateTime?           @db.Timestamp(6)
+  outlook_access_token                               String?
+  outlook_refresh_token                              String?
+  outlook_token_expires_at                           DateTime?           @db.Timestamp(6)
+  outlook_email                                      String?             @db.VarChar(255)
+  two_factor_enabled                                 Boolean?            @default(false)
+  two_factor_secret                                  String?             @db.VarChar(255)
+  two_factor_code                                    String?             @db.VarChar(10)
+  two_factor_code_expires_at                         DateTime?           @db.Timestamp(6)
+  google_access_token                                String?
+  google_refresh_token                               String?
+  google_token_expires_at                            DateTime?           @db.Timestamp(6)
+  outlook_pkce_verifier                              String?
+  phone                                              String?             @db.VarChar(50)
+  profile_picture_url                                String?
+  bio                                                String?
+  timezone                                           String?             @default("Asia/Riyadh") @db.VarChar(100)
+  date_format                                        String?             @default("MM/DD/YYYY") @db.VarChar(20)
+  agent_usage_stats                                  agent_usage_stats[]
+  jobs                                               jobs[]
+  notifications                                      notifications[]
+  resumes_raw                                        resumes_raw[]
+  support_tickets_support_tickets_assigned_toTousers support_tickets[]   @relation("support_tickets_assigned_toTousers")
+  support_tickets_support_tickets_user_idTousers     support_tickets[]   @relation("support_tickets_user_idTousers")
+  ticket_comments                                    ticket_comments[]
+  user_analytics                                     user_analytics[]
+  user_preferences                                   user_preferences?
+  user_sessions                                      user_sessions[]
+
+  @@index([created_at], map: "idx_users_created_at")
+  @@index([department], map: "idx_users_department")
+  @@index([is_active], map: "idx_users_is_active")
+  @@index([role], map: "idx_users_role")
 }

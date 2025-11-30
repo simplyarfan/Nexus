@@ -752,12 +752,12 @@ Best regards,
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Dashboard
+              Back to Home
             </button>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Interview Coordinator (HR-02)</h1>
+              <h1 className="text-3xl font-bold text-foreground">Interview Coordinator</h1>
               <p className="text-muted-foreground mt-1">
                 Schedule and manage interviews efficiently
               </p>

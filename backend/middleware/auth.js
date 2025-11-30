@@ -200,11 +200,74 @@ const cleanupExpiredSessions = async (req, res, next) => {
   next(); // Skip session cleanup for now - will implement proper session management later
 };
 
+// HR Department access middleware
+const requireHRAccess = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required',
+    });
+  }
+
+  // Allow superadmins full access
+  if (req.user.role === 'superadmin') {
+    return next();
+  }
+
+  // Allow admins with HR department (accepts both "HR" and "Human Resources")
+  const isHRDepartment = req.user.department === 'HR' || req.user.department === 'Human Resources';
+
+  if (req.user.role === 'admin' && isHRDepartment) {
+    req.user.isHRAdmin = true;
+    return next();
+  }
+
+  // Allow regular users with HR department
+  if (isHRDepartment) {
+    req.user.isHRAdmin = false;
+    return next();
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied. This feature requires HR department access.',
+  });
+};
+
+// HR Admin only middleware (for create/delete operations)
+const requireHRAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required',
+    });
+  }
+
+  // Allow superadmins
+  if (req.user.role === 'superadmin') {
+    return next();
+  }
+
+  // Allow admins with HR department (accepts both "HR" and "Human Resources")
+  const isHRDepartment = req.user.department === 'HR' || req.user.department === 'Human Resources';
+
+  if (req.user.role === 'admin' && isHRDepartment) {
+    return next();
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied. This operation requires HR admin privileges.',
+  });
+};
+
 module.exports = {
   authenticateToken,
   requireRole,
   requireSuperAdmin,
   requireAdmin,
+  requireHRAccess,
+  requireHRAdmin,
   validateCompanyDomain,
   trackActivity,
   cleanupExpiredSessions,

@@ -4,6 +4,7 @@ import { fadeIn, scaleIn } from '@/lib/motion';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { profileAPI } from '../utils/profileAPI';
 import api from '../utils/api';
@@ -380,7 +381,7 @@ export default function ProfilePage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              Back to Dashboard
+              Back to Home
             </a>
           </div>
           <div>
@@ -761,6 +762,21 @@ export default function ProfilePage() {
                         <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                         <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                       </select>
+                    </div>
+
+                    <div className="pt-4 border-t border-border">
+                      <label className="block text-sm font-medium text-foreground mb-3">
+                        Theme
+                      </label>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-foreground font-medium mb-1">Appearance</p>
+                          <p className="text-xs text-muted-foreground">
+                            Switch between light and dark mode
+                          </p>
+                        </div>
+                        <ThemeToggle />
+                      </div>
                     </div>
                   </div>
 

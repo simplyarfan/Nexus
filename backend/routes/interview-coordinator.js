@@ -153,7 +153,7 @@ router.get('/outlook/connection-status', authenticateToken, async (req, res) => 
 router.get('/stats', authenticateToken, generalLimiter, async (req, res) => {
   try {
     // Use Prisma groupBy to count interviews by status in a single query
-    const statusCounts = await prisma.interview.groupBy({
+    const statusCounts = await prisma.interviews.groupBy({
       by: ['status'],
       where: {
         scheduled_by: req.user.id,
@@ -164,7 +164,7 @@ router.get('/stats', authenticateToken, generalLimiter, async (req, res) => {
     });
 
     // Get total count
-    const total = await prisma.interview.count({
+    const total = await prisma.interviews.count({
       where: {
         scheduled_by: req.user.id,
       },
@@ -251,14 +251,14 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
     const take = parseInt(limit);
 
     // Get total count
-    const total = await prisma.interview.count({
+    const total = await prisma.interviews.count({
       where: {
         scheduled_by: req.user.id,
       },
     });
 
     // Get paginated interviews using Prisma
-    const interviews = await prisma.interview.findMany({
+    const interviews = await prisma.interviews.findMany({
       where: {
         scheduled_by: req.user.id,
       },

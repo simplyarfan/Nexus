@@ -27,7 +27,8 @@ let authRoutes,
   initRoutes,
   interviewRoutes,
   debugEmailRoutes,
-  ticketsRoutes;
+  ticketsRoutes,
+  jobPositionsRoutes;
 
 // Load each route individually with error handling
 try {
@@ -63,6 +64,25 @@ try {
   usersRoutes = require('./routes/users');
 } catch (error) {
   // Error loading users routes
+}
+
+// Job Positions routes (Recruitment System)
+try {
+  jobPositionsRoutes = require('./routes/job-positions');
+  console.log('✅ Job positions routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading job positions routes:', error.message);
+  jobPositionsRoutes = null;
+}
+
+// Candidate Profiles routes (Recruitment System)
+let candidateProfilesRoutes = null;
+try {
+  candidateProfilesRoutes = require('./routes/candidate-profiles');
+  console.log('✅ Candidate profiles routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading candidate profiles routes:', error.message);
+  candidateProfilesRoutes = null;
 }
 
 // CV Intelligence routes already loaded above
@@ -211,20 +231,6 @@ if (process.env.NODE_ENV === 'production') {
     next();
   });
 }
-
-// Response compression middleware
-app.use(
-  compression({
-    filter: (req, res) => {
-      if (req.headers['x-no-compression']) {
-        return false;
-      }
-      return compression.filter(req, res);
-    },
-    level: 6,
-    threshold: 1024,
-  }),
-);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -451,6 +457,16 @@ if (ticketsRoutes) {
 // Users management routes (admin/superadmin only)
 if (usersRoutes) {
   app.use('/api/users', usersRoutes);
+}
+
+// Job Positions routes (Recruitment System)
+if (jobPositionsRoutes) {
+  app.use('/api/job-positions', jobPositionsRoutes);
+}
+
+// Candidate Profiles routes (Recruitment System)
+if (candidateProfilesRoutes) {
+  app.use('/api/candidates', candidateProfilesRoutes);
 }
 
 // Debug email routes (temporary, for diagnosing email issues)

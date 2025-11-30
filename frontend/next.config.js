@@ -28,9 +28,6 @@ const nextConfig = {
     NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
   },
 
-  // Transpile GSAP modules for proper ES6 support
-  transpilePackages: ['gsap'],
-
   // Webpack configuration
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     config.resolve.fallback = {

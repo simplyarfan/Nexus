@@ -133,6 +133,28 @@ export default function CVIntelligencePage() {
     setSelectedCandidate(candidate);
   };
 
+  const handleViewFullProfile = async (e, candidate) => {
+    e.stopPropagation();
+
+    try {
+      // Fetch candidate profile by email
+      const response = await api.get(`/api/candidates?search=${encodeURIComponent(candidate.email)}&limit=1`);
+
+      if (response.data.success && response.data.candidates && response.data.candidates.length > 0) {
+        // Navigate to candidate profile page
+        const candidateProfile = response.data.candidates[0];
+        router.push(`/candidates/${candidateProfile.id}`);
+      } else {
+        // No profile found, show modal as fallback
+        toast.error('Candidate profile not found. This candidate may not have been processed yet.');
+        setSelectedCandidate(candidate);
+      }
+    } catch (error) {
+      console.error('Error fetching candidate profile:', error);
+      toast.error('Failed to load candidate profile');
+    }
+  };
+
   const handleScheduleInterview = (e, candidate) => {
     e.stopPropagation(); // Prevent candidate detail expansion
 
@@ -299,7 +321,7 @@ export default function CVIntelligencePage() {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Dashboard
+              Back to Home
             </Link>
           </div>
           <div className="flex items-center justify-between">
@@ -895,7 +917,7 @@ export default function CVIntelligencePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className="bg-card border border-border rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={() => handleCandidateClick(candidate)}
+                      onClick={(e) => handleViewFullProfile(e, candidate)}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
@@ -987,10 +1009,7 @@ export default function CVIntelligencePage() {
                         <Button
                           variant="primary"
                           size="md"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCandidateClick(candidate);
-                          }}
+                          onClick={(e) => handleViewFullProfile(e, candidate)}
                         >
                           View Full Profile
                         </Button>

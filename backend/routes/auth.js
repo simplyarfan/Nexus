@@ -1298,7 +1298,7 @@ router.get('/outlook/connect', authenticateToken, async (req, res) => {
 
     // Store PKCE verifier in database for this user
     const { prisma } = require('../lib/prisma');
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: req.user.id },
       data: {
         outlook_pkce_verifier: cryptoUtil.encrypt(codeVerifier),
@@ -1364,7 +1364,7 @@ router.post('/outlook/callback', authenticateToken, async (req, res) => {
     const { prisma } = require('../lib/prisma');
 
     // Get PKCE verifier from database
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: req.user.id },
       select: { outlook_pkce_verifier: true },
     });
@@ -1410,7 +1410,7 @@ router.post('/outlook/callback', authenticateToken, async (req, res) => {
 
     // Store encrypted tokens in database
     const expiresAt = new Date(Date.now() + expires_in * 1000);
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: req.user.id },
       data: {
         outlook_access_token: cryptoUtil.encrypt(access_token),
@@ -1444,7 +1444,7 @@ router.delete('/outlook/disconnect', authenticateToken, async (req, res) => {
   try {
     const { prisma } = require('../lib/prisma');
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: req.user.id },
       data: {
         outlook_access_token: null,

@@ -123,6 +123,54 @@ export default function AdminDashboard() {
     }
   };
 
+  const aiAgents = [
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+      title: 'CV Intelligence',
+      description: 'AI-powered CV screening',
+      href: '/cv-intelligence',
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+      title: 'Interview Coordinator',
+      description: 'Schedule and manage interviews',
+      href: '/interviews',
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+      title: 'Candidates',
+      description: 'View and manage candidate profiles',
+      href: '/candidates',
+    },
+  ];
+
   const agents = [
     {
       icon: (
@@ -201,8 +249,44 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Admin Tools Section */}
+        {/* Navigation Sections */}
         <div className="flex-1 overflow-y-auto p-4">
+          {/* AI Agents Section */}
+          <div className="mb-6">
+            <p className="text-xs font-semibold text-sidebar-foreground uppercase tracking-wider mb-3">
+              AI AGENTS
+            </p>
+            <div className="space-y-2">
+              {aiAgents.map((item) => (
+                <button
+                  key={item.href}
+                  onClick={() => router.push(item.href)}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-sidebar-foreground hover:bg-sidebar-accent group"
+                >
+                  <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium text-foreground">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                  <svg
+                    className="w-4 h-4 flex-shrink-0 mt-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Admin Tools Section */}
           <div className="mb-4">
             <p className="text-xs font-semibold text-sidebar-foreground uppercase tracking-wider mb-3">
               ADMIN TOOLS

@@ -122,10 +122,10 @@ router.get('/', authenticateToken, async (req, res) => {
 
     // Fetch tickets with user information and comment count
     const [tickets, total] = await prisma.$transaction([
-      prisma.supportTicket.findMany({
+      prisma.support_tickets.findMany({
         where,
         include: {
-          user: {
+          users_support_tickets_user_idTousers: {
             select: {
               id: true,
               email: true,
@@ -136,7 +136,7 @@ router.get('/', authenticateToken, async (req, res) => {
           },
           _count: {
             select: {
-              comments: true,
+              ticket_comments: true,
             },
           },
         },
@@ -146,7 +146,7 @@ router.get('/', authenticateToken, async (req, res) => {
         skip,
         take,
       }),
-      prisma.supportTicket.count({ where }),
+      prisma.support_tickets.count({ where }),
     ]);
 
     // Transform response
@@ -160,8 +160,8 @@ router.get('/', authenticateToken, async (req, res) => {
       category: ticket.category,
       created_at: ticket.created_at,
       updated_at: ticket.updated_at,
-      user: ticket.user,
-      comment_count: ticket._count.comments,
+      user: ticket.users_support_tickets_user_idTousers,
+      comment_count: ticket._count.ticket_comments,
     }));
 
     res.json({
@@ -268,7 +268,7 @@ router.post(
 
       // Create ticket with transaction
       const ticket = await prisma.$transaction(async (tx) => {
-        const newTicket = await tx.supportTicket.create({
+        const newTicket = await tx.support_tickets.create({
           data: {
             user_id: user.id,
             subject: subject.trim(),
@@ -278,7 +278,7 @@ router.post(
             status: 'open',
           },
           include: {
-            user: {
+            users_support_tickets_user_idTousers: {
               select: {
                 id: true,
                 email: true,
@@ -382,7 +382,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     // Fetch ticket with comments in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      const ticket = await tx.supportTicket.findUnique({
+      const ticket = await tx.support_tickets.findUnique({
         where: { id: ticketId },
         include: {
           user: {
@@ -565,7 +565,7 @@ router.post(
       // Use transaction for atomicity
       const result = await prisma.$transaction(async (tx) => {
         // Verify ticket exists and user has access
-        const ticket = await tx.supportTicket.findUnique({
+        const ticket = await tx.support_tickets.findUnique({
           where: { id: ticketId },
         });
 
@@ -578,7 +578,7 @@ router.post(
         }
 
         // Create comment
-        const newComment = await tx.ticketComment.create({
+        const newComment = await tx.ticket_comments.create({
           data: {
             ticket_id: ticketId,
             user_id: user.id,
@@ -588,7 +588,7 @@ router.post(
         });
 
         // Update ticket timestamp
-        await tx.supportTicket.update({
+        await tx.support_tickets.update({
           where: { id: ticketId },
           data: {
             updated_at: new Date(),
@@ -596,7 +596,7 @@ router.post(
         });
 
         // Fetch comment with user info
-        const commentWithUser = await tx.ticketComment.findUnique({
+        const commentWithUser = await tx.ticket_comments.findUnique({
           where: { id: newComment.id },
           include: {
             user: {
@@ -629,7 +629,7 @@ router.post(
       }
 
       // Create notifications based on who commented
-      const ticket = await prisma.supportTicket.findUnique({
+      const ticket = await prisma.support_tickets.findUnique({
         where: { id: ticketId },
         include: {
           user: {
@@ -744,7 +744,7 @@ router.patch('/:id/resolve', authenticateToken, requireAdmin, async (req, res) =
       });
     }
 
-    const ticket = await prisma.supportTicket.update({
+    const ticket = await prisma.support_tickets.update({
       where: { id: ticketId },
       data: {
         status: 'resolved',
@@ -842,7 +842,7 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
     }
 
     // Get current ticket to check old status
-    const currentTicket = await prisma.supportTicket.findUnique({
+    const currentTicket = await prisma.support_tickets.findUnique({
       where: { id: ticketId },
     });
 
@@ -865,7 +865,7 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
       updateData.resolved_at = new Date();
     }
 
-    const ticket = await prisma.supportTicket.update({
+    const ticket = await prisma.support_tickets.update({
       where: { id: ticketId },
       data: updateData,
     });
@@ -879,7 +879,7 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
         closed: 'Closed',
       };
 
-      await prisma.ticketComment.create({
+      await prisma.ticket_comments.create({
         data: {
           ticket_id: ticketId,
           user_id: req.user.id,
@@ -890,7 +890,7 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
 
       // Notify ticket owner about status change (if they're not the one changing it)
       if (currentTicket.user_id !== req.user.id) {
-        const ticketWithUser = await prisma.supportTicket.findUnique({
+        const ticketWithUser = await prisma.support_tickets.findUnique({
           where: { id: ticketId },
         });
 

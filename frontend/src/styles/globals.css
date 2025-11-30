@@ -22,41 +22,43 @@
 
 @layer base {
   :root {
-    --background: #fcfcfc;
-    --foreground: #171717;
-    --card: #fcfcfc;
-    --card-foreground: #171717;
-    --popover: #fcfcfc;
+    /* Light mode - Clean minimalistic pastels (matching screenshots) */
+    --background: #fafafa;
+    --foreground: #1a1a1a;
+    --card: #ffffff;
+    --card-foreground: #1a1a1a;
+    --popover: #ffffff;
     --popover-foreground: #525252;
-    --primary: #72e3ad;
-    --primary-foreground: #1e2723;
-    --secondary: #fdfdfd;
-    --secondary-foreground: #171717;
-    --muted: #ededed;
-    --muted-foreground: #202020;
-    --accent: #ededed;
-    --accent-foreground: #202020;
-    --destructive: #ef4444;
-    --destructive-foreground: #fffcfc;
-    --error: #ef4444;
-    --warning: #f59e0b;
-    --success: #10b981;
-    --border: #dfdfdf;
-    --input: #f6f6f6;
-    --ring: #72e3ad;
-    --chart-1: #72e3ad;
-    --chart-2: #3b82f6;
-    --chart-3: #8b5cf6;
-    --chart-4: #f59e0b;
-    --chart-5: #10b981;
-    --sidebar: #fcfcfc;
-    --sidebar-foreground: #707070;
-    --sidebar-primary: #72e3ad;
-    --sidebar-primary-foreground: #1e2723;
-    --sidebar-accent: #ededed;
-    --sidebar-accent-foreground: #202020;
-    --sidebar-border: #dfdfdf;
-    --sidebar-ring: #72e3ad;
+    --primary: #D4F566; /* Lime green - primary accent from screenshots */
+    --primary-foreground: #1a1a1a;
+    --secondary: #f5f5f5;
+    --secondary-foreground: #1a1a1a;
+    --muted: #f5f5f5;
+    --muted-foreground: #737373;
+    --accent: #f5f5f5;
+    --accent-foreground: #1a1a1a;
+    --destructive: #ff6b6b;
+    --destructive-foreground: #ffffff;
+    --error: #ff6b6b;
+    --warning: #FCD871; /* Soft yellow from screenshots */
+    --success: #6ee7b7;
+    --border: #e5e5e5;
+    --input: #ffffff;
+    --ring: #D4F566;
+    /* Chart colors - matching screenshot pastels */
+    --chart-1: #D4F566; /* Lime green */
+    --chart-2: #93C5FD; /* Soft blue */
+    --chart-3: #FCA5A5; /* Soft coral */
+    --chart-4: #FCD871; /* Soft yellow */
+    --chart-5: #A7F3D0; /* Soft teal */
+    --sidebar: #fafafa;
+    --sidebar-foreground: #737373;
+    --sidebar-primary: #D4F566;
+    --sidebar-primary-foreground: #1a1a1a;
+    --sidebar-accent: #f5f5f5;
+    --sidebar-accent-foreground: #1a1a1a;
+    --sidebar-border: #e5e5e5;
+    --sidebar-ring: #D4F566;
     --font-sans: Outfit, sans-serif;
     --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
     --font-mono: monospace;

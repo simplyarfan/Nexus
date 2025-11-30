@@ -34,7 +34,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     const take = parseInt(limit);
 
     const [users, total] = await prisma.$transaction([
-      prisma.user.findMany({
+      prisma.users.findMany({
         where,
         select: {
           id: true,
@@ -56,7 +56,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
         skip,
         take,
       }),
-      prisma.user.count({ where }),
+      prisma.users.count({ where }),
     ]);
 
     res.json({
@@ -94,7 +94,7 @@ router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -157,7 +157,7 @@ router.post('/', authenticateToken, requireSuperAdmin, async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { email },
     });
 
@@ -172,7 +172,7 @@ router.post('/', authenticateToken, requireSuperAdmin, async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         email,
         password_hash,
@@ -229,7 +229,7 @@ router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     // Check user exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { id: userId },
     });
 
@@ -285,7 +285,7 @@ router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
     updateData.updated_at = new Date();
 
     // Update user
-    const user = await prisma.user.update({
+    const user = await prisma.users.update({
       where: { id: userId },
       data: updateData,
       select: {
@@ -341,7 +341,7 @@ router.patch('/:id/password', authenticateToken, requireSuperAdmin, async (req, 
     const password_hash = await bcrypt.hash(new_password, 10);
 
     // Update password
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: userId },
       data: {
         password_hash,
@@ -392,7 +392,7 @@ router.delete('/:id', authenticateToken, requireSuperAdmin, async (req, res) => 
     }
 
     // Delete user
-    await prisma.user.delete({
+    await prisma.users.delete({
       where: { id: userId },
     });
 

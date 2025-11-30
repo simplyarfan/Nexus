@@ -5,6 +5,8 @@
 
 const { openAI: axios } = require('../utils/axios'); // Use OpenAI-specific instance with 5-minute timeout
 const pdf = require('pdf-parse');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 class CVIntelligenceHR01 {
   constructor() {
@@ -789,6 +791,15 @@ Return only the JSON object, no other text:`;
       const verification = await this.verifyExtraction(structuredData, parseData.rawText, entities);
       console.log(`   ✓ Verification complete`);
 
+      // Step 8: Auto-create/update candidate profile with deduplication
+      console.log(`   Step 8/8: Auto-creating/updating candidate profile...`);
+      const profileResult = await this.createOrUpdateCandidateProfile(
+        structuredData,
+        scores,
+        jobRequirements?.jobPositionId || null
+      );
+      console.log(`   ✓ Profile ${profileResult.action || 'processed'}: ${profileResult.candidate?.name || 'N/A'}`);
+
       console.log(`✅ [CV Service] CV processing successful in ${Date.now() - processingStart}ms`);
 
       return {
@@ -800,6 +811,7 @@ Return only the JSON object, no other text:`;
         evidenceMap: evidenceMap,
         scores: scores,
         verification: verification,
+        candidateProfile: profileResult, // Include profile creation result
         processingTime: Date.now() - processingStart,
         metadata: {
           fieldValidityRate: verification.fieldValidityRate,
@@ -818,6 +830,309 @@ Return only the JSON object, no other text:`;
         processingTime: Date.now() - processingStart,
       };
     }
+  }
+
+  /**
+   * AUTO CREATE OR UPDATE CANDIDATE PROFILE WITH DEDUPLICATION
+   * Automatically creates/updates candidate profiles in the background
+   */
+  async createOrUpdateCandidateProfile(structuredData, scores, jobPositionId = null) {
+    try {
+      console.log('\n🔄 [Deduplication] Starting automatic profile creation/update...');
+
+      const candidateEmail = structuredData.personal?.email;
+      const candidateName = structuredData.personal?.name;
+
+      if (!candidateEmail || candidateEmail === 'Email not found') {
+        console.log('⚠️ [Deduplication] No valid email found, skipping profile creation');
+        return { success: false, reason: 'No valid email' };
+      }
+
+      // Step 1: Check for exact email match
+      console.log(`   Checking for duplicate by email: ${candidateEmail}`);
+      let existingCandidate = await prisma.candidateProfile.findFirst({
+        where: { email: candidateEmail },
+      });
+
+      if (existingCandidate) {
+        console.log(`   ✓ Found existing candidate by email (ID: ${existingCandidate.id})`);
+        console.log('   Updating existing profile...');
+
+        // Update existing candidate
+        const updated = await prisma.candidateProfile.update({
+          where: { id: existingCandidate.id },
+          data: {
+            name: candidateName || existingCandidate.name,
+            phone: structuredData.personal?.phone !== 'Phone not found'
+              ? structuredData.personal?.phone
+              : existingCandidate.phone,
+            location: structuredData.personal?.location !== 'Location not specified'
+              ? structuredData.personal?.location
+              : existingCandidate.location,
+            linkedin_url: structuredData.personal?.linkedin !== 'LinkedIn not found'
+              ? structuredData.personal?.linkedin
+              : existingCandidate.linkedin_url,
+            skills: structuredData.skills || existingCandidate.skills,
+            years_of_experience: this.calculateYearsOfExperience(structuredData.experience),
+            highest_education_level: this.extractHighestEducation(structuredData.education),
+            certifications: structuredData.certifications || existingCandidate.certifications,
+            current_company: this.extractCurrentCompany(structuredData.experience),
+            current_title: this.extractCurrentTitle(structuredData.experience),
+            overall_match_score: scores?.overallMatch || existingCandidate.overall_match_score,
+            performance_score: scores?.performance || existingCandidate.performance_score,
+            potential_score: scores?.potential || existingCandidate.potential_score,
+            availability_status: existingCandidate.availability_status || 'open_to_opportunities',
+            updated_at: new Date(),
+          },
+        });
+
+        console.log(`   ✅ [Deduplication] Updated existing candidate profile (ID: ${updated.id})`);
+        return { success: true, candidate: updated, action: 'updated' };
+      }
+
+      // Step 2: AI Similarity Check (if no exact email match)
+      console.log('   No exact email match found');
+      console.log('   Checking AI similarity with existing candidates...');
+
+      const similarCandidate = await this.findSimilarCandidateByAI(candidateName, structuredData);
+
+      if (similarCandidate) {
+        console.log(`   ⚠️ Found similar candidate: ${similarCandidate.name} (ID: ${similarCandidate.id}, Similarity: ${similarCandidate.similarity}%)`);
+        console.log('   Skipping creation to avoid duplicates (manual review recommended)');
+        return {
+          success: true,
+          candidate: similarCandidate,
+          action: 'duplicate_detected',
+          similarity: similarCandidate.similarity
+        };
+      }
+
+      // Step 3: Create new candidate profile
+      console.log('   No duplicates found, creating new profile...');
+
+      const newCandidate = await prisma.candidateProfile.create({
+        data: {
+          name: candidateName,
+          email: candidateEmail,
+          phone: structuredData.personal?.phone !== 'Phone not found'
+            ? structuredData.personal?.phone
+            : null,
+          location: structuredData.personal?.location !== 'Location not specified'
+            ? structuredData.personal?.location
+            : null,
+          linkedin_url: structuredData.personal?.linkedin !== 'LinkedIn not found'
+            ? structuredData.personal?.linkedin
+            : null,
+          skills: structuredData.skills || [],
+          years_of_experience: this.calculateYearsOfExperience(structuredData.experience),
+          highest_education_level: this.extractHighestEducation(structuredData.education),
+          certifications: structuredData.certifications || [],
+          current_company: this.extractCurrentCompany(structuredData.experience),
+          current_title: this.extractCurrentTitle(structuredData.experience),
+          overall_match_score: scores?.overallMatch || 0,
+          performance_score: scores?.performance || 0,
+          potential_score: scores?.potential || 0,
+          availability_status: 'open_to_opportunities',
+          source: 'cv_intelligence',
+        },
+      });
+
+      console.log(`   ✅ [Deduplication] Created new candidate profile (ID: ${newCandidate.id})`);
+
+      // If job position specified, create application
+      if (jobPositionId) {
+        await prisma.jobApplication.create({
+          data: {
+            candidate_id: newCandidate.id,
+            job_position_id: jobPositionId,
+            current_stage: 'screening',
+            stage_number: 1,
+            position_match_score: scores?.overallMatch || 0,
+            status: 'active',
+          },
+        });
+        console.log(`   ✅ Created job application for position ${jobPositionId}`);
+      }
+
+      return { success: true, candidate: newCandidate, action: 'created' };
+    } catch (error) {
+      console.error('❌ [Deduplication] Error creating/updating candidate profile:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * AI SIMILARITY MATCHING - Find similar candidates using AI
+   */
+  async findSimilarCandidateByAI(candidateName, structuredData) {
+    try {
+      // Get all existing candidates
+      const existingCandidates = await prisma.candidateProfile.findMany({
+        take: 50, // Limit to recent 50 candidates for performance
+        orderBy: { created_at: 'desc' },
+      });
+
+      if (existingCandidates.length === 0) {
+        return null;
+      }
+
+      // Use AI to compare names and basic info
+      const prompt = `You are a deduplication expert. Compare the new candidate with existing candidates to find potential duplicates.
+
+New Candidate:
+- Name: ${candidateName}
+- Email: ${structuredData.personal?.email}
+- Phone: ${structuredData.personal?.phone}
+- Location: ${structuredData.personal?.location}
+
+Existing Candidates:
+${existingCandidates.map((c, i) => `${i + 1}. Name: ${c.name}, Email: ${c.email}, Phone: ${c.phone}, Location: ${c.location}`).join('\n')}
+
+Respond with JSON only:
+{
+  "isDuplicate": true/false,
+  "matchedCandidateIndex": number or null,
+  "similarity": 0-100,
+  "reason": "explanation"
+}
+
+Consider a match if:
+- Names are very similar (typos, abbreviations)
+- Phone numbers match
+- Same location and similar background`;
+
+      const response = await this.makeAPICallWithRetry(() =>
+        axios.post(
+          this.apiUrl,
+          {
+            model: this.model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            max_tokens: 300,
+          },
+          {
+            timeout: 30000,
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
+
+      const content = response.data.choices[0].message.content.trim();
+      const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      const result = JSON.parse(cleanContent);
+
+      if (result.isDuplicate && result.matchedCandidateIndex !== null) {
+        const matchedCandidate = existingCandidates[result.matchedCandidateIndex - 1];
+        return {
+          ...matchedCandidate,
+          similarity: result.similarity,
+          reason: result.reason,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('⚠️ [AI Similarity] Error during similarity check:', error.message);
+      return null; // Fail gracefully - better to allow duplicates than block valid candidates
+    }
+  }
+
+  /**
+   * HELPER: Calculate years of experience from experience array
+   */
+  calculateYearsOfExperience(experiences) {
+    if (!experiences || !Array.isArray(experiences) || experiences.length === 0) {
+      return 0;
+    }
+
+    let totalMonths = 0;
+    for (const exp of experiences) {
+      // Try to parse dates from the experience entry
+      const dateMatch = exp.match(/(\d{4})\s*[-–]\s*(\d{4}|present)/i);
+      if (dateMatch) {
+        const startYear = parseInt(dateMatch[1]);
+        const endYear = dateMatch[2].toLowerCase() === 'present'
+          ? new Date().getFullYear()
+          : parseInt(dateMatch[2]);
+        totalMonths += (endYear - startYear) * 12;
+      }
+    }
+
+    return Math.round(totalMonths / 12);
+  }
+
+  /**
+   * HELPER: Extract highest education level
+   */
+  extractHighestEducation(educations) {
+    if (!educations || !Array.isArray(educations) || educations.length === 0) {
+      return null;
+    }
+
+    const levels = ['phd', 'doctorate', 'master', 'bachelor', 'associate', 'diploma'];
+
+    for (const level of levels) {
+      for (const edu of educations) {
+        if (edu.toLowerCase().includes(level)) {
+          return level.charAt(0).toUpperCase() + level.slice(1);
+        }
+      }
+    }
+
+    return educations[0]; // Return first education if no level matched
+  }
+
+  /**
+   * HELPER: Extract current company from experience
+   */
+  extractCurrentCompany(experiences) {
+    if (!experiences || !Array.isArray(experiences) || experiences.length === 0) {
+      return null;
+    }
+
+    // Look for "present" or most recent entry
+    const currentExp = experiences.find(exp =>
+      exp.toLowerCase().includes('present') ||
+      exp.toLowerCase().includes('current')
+    );
+
+    if (currentExp) {
+      // Try to extract company name (usually after "at" or before dates)
+      const companyMatch = currentExp.match(/at\s+([^,\d]+)/i);
+      if (companyMatch) {
+        return companyMatch[1].trim();
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * HELPER: Extract current title from experience
+   */
+  extractCurrentTitle(experiences) {
+    if (!experiences || !Array.isArray(experiences) || experiences.length === 0) {
+      return null;
+    }
+
+    // Look for "present" or most recent entry
+    const currentExp = experiences.find(exp =>
+      exp.toLowerCase().includes('present') ||
+      exp.toLowerCase().includes('current')
+    );
+
+    if (currentExp) {
+      // Try to extract title (usually at the beginning)
+      const titleMatch = currentExp.match(/^([^,\d-]+)/);
+      if (titleMatch) {
+        return titleMatch[1].trim();
+      }
+    }
+
+    return null;
   }
 
   // Helper methods
@@ -1751,7 +2066,8 @@ module.exports.CVIntelligenceHR01 = CVIntelligenceHR01;
 // DATABASE CRUD OPERATIONS (Using Prisma)
 // ============================================
 
-const { prisma } = require('../lib/prisma');
+// Note: Prisma client is already initialized at line 9
+// Using the existing 'prisma' instance from line 9
 
 /**
  * Get all CV batches for user

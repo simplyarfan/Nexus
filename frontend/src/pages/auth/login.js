@@ -163,11 +163,11 @@ const Login = () => {
             transition={{ delay: 0.1 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
+            <div className="inline-flex items-center justify-center mb-4">
               <img
                 src="/images/logo_N.png"
                 alt="Nexus Logo"
-                className="w-10 h-10 object-contain"
+                className="w-16 h-16 object-contain"
               />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back</h1>

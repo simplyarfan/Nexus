@@ -40,10 +40,14 @@ class JDParsingService {
       // Parse PDF
       const data = await pdf(dataBuffer);
 
-      console.log(`  ✓ PDF parsed - Pages: ${data.numpages}, Text length: ${data.text?.length || 0} chars`);
+      console.log(
+        `  ✓ PDF parsed - Pages: ${data.numpages}, Text length: ${data.text?.length || 0} chars`,
+      );
 
       if (!data.text || data.text.trim().length === 0) {
-        throw new Error('PDF contains no extractable text. The PDF may be image-based or encrypted.');
+        throw new Error(
+          'PDF contains no extractable text. The PDF may be image-based or encrypted.',
+        );
       }
 
       return data.text;
@@ -164,7 +168,9 @@ class JDParsingService {
   async extractTextFromJD(filePath, mimeType) {
     if (mimeType === 'application/pdf') {
       return await this.extractTextFromPDF(filePath);
-    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    } else if (
+      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
       // .docx files
       return await this.extractTextFromDOCX(filePath);
     } else if (mimeType === 'application/msword') {
@@ -280,8 +286,14 @@ Other Guidelines:
 
       // Log extracted skills for debugging
       console.log(`  📊 Extracted Skills:`);
-      console.log(`     Required Skills: ${parsedData.required_skills?.length || 0} skills -`, parsedData.required_skills);
-      console.log(`     Preferred Skills: ${parsedData.preferred_skills?.length || 0} skills -`, parsedData.preferred_skills);
+      console.log(
+        `     Required Skills: ${parsedData.required_skills?.length || 0} skills -`,
+        parsedData.required_skills,
+      );
+      console.log(
+        `     Preferred Skills: ${parsedData.preferred_skills?.length || 0} skills -`,
+        parsedData.preferred_skills,
+      );
 
       return parsedData;
     } catch (error) {

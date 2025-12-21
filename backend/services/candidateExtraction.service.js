@@ -73,7 +73,9 @@ class CandidateExtractionService {
   async extractTextFromFile(filePath, mimeType) {
     if (mimeType === 'application/pdf') {
       return await this.extractPdfText(filePath);
-    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    } else if (
+      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
       return await this.extractDocxText(filePath);
     } else if (mimeType === 'application/msword') {
       return await this.extractDocText(filePath);
@@ -402,9 +404,14 @@ OTHER RULES:
       console.log(`\n📄 Processing CV: ${fileName} (${mimeType})`);
 
       // Step 1: Extract text from file based on type
-      const fileTypeLabel = mimeType === 'application/pdf' ? 'PDF' :
-                           mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'DOCX' :
-                           mimeType === 'application/msword' ? 'DOC' : 'file';
+      const fileTypeLabel =
+        mimeType === 'application/pdf'
+          ? 'PDF'
+          : mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ? 'DOCX'
+            : mimeType === 'application/msword'
+              ? 'DOC'
+              : 'file';
       console.log(`  Step 1/3: Extracting text from ${fileTypeLabel}...`);
       const cvText = await this.extractTextFromFile(filePath, mimeType);
 
@@ -514,7 +521,10 @@ OTHER RULES:
             applications.push(application);
           }
         } catch (err) {
-          console.error(`  Error storing match for position ${match.job_position_id}:`, err.message);
+          console.error(
+            `  Error storing match for position ${match.job_position_id}:`,
+            err.message,
+          );
         }
       }
 

@@ -274,19 +274,14 @@ class HRAnalyticsController {
       const userCondition = userId ? 'AND i.scheduled_by = $4' : '';
 
       // Build query with optional user filter
-      const params = userId
-        ? [parseInt(limit), offset, userId]
-        : [parseInt(limit), offset];
+      const params = userId ? [parseInt(limit), offset, userId] : [parseInt(limit), offset];
 
       // Get total count
       const countQuery = userId
         ? `SELECT COUNT(*) as total FROM interviews i WHERE (${dateCondition}) AND i.scheduled_by = $1`
         : `SELECT COUNT(*) as total FROM interviews i WHERE (${dateCondition})`;
 
-      const countResult = await database.get(
-        countQuery,
-        userId ? [userId] : [],
-      );
+      const countResult = await database.get(countQuery, userId ? [userId] : []);
 
       // Get interviews with interviewer info
       const interviews = await database.all(

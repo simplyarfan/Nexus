@@ -155,7 +155,9 @@ Scoring guidelines:
       }
 
       // Sort by match score
-      matchedCandidates.sort((a, b) => b.match_analysis.position_match_score - a.match_analysis.position_match_score);
+      matchedCandidates.sort(
+        (a, b) => b.match_analysis.position_match_score - a.match_analysis.position_match_score,
+      );
 
       // Apply limit
       const limitedCandidates = limit ? matchedCandidates.slice(0, limit) : matchedCandidates;

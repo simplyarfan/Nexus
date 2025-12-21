@@ -309,9 +309,7 @@ router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // Send notification if department was assigned/changed
     if (departmentChanged && updateData.department) {
       try {
-        const notificationTitle = wasUnassigned
-          ? 'Department Assigned!'
-          : 'Department Updated';
+        const notificationTitle = wasUnassigned ? 'Department Assigned!' : 'Department Updated';
         const notificationMessage = wasUnassigned
           ? `You have been assigned to the ${updateData.department} department. You now have access to your department's AI agents and tools.`
           : `Your department has been changed to ${updateData.department}.`;

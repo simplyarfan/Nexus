@@ -90,7 +90,8 @@ class GoogleSheetsService {
       if (!initialized) {
         return {
           success: false,
-          error: 'Google Sheets not configured. Please set GOOGLE_SERVICE_ACCOUNT_KEY and GOOGLE_SHEETS_ID environment variables.',
+          error:
+            'Google Sheets not configured. Please set GOOGLE_SERVICE_ACCOUNT_KEY and GOOGLE_SHEETS_ID environment variables.',
         };
       }
 

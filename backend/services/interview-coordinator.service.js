@@ -160,7 +160,11 @@ Make questions specific to the candidate's background and job requirements.`;
   /**
    * Generate ICS calendar invite with RFC 5545 compliance
    */
-  generateICSInvite(interviewData, organizerEmail = 'recruitment@company.com', organizerName = 'Recruitment Team') {
+  generateICSInvite(
+    interviewData,
+    organizerEmail = 'recruitment@company.com',
+    organizerName = 'Recruitment Team',
+  ) {
     const startDate = new Date(interviewData.scheduledTime);
     const duration = interviewData.duration || 60;
     const endDate = new Date(startDate.getTime() + duration * 60000);

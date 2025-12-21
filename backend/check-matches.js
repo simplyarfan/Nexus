@@ -26,14 +26,20 @@ async function checkMatches() {
   console.log(`Total matches found: ${matches.length}\n`);
 
   matches.forEach((match, index) => {
-    console.log(`${index + 1}. ${match.candidate_profiles.name} (${match.candidate_profiles.email})`);
-    console.log(`   Match Score: ${match.position_match_score}% | Category: ${match.match_category} | Status: ${match.status}`);
-    console.log(`   Skills: ${match.skills_match_score}% | Experience: ${match.experience_match_score}%`);
+    console.log(
+      `${index + 1}. ${match.candidate_profiles.name} (${match.candidate_profiles.email})`,
+    );
+    console.log(
+      `   Match Score: ${match.position_match_score}% | Category: ${match.match_category} | Status: ${match.status}`,
+    );
+    console.log(
+      `   Skills: ${match.skills_match_score}% | Experience: ${match.experience_match_score}%`,
+    );
     console.log(`   Auto-matched: ${match.auto_matched}\n`);
   });
 
   // Check matches >= 60%
-  const highMatches = matches.filter(m => m.position_match_score >= 60);
+  const highMatches = matches.filter((m) => m.position_match_score >= 60);
   console.log(`\nMatches >= 60%: ${highMatches.length}`);
 
   await prisma.$disconnect();

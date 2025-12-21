@@ -176,18 +176,22 @@ router.get('/:id/candidates', authenticateToken, requireHRAccess, async (req, re
       });
 
       if (matchResult.success) {
-        console.log(`  Found ${matchResult.matches.length} candidates via smart matching (pre-filtered from ${matchResult.preFilteredCount || 'N/A'})`);
+        console.log(
+          `  Found ${matchResult.matches.length} candidates via smart matching (pre-filtered from ${matchResult.preFilteredCount || 'N/A'})`,
+        );
 
         // Get existing matched candidate IDs
         const existingMatches = await prisma.job_applications.findMany({
           where: { job_position_id: id },
           select: { candidate_id: true },
         });
-        const existingCandidateIds = new Set(existingMatches.map(m => m.candidate_id));
-        const newMatchCandidateIds = new Set(matchResult.matches.map(m => m.candidate_id));
+        const existingCandidateIds = new Set(existingMatches.map((m) => m.candidate_id));
+        const newMatchCandidateIds = new Set(matchResult.matches.map((m) => m.candidate_id));
 
         // DELETE candidates that are no longer in the matches (poor matches filtered out)
-        const candidatesToRemove = [...existingCandidateIds].filter(id => !newMatchCandidateIds.has(id));
+        const candidatesToRemove = [...existingCandidateIds].filter(
+          (id) => !newMatchCandidateIds.has(id),
+        );
         if (candidatesToRemove.length > 0) {
           await prisma.job_applications.deleteMany({
             where: {
@@ -196,7 +200,9 @@ router.get('/:id/candidates', authenticateToken, requireHRAccess, async (req, re
               status: 'matched', // Only delete auto-matched, not manually added
             },
           });
-          console.log(`  🗑️ Removed ${candidatesToRemove.length} poor matches that no longer qualify`);
+          console.log(
+            `  🗑️ Removed ${candidatesToRemove.length} poor matches that no longer qualify`,
+          );
         }
 
         // Add new matches or update existing ones
@@ -261,7 +267,9 @@ router.get('/:id/candidates', authenticateToken, requireHRAccess, async (req, re
             console.error(`  ✗ Error saving match:`, saveError.message);
           }
         }
-        console.log(`  ✓ Smart refresh complete: ${matchResult.matches.length} qualified candidates`);
+        console.log(
+          `  ✓ Smart refresh complete: ${matchResult.matches.length} qualified candidates`,
+        );
       } else {
         console.log(`  ❌ Smart matching failed or returned no results`);
       }
@@ -397,8 +405,14 @@ router.post('/', authenticateToken, requireHRAccess, async (req, res) => {
 
     // Log skills data for debugging
     console.log(`\n📝 Creating job position: ${title}`);
-    console.log(`  Required Skills (${Array.isArray(required_skills) ? required_skills.length : 'not array'}):`, required_skills);
-    console.log(`  Preferred Skills (${Array.isArray(preferred_skills) ? preferred_skills.length : 'not array'}):`, preferred_skills);
+    console.log(
+      `  Required Skills (${Array.isArray(required_skills) ? required_skills.length : 'not array'}):`,
+      required_skills,
+    );
+    console.log(
+      `  Preferred Skills (${Array.isArray(preferred_skills) ? preferred_skills.length : 'not array'}):`,
+      preferred_skills,
+    );
 
     const data = {
       title,
@@ -509,7 +523,9 @@ router.post('/extract-skills', authenticateToken, requireHRAccess, async (req, r
       });
     }
 
-    console.log(`\n🤖 Extracting skills from job description (${jobDescriptionText.length} chars)...`);
+    console.log(
+      `\n🤖 Extracting skills from job description (${jobDescriptionText.length} chars)...`,
+    );
 
     const result = await jobPositionService.extractSkillsFromJD(jobDescriptionText);
 
@@ -646,61 +662,67 @@ router.delete('/:id', authenticateToken, requireHRAccess, async (req, res) => {
  * Upload and parse Job Description (PDF/DOCX) using AI
  * Access: HR Department users
  */
-router.post('/parse-jd', authenticateToken, requireHRAccess, jdUpload.single('jd'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No JD file uploaded',
-      });
-    }
-
-    console.log(`\n📤 Processing JD upload: ${req.file.originalname}`);
-    console.log(`   File size: ${req.file.size} bytes`);
-    console.log(`   File type: ${req.file.mimetype}`);
-    console.log(`   File path: ${req.file.path}`);
-
-    // Parse JD file with AI
-    const result = await jdParsingService.parseJDFile(req.file);
-
-    // Clean up uploaded file
+router.post(
+  '/parse-jd',
+  authenticateToken,
+  requireHRAccess,
+  jdUpload.single('jd'),
+  async (req, res) => {
     try {
-      await fs.unlink(req.file.path);
-    } catch (error) {
-      console.error(`Failed to delete temp file: ${req.file.path}`);
-    }
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No JD file uploaded',
+        });
+      }
 
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: result.error || 'Failed to parse JD',
-      });
-    }
+      console.log(`\n📤 Processing JD upload: ${req.file.originalname}`);
+      console.log(`   File size: ${req.file.size} bytes`);
+      console.log(`   File type: ${req.file.mimetype}`);
+      console.log(`   File path: ${req.file.path}`);
 
-    res.json({
-      success: true,
-      jobDetails: result.jobDetails,
-      message: 'JD parsed successfully',
-    });
-  } catch (error) {
-    console.error('Error parsing JD:', error);
+      // Parse JD file with AI
+      const result = await jdParsingService.parseJDFile(req.file);
 
-    // Clean up file on error
-    if (req.file?.path) {
+      // Clean up uploaded file
       try {
         await fs.unlink(req.file.path);
-      } catch (unlinkError) {
+      } catch (error) {
         console.error(`Failed to delete temp file: ${req.file.path}`);
       }
-    }
 
-    res.status(500).json({
-      success: false,
-      message: 'Failed to parse JD',
-      error: error.message,
-    });
-  }
-});
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          message: result.error || 'Failed to parse JD',
+        });
+      }
+
+      res.json({
+        success: true,
+        jobDetails: result.jobDetails,
+        message: 'JD parsed successfully',
+      });
+    } catch (error) {
+      console.error('Error parsing JD:', error);
+
+      // Clean up file on error
+      if (req.file?.path) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          console.error(`Failed to delete temp file: ${req.file.path}`);
+        }
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to parse JD',
+        error: error.message,
+      });
+    }
+  },
+);
 
 /**
  * POST /job-positions/:id/candidates/chat
@@ -755,7 +777,7 @@ router.post('/:id/candidates/chat', authenticateToken, requireHRAccess, async (r
     });
 
     // Build context for the AI
-    const matchedCandidatesContext = matchedApplications.map(app => ({
+    const matchedCandidatesContext = matchedApplications.map((app) => ({
       name: app.candidate_profiles.name,
       current_title: app.candidate_profiles.current_title,
       years_of_experience: app.candidate_profiles.years_of_experience,
@@ -771,8 +793,8 @@ router.post('/:id/candidates/chat', authenticateToken, requireHRAccess, async (r
     }));
 
     const unmatchedCandidates = allCandidates
-      .filter(c => !matchedApplications.some(app => app.candidate_id === c.id))
-      .map(c => ({
+      .filter((c) => !matchedApplications.some((app) => app.candidate_id === c.id))
+      .map((c) => ({
         name: c.name,
         current_title: c.current_title,
         years_of_experience: c.years_of_experience,
@@ -802,8 +824,11 @@ JOB POSITION:
 - Description: ${jobPosition.description || 'Not specified'}
 
 MATCHED CANDIDATES (${matchedCandidatesContext.length}):
-${matchedCandidatesContext.length > 0
-  ? matchedCandidatesContext.map((c, i) => `
+${
+  matchedCandidatesContext.length > 0
+    ? matchedCandidatesContext
+        .map(
+          (c, i) => `
 ${i + 1}. ${c.name}
    - Title: ${c.current_title || 'Not specified'}
    - Experience: ${c.years_of_experience || 0} years
@@ -815,11 +840,14 @@ ${i + 1}. ${c.name}
    - Why Matched: ${c.reasoning || 'AI determined suitable for the role'}
    - Strengths: ${c.strengths?.join(', ') || 'None listed'}
    - Concerns: ${c.concerns?.join(', ') || 'None listed'}
-`).join('\n')
-  : 'No candidates currently matched for this position.'}
+`,
+        )
+        .join('\n')
+    : 'No candidates currently matched for this position.'
+}
 
 UNMATCHED CANDIDATES (${unmatchedCandidates.length}):
-${unmatchedCandidates.map(c => `- ${c.name} (${c.current_title || 'No title'}, ${c.years_of_experience || 0} yrs exp)`).join('\n')}
+${unmatchedCandidates.map((c) => `- ${c.name} (${c.current_title || 'No title'}, ${c.years_of_experience || 0} yrs exp)`).join('\n')}
 
 Note: Unmatched candidates were analyzed but did not pass the suitability filter based on experience level, skill relevance, or domain fit.`;
 
@@ -833,7 +861,8 @@ Note: Unmatched candidates were analyzed but did not pass the suitability filter
       max_tokens: 500,
     });
 
-    const answer = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+    const answer =
+      completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
 
     res.json({
       success: true,

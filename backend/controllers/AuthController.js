@@ -1485,7 +1485,7 @@ const requestPasswordReset = async (req, res) => {
       logger.error('Password reset email failed', {
         email: user.email,
         error: emailError.message,
-        stack: emailError.stack
+        stack: emailError.stack,
       });
       // Return error to user so they know email wasn't sent
       return res.status(500).json({
@@ -1582,7 +1582,7 @@ const resetPassword = async (req, res) => {
       logger.error('Failed to send password reset confirmation email', {
         email: userDetails.email,
         error: emailError.message,
-        stack: emailError.stack
+        stack: emailError.stack,
       });
       // Continue - password was reset successfully, email is just a notification
     }

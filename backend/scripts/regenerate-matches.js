@@ -1,5 +1,5 @@
 const jobPositionService = require('../services/jobPositionService');
-const { PrismaClient} = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
@@ -17,8 +17,8 @@ async function regenerateMatches() {
     // Step 1: Delete all existing matches for this job position
     const deleteResult = await prisma.job_applications.deleteMany({
       where: {
-        job_position_id: jobPositionId
-      }
+        job_position_id: jobPositionId,
+      },
     });
 
     console.log(`🗑️  Deleted ${deleteResult.count} existing matches\n`);
@@ -35,15 +35,17 @@ async function regenerateMatches() {
         where: { job_position_id: jobPositionId },
         include: {
           candidate_profiles: {
-            select: { name: true }
-          }
+            select: { name: true },
+          },
         },
-        orderBy: { position_match_score: 'desc' }
+        orderBy: { position_match_score: 'desc' },
       });
 
       console.log('📋 All Matches:');
       matches.forEach((match, index) => {
-        console.log(`   ${index + 1}. ${match.candidate_profiles.name} - Score: ${match.position_match_score}% (${match.match_category})`);
+        console.log(
+          `   ${index + 1}. ${match.candidate_profiles.name} - Score: ${match.position_match_score}% (${match.match_category})`,
+        );
       });
     } else {
       console.error('\n❌ Matching failed:', result.error);

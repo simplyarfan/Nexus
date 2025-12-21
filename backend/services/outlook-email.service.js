@@ -238,7 +238,9 @@ class OutlookEmailService {
     const enrichedData = {
       ...data,
       senderName:
-        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Recruitment Team',
+        user?.first_name && user?.last_name
+          ? `${user.first_name} ${user.last_name}`
+          : 'Recruitment Team',
       senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
       senderDesignation: user?.job_title || 'Recruitment Team',
     };
@@ -782,7 +784,9 @@ class OutlookEmailService {
     const enrichedData = {
       ...data,
       senderName:
-        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Recruitment Team',
+        user?.first_name && user?.last_name
+          ? `${user.first_name} ${user.last_name}`
+          : 'Recruitment Team',
       senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
       senderDesignation: user?.job_title || 'Recruitment Team',
     };
@@ -1187,7 +1191,9 @@ class OutlookEmailService {
     const enrichedData = {
       ...data,
       senderName:
-        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Recruitment Team',
+        user?.first_name && user?.last_name
+          ? `${user.first_name} ${user.last_name}`
+          : 'Recruitment Team',
       senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
       senderDesignation: user?.job_title || 'Recruitment Team',
     };

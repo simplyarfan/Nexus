@@ -13,8 +13,8 @@ async function rematchScrumMasterJob() {
     // Find the Scrum Master job
     const scrumJob = await prisma.job_positions.findFirst({
       where: {
-        title: { contains: 'Scrum', mode: 'insensitive' }
-      }
+        title: { contains: 'Scrum', mode: 'insensitive' },
+      },
     });
 
     if (!scrumJob) {
@@ -28,7 +28,7 @@ async function rematchScrumMasterJob() {
 
     // Delete existing applications for this job
     const deleted = await prisma.job_applications.deleteMany({
-      where: { job_position_id: scrumJob.id }
+      where: { job_position_id: scrumJob.id },
     });
     console.log(`🗑️  Deleted ${deleted.count} existing matches\n`);
 
@@ -44,20 +44,21 @@ async function rematchScrumMasterJob() {
       where: { job_position_id: scrumJob.id },
       include: {
         candidate_profiles: {
-          select: { name: true, current_title: true }
-        }
+          select: { name: true, current_title: true },
+        },
       },
-      orderBy: { position_match_score: 'desc' }
+      orderBy: { position_match_score: 'desc' },
     });
 
     console.log('\n📊 Final Results:\n');
     for (const app of applications) {
       console.log(`  ${app.candidate_profiles?.name || 'Unknown'}`);
       console.log(`    Title: ${app.candidate_profiles?.current_title || 'N/A'}`);
-      console.log(`    Overall: ${app.position_match_score}% | Skills: ${app.skills_match_score}% | Context: ${app.context_match_score}%`);
+      console.log(
+        `    Overall: ${app.position_match_score}% | Skills: ${app.skills_match_score}% | Context: ${app.context_match_score}%`,
+      );
       console.log(`    Suitable: ${app.match_category ? '✅' : '❌'}\n`);
     }
-
   } catch (error) {
     console.error('Error:', error);
   } finally {

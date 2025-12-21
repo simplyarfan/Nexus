@@ -832,9 +832,11 @@ Return only the JSON object, no other text:`;
       const profileResult = await this.createOrUpdateCandidateProfile(
         structuredData,
         scores,
-        jobRequirements?.jobPositionId || null
+        jobRequirements?.jobPositionId || null,
       );
-      console.log(`   ✓ Profile ${profileResult.action || 'processed'}: ${profileResult.candidate?.name || 'N/A'}`);
+      console.log(
+        `   ✓ Profile ${profileResult.action || 'processed'}: ${profileResult.candidate?.name || 'N/A'}`,
+      );
 
       console.log(`✅ [CV Service] CV processing successful in ${Date.now() - processingStart}ms`);
 
@@ -899,15 +901,18 @@ Return only the JSON object, no other text:`;
           where: { id: existingCandidate.id },
           data: {
             name: candidateName || existingCandidate.name,
-            phone: structuredData.personal?.phone !== 'Phone not found'
-              ? structuredData.personal?.phone
-              : existingCandidate.phone,
-            location: structuredData.personal?.location !== 'Location not specified'
-              ? structuredData.personal?.location
-              : existingCandidate.location,
-            linkedin_url: structuredData.personal?.linkedin !== 'LinkedIn not found'
-              ? structuredData.personal?.linkedin
-              : existingCandidate.linkedin_url,
+            phone:
+              structuredData.personal?.phone !== 'Phone not found'
+                ? structuredData.personal?.phone
+                : existingCandidate.phone,
+            location:
+              structuredData.personal?.location !== 'Location not specified'
+                ? structuredData.personal?.location
+                : existingCandidate.location,
+            linkedin_url:
+              structuredData.personal?.linkedin !== 'LinkedIn not found'
+                ? structuredData.personal?.linkedin
+                : existingCandidate.linkedin_url,
             skills: structuredData.skills || existingCandidate.skills,
             years_of_experience: this.calculateYearsOfExperience(structuredData.experience),
             highest_education_level: this.extractHighestEducation(structuredData.education),
@@ -933,13 +938,15 @@ Return only the JSON object, no other text:`;
       const similarCandidate = await this.findSimilarCandidateByAI(candidateName, structuredData);
 
       if (similarCandidate) {
-        console.log(`   ⚠️ Found similar candidate: ${similarCandidate.name} (ID: ${similarCandidate.id}, Similarity: ${similarCandidate.similarity}%)`);
+        console.log(
+          `   ⚠️ Found similar candidate: ${similarCandidate.name} (ID: ${similarCandidate.id}, Similarity: ${similarCandidate.similarity}%)`,
+        );
         console.log('   Skipping creation to avoid duplicates (manual review recommended)');
         return {
           success: true,
           candidate: similarCandidate,
           action: 'duplicate_detected',
-          similarity: similarCandidate.similarity
+          similarity: similarCandidate.similarity,
         };
       }
 
@@ -950,15 +957,18 @@ Return only the JSON object, no other text:`;
         data: {
           name: candidateName,
           email: candidateEmail,
-          phone: structuredData.personal?.phone !== 'Phone not found'
-            ? structuredData.personal?.phone
-            : null,
-          location: structuredData.personal?.location !== 'Location not specified'
-            ? structuredData.personal?.location
-            : null,
-          linkedin_url: structuredData.personal?.linkedin !== 'LinkedIn not found'
-            ? structuredData.personal?.linkedin
-            : null,
+          phone:
+            structuredData.personal?.phone !== 'Phone not found'
+              ? structuredData.personal?.phone
+              : null,
+          location:
+            structuredData.personal?.location !== 'Location not specified'
+              ? structuredData.personal?.location
+              : null,
+          linkedin_url:
+            structuredData.personal?.linkedin !== 'LinkedIn not found'
+              ? structuredData.personal?.linkedin
+              : null,
           skills: structuredData.skills || [],
           years_of_experience: this.calculateYearsOfExperience(structuredData.experience),
           highest_education_level: this.extractHighestEducation(structuredData.education),
@@ -1090,9 +1100,10 @@ Consider a match if:
       const dateMatch = exp.match(/(\d{4})\s*[-–]\s*(\d{4}|present)/i);
       if (dateMatch) {
         const startYear = parseInt(dateMatch[1]);
-        const endYear = dateMatch[2].toLowerCase() === 'present'
-          ? new Date().getFullYear()
-          : parseInt(dateMatch[2]);
+        const endYear =
+          dateMatch[2].toLowerCase() === 'present'
+            ? new Date().getFullYear()
+            : parseInt(dateMatch[2]);
         totalMonths += (endYear - startYear) * 12;
       }
     }
@@ -1130,9 +1141,8 @@ Consider a match if:
     }
 
     // Look for "present" or most recent entry
-    const currentExp = experiences.find(exp =>
-      exp.toLowerCase().includes('present') ||
-      exp.toLowerCase().includes('current')
+    const currentExp = experiences.find(
+      (exp) => exp.toLowerCase().includes('present') || exp.toLowerCase().includes('current'),
     );
 
     if (currentExp) {
@@ -1155,9 +1165,8 @@ Consider a match if:
     }
 
     // Look for "present" or most recent entry
-    const currentExp = experiences.find(exp =>
-      exp.toLowerCase().includes('present') ||
-      exp.toLowerCase().includes('current')
+    const currentExp = experiences.find(
+      (exp) => exp.toLowerCase().includes('present') || exp.toLowerCase().includes('current'),
     );
 
     if (currentExp) {

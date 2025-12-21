@@ -66,12 +66,15 @@ async function rematchWithSkillsBreakdown() {
           });
 
           console.log(`   ✅ ${candidate.name}: ${matchResult.skills_match_score}% skills`);
-          console.log(`      Matched Required: ${matchResult.matched_required_skills?.join(', ') || 'None'}`);
-          console.log(`      Unmatched Required: ${matchResult.unmatched_required_skills?.join(', ') || 'None'}`);
+          console.log(
+            `      Matched Required: ${matchResult.matched_required_skills?.join(', ') || 'None'}`,
+          );
+          console.log(
+            `      Unmatched Required: ${matchResult.unmatched_required_skills?.join(', ') || 'None'}`,
+          );
 
           // Add delay to avoid Groq rate limits (10 seconds between AI calls)
-          await new Promise(resolve => setTimeout(resolve, 10000));
-
+          await new Promise((resolve) => setTimeout(resolve, 10000));
         } catch (err) {
           console.error(`   ❌ Error updating ${candidate.name}:`, err.message);
         }
@@ -81,7 +84,6 @@ async function rematchWithSkillsBreakdown() {
     console.log('\n' + '='.repeat(80));
     console.log('✅ Skill breakdown data population complete!');
     console.log('   You can now see detailed skill analysis in the candidates view.\n');
-
   } catch (error) {
     console.error('Error:', error);
   } finally {

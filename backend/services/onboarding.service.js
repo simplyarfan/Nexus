@@ -12,42 +12,204 @@ class OnboardingService {
     // Default comprehensive checklist template
     this.defaultChecklist = {
       preboarding: [
-        { id: 'pre_1', task: 'Send offer letter', completed: false, completedAt: null, completedBy: null },
-        { id: 'pre_2', task: 'Collect signed offer letter', completed: false, completedAt: null, completedBy: null },
-        { id: 'pre_3', task: 'Request required documents', completed: false, completedAt: null, completedBy: null },
-        { id: 'pre_4', task: 'Verify all documents received', completed: false, completedAt: null, completedBy: null },
-        { id: 'pre_5', task: 'Run background check', completed: false, completedAt: null, completedBy: null },
-        { id: 'pre_6', task: 'Create employee record in payroll', completed: false, completedAt: null, completedBy: null },
+        {
+          id: 'pre_1',
+          task: 'Send offer letter',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'pre_2',
+          task: 'Collect signed offer letter',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'pre_3',
+          task: 'Request required documents',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'pre_4',
+          task: 'Verify all documents received',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'pre_5',
+          task: 'Run background check',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'pre_6',
+          task: 'Create employee record in payroll',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
       ],
       it_setup: [
-        { id: 'it_1', task: 'Create company email account', completed: false, completedAt: null, completedBy: null },
-        { id: 'it_2', task: 'Set up workstation/laptop', completed: false, completedAt: null, completedBy: null },
-        { id: 'it_3', task: 'Create system access credentials', completed: false, completedAt: null, completedBy: null },
-        { id: 'it_4', task: 'Configure VPN access', completed: false, completedAt: null, completedBy: null },
-        { id: 'it_5', task: 'Add to relevant software tools', completed: false, completedAt: null, completedBy: null },
-        { id: 'it_6', task: 'Assign phone extension (if applicable)', completed: false, completedAt: null, completedBy: null },
+        {
+          id: 'it_1',
+          task: 'Create company email account',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'it_2',
+          task: 'Set up workstation/laptop',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'it_3',
+          task: 'Create system access credentials',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'it_4',
+          task: 'Configure VPN access',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'it_5',
+          task: 'Add to relevant software tools',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'it_6',
+          task: 'Assign phone extension (if applicable)',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
       ],
       training: [
-        { id: 'tr_1', task: 'Schedule orientation session', completed: false, completedAt: null, completedBy: null },
-        { id: 'tr_2', task: 'Assign onboarding buddy', completed: false, completedAt: null, completedBy: null },
-        { id: 'tr_3', task: 'Schedule department training', completed: false, completedAt: null, completedBy: null },
-        { id: 'tr_4', task: 'Provide access to training materials', completed: false, completedAt: null, completedBy: null },
-        { id: 'tr_5', task: 'Schedule meet-and-greet with team', completed: false, completedAt: null, completedBy: null },
+        {
+          id: 'tr_1',
+          task: 'Schedule orientation session',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'tr_2',
+          task: 'Assign onboarding buddy',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'tr_3',
+          task: 'Schedule department training',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'tr_4',
+          task: 'Provide access to training materials',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'tr_5',
+          task: 'Schedule meet-and-greet with team',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
       ],
       compliance: [
-        { id: 'co_1', task: 'Complete tax forms', completed: false, completedAt: null, completedBy: null },
+        {
+          id: 'co_1',
+          task: 'Complete tax forms',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
         { id: 'co_2', task: 'Sign NDA', completed: false, completedAt: null, completedBy: null },
-        { id: 'co_3', task: 'Sign employee handbook acknowledgment', completed: false, completedAt: null, completedBy: null },
-        { id: 'co_4', task: 'Complete safety training', completed: false, completedAt: null, completedBy: null },
-        { id: 'co_5', task: 'Set up benefits enrollment', completed: false, completedAt: null, completedBy: null },
+        {
+          id: 'co_3',
+          task: 'Sign employee handbook acknowledgment',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'co_4',
+          task: 'Complete safety training',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'co_5',
+          task: 'Set up benefits enrollment',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
       ],
       first_day: [
-        { id: 'fd_1', task: 'Prepare welcome kit', completed: false, completedAt: null, completedBy: null },
-        { id: 'fd_2', task: 'Send first day information email', completed: false, completedAt: null, completedBy: null },
-        { id: 'fd_3', task: 'Set up desk/workspace', completed: false, completedAt: null, completedBy: null },
-        { id: 'fd_4', task: 'Prepare building access card', completed: false, completedAt: null, completedBy: null },
-        { id: 'fd_5', task: 'Schedule first day agenda', completed: false, completedAt: null, completedBy: null },
-        { id: 'fd_6', task: 'Notify team of new hire arrival', completed: false, completedAt: null, completedBy: null },
+        {
+          id: 'fd_1',
+          task: 'Prepare welcome kit',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'fd_2',
+          task: 'Send first day information email',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'fd_3',
+          task: 'Set up desk/workspace',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'fd_4',
+          task: 'Prepare building access card',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'fd_5',
+          task: 'Schedule first day agenda',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
+        {
+          id: 'fd_6',
+          task: 'Notify team of new hire arrival',
+          completed: false,
+          completedAt: null,
+          completedBy: null,
+        },
       ],
     };
   }
@@ -123,7 +285,9 @@ class OnboardingService {
     }
 
     if (!candidateProfile) {
-      throw new Error('Candidate profile not found. Please ensure the candidate exists in the system.');
+      throw new Error(
+        'Candidate profile not found. Please ensure the candidate exists in the system.',
+      );
     }
 
     if (candidateProfile.is_hired) {
@@ -183,8 +347,14 @@ class OnboardingService {
           candidate_profile_id: candidateProfile.id,
           interview_id: interviewId,
           email: candidateProfile.email,
-          first_name: googleSheetsData?.name?.split(' ')[0] || candidateProfile.name?.split(' ')[0] || candidateProfile.email.split('@')[0],
-          last_name: googleSheetsData?.name?.split(' ').slice(1).join(' ') || candidateProfile.name?.split(' ').slice(1).join(' ') || '',
+          first_name:
+            googleSheetsData?.name?.split(' ')[0] ||
+            candidateProfile.name?.split(' ')[0] ||
+            candidateProfile.email.split('@')[0],
+          last_name:
+            googleSheetsData?.name?.split(' ').slice(1).join(' ') ||
+            candidateProfile.name?.split(' ').slice(1).join(' ') ||
+            '',
           phone: candidateProfile.phone || googleSheetsData?.phone,
           nationality: googleSheetsData?.nationality,
           city: googleSheetsData?.city,
@@ -193,7 +363,9 @@ class OnboardingService {
           whatsapp_number: googleSheetsData?.whatsappNumber,
           current_residency: googleSheetsData?.currentResidency,
           marital_status: googleSheetsData?.maritalStatus,
-          number_of_dependents: googleSheetsData?.numberOfDependents ? parseInt(googleSheetsData.numberOfDependents, 10) || null : null,
+          number_of_dependents: googleSheetsData?.numberOfDependents
+            ? parseInt(googleSheetsData.numberOfDependents, 10) || null
+            : null,
           total_experience: googleSheetsData?.totalExperience,
           education: googleSheetsData?.education,
           certifications: googleSheetsData?.certifications,
@@ -373,7 +545,8 @@ class OnboardingService {
       data: {
         checklist,
         status,
-        started_at: status !== 'not_started' && !onboarding.started_at ? new Date() : onboarding.started_at,
+        started_at:
+          status !== 'not_started' && !onboarding.started_at ? new Date() : onboarding.started_at,
         completed_at: status === 'completed' ? new Date() : null,
         updated_at: new Date(),
       },

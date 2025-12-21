@@ -162,11 +162,8 @@ router.post('/microsoft-sso-login', authLimiter, async (req, res) => {
     }
 
     // Generate Nexus JWT tokens (same as normal login)
-    const { accessToken, refreshToken, expiresIn } = require('../controllers/AuthController').generateTokensForSSO(
-      user.id,
-      user.email,
-      user.role,
-    );
+    const { accessToken, refreshToken, expiresIn } =
+      require('../controllers/AuthController').generateTokensForSSO(user.id, user.email, user.role);
 
     // SECURITY: Hash tokens before storing in database
     // Store SHA256 hash instead of plaintext to prevent token theft from database breaches

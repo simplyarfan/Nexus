@@ -323,7 +323,13 @@ class EmailService {
    */
   async sendOnboardingWelcomeEmail({ to, firstName, lastName, jobTitle, department, startDate }) {
     const subject = 'Welcome to the Team! - Nexus';
-    const html = this.generateOnboardingWelcomeTemplate({ firstName, lastName, jobTitle, department, startDate });
+    const html = this.generateOnboardingWelcomeTemplate({
+      firstName,
+      lastName,
+      jobTitle,
+      department,
+      startDate,
+    });
     return await this.sendEmail(to, subject, html);
   }
 
@@ -350,7 +356,12 @@ class EmailService {
    */
   async sendHRNotificationEmail({ to, employeeName, jobTitle, department, startDate }) {
     const subject = `New Employee Alert: ${employeeName} - ${jobTitle}`;
-    const html = this.generateHRNotificationTemplate({ employeeName, jobTitle, department, startDate });
+    const html = this.generateHRNotificationTemplate({
+      employeeName,
+      jobTitle,
+      department,
+      startDate,
+    });
     return await this.sendEmail(to, subject, html);
   }
 
@@ -401,10 +412,13 @@ class EmailService {
                                 </table>
 
                                 <p style="margin: 0 0 8px 0; font-size: 15px; font-weight: 600; color: #111827;">What happened?</p>
-                                <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #374151;">Your password was changed on ${new Date().toLocaleString('en-US', {
-                                  dateStyle: 'full',
-                                  timeStyle: 'short',
-                                })}. For your security, all active sessions have been logged out.</p>
+                                <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #374151;">Your password was changed on ${new Date().toLocaleString(
+                                  'en-US',
+                                  {
+                                    dateStyle: 'full',
+                                    timeStyle: 'short',
+                                  },
+                                )}. For your security, all active sessions have been logged out.</p>
 
                                 <p style="margin: 0 0 8px 0; font-size: 15px; font-weight: 600; color: #111827;">Was this you?</p>
                                 <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #374151;">If you made this change, no further action is needed. You can now log in with your new password.</p>
@@ -428,7 +442,12 @@ class EmailService {
    */
   generateOnboardingWelcomeTemplate({ firstName, lastName, jobTitle, department, startDate }) {
     const formattedDate = startDate
-      ? new Date(startDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      ? new Date(startDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
       : 'To be confirmed';
 
     return `
@@ -560,7 +579,12 @@ class EmailService {
    */
   generateFirstDayInfoTemplate({ firstName, startDate, department }) {
     const formattedDate = startDate
-      ? new Date(startDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      ? new Date(startDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
       : 'Your scheduled start date';
 
     return `
@@ -633,7 +657,12 @@ class EmailService {
    */
   generateHRNotificationTemplate({ employeeName, jobTitle, department, startDate }) {
     const formattedDate = startDate
-      ? new Date(startDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      ? new Date(startDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
       : 'Not yet scheduled';
 
     return `

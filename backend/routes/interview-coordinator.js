@@ -320,7 +320,7 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
           ...interview,
           has_employee: !!employee,
         };
-      })
+      }),
     );
 
     // Debug logging
@@ -1722,7 +1722,9 @@ router.post('/:id/send-rejection-email', authenticateToken, requireHRAccess, asy
       },
     });
 
-    console.log(`✉️ Rejection email sent to ${interview.candidate_email} for position ${interview.job_title}`);
+    console.log(
+      `✉️ Rejection email sent to ${interview.candidate_email} for position ${interview.job_title}`,
+    );
 
     res.json({
       success: true,

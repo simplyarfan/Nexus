@@ -16,7 +16,7 @@ const groq = new Groq({
 });
 
 // Rate limiting helper
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const RATE_LIMIT_DELAY_MS = 2000;
 
 class IntelligentMatchingService {
@@ -30,29 +30,33 @@ class IntelligentMatchingService {
       if (candidates.length === 0) return [];
 
       // SAFEGUARD: Extract keywords from job title for title-based matching
-      const jobTitleWords = (jobPosition.title || '').toLowerCase()
+      const jobTitleWords = (jobPosition.title || '')
+        .toLowerCase()
         .split(/[\s,./\\-]+/)
-        .filter(w => w.length > 2 && !['the', 'and', 'for', 'with'].includes(w));
+        .filter((w) => w.length > 2 && !['the', 'and', 'for', 'with'].includes(w));
 
       // Extract keywords from required skills as well
       const skillKeywords = (jobPosition.required_skills || [])
-        .join(' ').toLowerCase()
+        .join(' ')
+        .toLowerCase()
         .split(/[\s,./\\-]+/)
-        .filter(w => w.length > 2);
+        .filter((w) => w.length > 2);
 
       // ALWAYS include candidates whose title matches job title keywords
       // This prevents the AI from incorrectly filtering out obvious matches
-      const titleMatchedCandidates = candidates.filter(c => {
+      const titleMatchedCandidates = candidates.filter((c) => {
         const candidateTitle = (c.current_title || '').toLowerCase();
         // Check if candidate title contains ANY job title keywords
-        return jobTitleWords.some(word => candidateTitle.includes(word));
+        return jobTitleWords.some((word) => candidateTitle.includes(word));
       });
 
-      console.log(`  📋 Title-matched candidates (always included): ${titleMatchedCandidates.length}`);
-      titleMatchedCandidates.forEach(c => console.log(`     - ${c.name}: "${c.current_title}"`));
+      console.log(
+        `  📋 Title-matched candidates (always included): ${titleMatchedCandidates.length}`,
+      );
+      titleMatchedCandidates.forEach((c) => console.log(`     - ${c.name}: "${c.current_title}"`));
 
       // Prepare candidate summary for AI (compact format to fit context)
-      const candidateSummaries = candidates.map(c => ({
+      const candidateSummaries = candidates.map((c) => ({
         id: c.id,
         name: c.name,
         title: c.current_title || 'Not specified',
@@ -71,8 +75,12 @@ JOB POSITION:
 - Experience Level: ${jobPosition.experience_level || 'Not specified'}
 
 CANDIDATES:
-${candidateSummaries.map((c, i) => `${i + 1}. [${c.id}] ${c.name} - ${c.title} (${c.experience}y exp)
-   Skills: ${c.skills || 'None listed'}`).join('\n')}
+${candidateSummaries
+  .map(
+    (c, i) => `${i + 1}. [${c.id}] ${c.name} - ${c.title} (${c.experience}y exp)
+   Skills: ${c.skills || 'None listed'}`,
+  )
+  .join('\n')}
 
 IMPORTANT MATCHING RULES:
 - Match skill VARIATIONS: "WMB" = "WebSphere Message Broker" = "IBM Message Broker"
@@ -90,7 +98,8 @@ If NO candidates are relevant, return: []`;
         messages: [
           {
             role: 'system',
-            content: 'You are an expert recruiter. Return only valid JSON arrays. Be inclusive when filtering candidates.',
+            content:
+              'You are an expert recruiter. Return only valid JSON arrays. Be inclusive when filtering candidates.',
           },
           {
             role: 'user',
@@ -105,15 +114,20 @@ If NO candidates are relevant, return: []`;
       const response = completion.choices[0]?.message?.content || '[]';
 
       // Clean up response and extract just the JSON array
-      let cleaned = response.replace(/```json\n/g, '').replace(/```\n/g, '').replace(/```/g, '').trim();
+      let cleaned = response
+        .replace(/```json\n/g, '')
+        .replace(/```\n/g, '')
+        .replace(/```/g, '')
+        .trim();
 
       // Extract JSON array from response (AI sometimes adds explanatory text)
       // Find the first '[' and last ']' to extract the array
       const firstBracket = cleaned.indexOf('[');
       const lastBracket = cleaned.lastIndexOf(']');
-      const arrayMatch = (firstBracket !== -1 && lastBracket !== -1)
-        ? [cleaned.substring(firstBracket, lastBracket + 1)]
-        : null;
+      const arrayMatch =
+        firstBracket !== -1 && lastBracket !== -1
+          ? [cleaned.substring(firstBracket, lastBracket + 1)]
+          : null;
       if (arrayMatch) {
         cleaned = arrayMatch[0];
       }
@@ -133,17 +147,23 @@ If NO candidates are relevant, return: []`;
       }
 
       // Filter candidates by the IDs returned by AI
-      const aiFilteredCandidates = candidates.filter(c => relevantIds.includes(c.id));
+      const aiFilteredCandidates = candidates.filter((c) => relevantIds.includes(c.id));
 
-      console.log(`  🤖 AI pre-filter: ${aiFilteredCandidates.length}/${candidates.length} candidates from AI`);
+      console.log(
+        `  🤖 AI pre-filter: ${aiFilteredCandidates.length}/${candidates.length} candidates from AI`,
+      );
 
       // MERGE: Combine title-matched candidates with AI-filtered candidates (no duplicates)
-      const titleMatchedIds = new Set(titleMatchedCandidates.map(c => c.id));
-      const aiOnlyFilteredCandidates = aiFilteredCandidates.filter(c => !titleMatchedIds.has(c.id));
+      const titleMatchedIds = new Set(titleMatchedCandidates.map((c) => c.id));
+      const aiOnlyFilteredCandidates = aiFilteredCandidates.filter(
+        (c) => !titleMatchedIds.has(c.id),
+      );
 
       const finalCandidates = [...titleMatchedCandidates, ...aiOnlyFilteredCandidates];
 
-      console.log(`  ✅ Final pre-filter result: ${finalCandidates.length} candidates (${titleMatchedCandidates.length} title-matched + ${aiOnlyFilteredCandidates.length} AI-only)`);
+      console.log(
+        `  ✅ Final pre-filter result: ${finalCandidates.length} candidates (${titleMatchedCandidates.length} title-matched + ${aiOnlyFilteredCandidates.length} AI-only)`,
+      );
 
       return finalCandidates;
     } catch (error) {
@@ -192,9 +212,11 @@ If NO candidates are relevant, return: []`;
     const jobLoc = jobLocation.toLowerCase();
 
     // Check for common location words
-    const candWords = candLoc.split(/[\s,./\\-]+/).filter(w => w.length > 2);
-    const jobWords = jobLoc.split(/[\s,./\\-]+/).filter(w => w.length > 2);
-    const commonWords = candWords.filter(w => jobWords.some(jw => jw.includes(w) || w.includes(jw)));
+    const candWords = candLoc.split(/[\s,./\\-]+/).filter((w) => w.length > 2);
+    const jobWords = jobLoc.split(/[\s,./\\-]+/).filter((w) => w.length > 2);
+    const commonWords = candWords.filter((w) =>
+      jobWords.some((jw) => jw.includes(w) || w.includes(jw)),
+    );
 
     if (commonWords.length > 0) return 100;
     return 30;
@@ -222,13 +244,13 @@ If NO candidates are relevant, return: []`;
    */
   async calculateDetailedMatch(candidate, jobPosition) {
     try {
-      const experienceText = (candidate.experience_timeline || [])
-        .map(exp => `  - ${exp.role} at ${exp.company} (${exp.period})`)
-        .join('\n') || 'Not specified';
+      const experienceText =
+        (candidate.experience_timeline || [])
+          .map((exp) => `  - ${exp.role} at ${exp.company} (${exp.period})`)
+          .join('\n') || 'Not specified';
 
-      const requirementsText = (jobPosition.requirements || [])
-        .map(req => `  - ${req}`)
-        .join('\n') || 'Not specified';
+      const requirementsText =
+        (jobPosition.requirements || []).map((req) => `  - ${req}`).join('\n') || 'Not specified';
 
       const prompt = `You are an expert HR recruiter. Analyze this candidate's fit for the job position CRITICALLY and ACCURATELY.
 
@@ -291,7 +313,8 @@ CRITICAL RULES FOR SKILL MATCHING:
         messages: [
           {
             role: 'system',
-            content: 'You are an expert recruiter. Analyze candidate-job fit accurately. Return valid JSON only.',
+            content:
+              'You are an expert recruiter. Analyze candidate-job fit accurately. Return valid JSON only.',
           },
           {
             role: 'user',
@@ -304,7 +327,11 @@ CRITICAL RULES FOR SKILL MATCHING:
       });
 
       const response = completion.choices[0]?.message?.content || '{}';
-      const cleaned = response.replace(/```json\n/g, '').replace(/```\n/g, '').replace(/```/g, '').trim();
+      const cleaned = response
+        .replace(/```json\n/g, '')
+        .replace(/```\n/g, '')
+        .replace(/```/g, '')
+        .trim();
 
       try {
         return JSON.parse(cleaned);
@@ -359,7 +386,9 @@ CRITICAL RULES FOR SKILL MATCHING:
       if (overallScore >= 85) category = 'excellent';
       else if (overallScore >= 70) category = 'strong';
 
-      console.log(`    ✓ AI Scores: Overall=${overallScore}%, Skills=${skillsScore}%, Exp=${experienceScore}%`);
+      console.log(
+        `    ✓ AI Scores: Overall=${overallScore}%, Skills=${skillsScore}%, Exp=${experienceScore}%`,
+      );
 
       return {
         position_match_score: overallScore,
@@ -392,10 +421,7 @@ CRITICAL RULES FOR SKILL MATCHING:
    * 3. Detailed AI analysis on filtered candidates only
    */
   async matchCandidatesForJob(jobPositionId, options = {}) {
-    const {
-      minScore = 50,
-      limit = 50,
-    } = options;
+    const { minScore = 50, limit = 50 } = options;
 
     try {
       console.log(`\n📊 SMART MATCHING v2: Finding candidates for job ${jobPositionId}`);
@@ -434,7 +460,9 @@ CRITICAL RULES FOR SKILL MATCHING:
       }
 
       // Step 4: Detailed AI analysis on pre-filtered candidates only
-      console.log(`  🔍 Running detailed analysis on ${preFilteredCandidates.length} candidates...`);
+      console.log(
+        `  🔍 Running detailed analysis on ${preFilteredCandidates.length} candidates...`,
+      );
 
       const matches = [];
       for (let i = 0; i < preFilteredCandidates.length; i++) {
@@ -454,7 +482,9 @@ CRITICAL RULES FOR SKILL MATCHING:
             ...matchResult,
           });
         } else {
-          console.log(`    ❌ Filtered: ${candidate.name} (score: ${matchResult.position_match_score}%)`);
+          console.log(
+            `    ❌ Filtered: ${candidate.name} (score: ${matchResult.position_match_score}%)`,
+          );
         }
       }
 

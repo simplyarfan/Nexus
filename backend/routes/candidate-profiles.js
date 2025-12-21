@@ -376,7 +376,8 @@ router.delete('/:id', authenticateToken, requireHRAccess, async (req, res) => {
     if (employeeRecord) {
       return res.status(409).json({
         success: false,
-        message: 'Cannot delete this candidate - they have been hired as an employee. Please delete the employee record first from HR Onboarding.',
+        message:
+          'Cannot delete this candidate - they have been hired as an employee. Please delete the employee record first from HR Onboarding.',
       });
     }
 
@@ -418,7 +419,7 @@ router.post('/:id/notes', authenticateToken, requireHRAccess, async (req, res) =
 
     const note = await prisma.candidate_notes.create({
       data: {
-        candidate_id: id,  // UUID string from URL params
+        candidate_id: id, // UUID string from URL params
         author_id: req.user.id,
         content,
         note_type: note_type || 'general',
@@ -557,41 +558,47 @@ router.delete('/:id/notes/:noteId', authenticateToken, requireHRAccess, async (r
  * Access: HR department users and HR admins
  * Supports single or multiple file upload
  */
-router.post('/upload', authenticateToken, requireHRAccess, upload.array('cvs', 10), async (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
+router.post(
+  '/upload',
+  authenticateToken,
+  requireHRAccess,
+  upload.array('cvs', 10),
+  async (req, res) => {
+    try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No CV files uploaded',
+        });
+      }
+
+      console.log(`\n📤 Processing ${req.files.length} CV upload(s)...`);
+
+      // Process CVs
+      const result = await candidateExtractionService.processBulkCvs(req.files);
+
+      // Clean up uploaded files after processing
+      for (const file of req.files) {
+        try {
+          await fs.unlink(file.path);
+        } catch (error) {
+          console.error(`Failed to delete temp file: ${file.path}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error('Error uploading CVs:', error);
+      res.status(500).json({
         success: false,
-        message: 'No CV files uploaded',
+        message: 'Failed to process CV uploads',
+        error: error.message,
       });
     }
-
-    console.log(`\n📤 Processing ${req.files.length} CV upload(s)...`);
-
-    // Process CVs
-    const result = await candidateExtractionService.processBulkCvs(req.files);
-
-    // Clean up uploaded files after processing
-    for (const file of req.files) {
-      try {
-        await fs.unlink(file.path);
-      } catch (error) {
-        console.error(`Failed to delete temp file: ${file.path}`);
-      }
-    }
-
-    res.json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    console.error('Error uploading CVs:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to process CV uploads',
-      error: error.message,
-    });
-  }
-});
+  },
+);
 
 module.exports = router;

@@ -65,7 +65,7 @@ router.post(
         error: error.message || 'Failed to create employee',
       });
     }
-  }
+  },
 );
 
 /**
@@ -123,7 +123,9 @@ router.get('/employees/:id', authenticateToken, requireHumanResources, async (re
 
     // Calculate progress
     if (employee.onboarding) {
-      employee.onboarding.progress = onboardingService.calculateProgress(employee.onboarding.checklist);
+      employee.onboarding.progress = onboardingService.calculateProgress(
+        employee.onboarding.checklist,
+      );
     }
 
     res.json({
@@ -174,40 +176,45 @@ router.patch('/employees/:id', authenticateToken, requireHumanResources, async (
  * PATCH /api/onboarding/employees/:id/status
  * Update employee status
  */
-router.patch('/employees/:id/status', authenticateToken, requireHumanResources, async (req, res) => {
-  try {
-    const employeeId = parseInt(req.params.id);
-    const { status } = req.body;
+router.patch(
+  '/employees/:id/status',
+  authenticateToken,
+  requireHumanResources,
+  async (req, res) => {
+    try {
+      const employeeId = parseInt(req.params.id);
+      const { status } = req.body;
 
-    if (isNaN(employeeId)) {
-      return res.status(400).json({
+      if (isNaN(employeeId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid employee ID',
+        });
+      }
+
+      if (!status) {
+        return res.status(400).json({
+          success: false,
+          error: 'Status is required',
+        });
+      }
+
+      const employee = await onboardingService.updateEmployeeStatus(employeeId, status);
+
+      res.json({
+        success: true,
+        message: 'Employee status updated',
+        data: { employee },
+      });
+    } catch (error) {
+      console.error('Error updating employee status:', error);
+      res.status(500).json({
         success: false,
-        error: 'Invalid employee ID',
+        error: error.message || 'Failed to update employee status',
       });
     }
-
-    if (!status) {
-      return res.status(400).json({
-        success: false,
-        error: 'Status is required',
-      });
-    }
-
-    const employee = await onboardingService.updateEmployeeStatus(employeeId, status);
-
-    res.json({
-      success: true,
-      message: 'Employee status updated',
-      data: { employee },
-    });
-  } catch (error) {
-    console.error('Error updating employee status:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to update employee status',
-    });
-  }
-});
+  },
+);
 
 /**
  * GET /api/onboarding/:employeeId
@@ -250,82 +257,92 @@ router.get('/:employeeId', authenticateToken, requireHumanResources, async (req,
  * PATCH /api/onboarding/:onboardingId/checklist
  * Update a checklist item
  */
-router.patch('/:onboardingId/checklist', authenticateToken, requireHumanResources, async (req, res) => {
-  try {
-    const onboardingId = parseInt(req.params.onboardingId);
-    const { category, itemId, completed } = req.body;
+router.patch(
+  '/:onboardingId/checklist',
+  authenticateToken,
+  requireHumanResources,
+  async (req, res) => {
+    try {
+      const onboardingId = parseInt(req.params.onboardingId);
+      const { category, itemId, completed } = req.body;
 
-    if (isNaN(onboardingId)) {
-      return res.status(400).json({
+      if (isNaN(onboardingId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid onboarding ID',
+        });
+      }
+
+      if (!category || !itemId || completed === undefined) {
+        return res.status(400).json({
+          success: false,
+          error: 'category, itemId, and completed are required',
+        });
+      }
+
+      const result = await onboardingService.updateChecklistItem({
+        onboardingId,
+        category,
+        itemId,
+        completed,
+        userId: req.user.id,
+      });
+
+      res.json({
+        success: true,
+        message: 'Checklist item updated',
+        data: result,
+      });
+    } catch (error) {
+      console.error('Error updating checklist:', error);
+      res.status(500).json({
         success: false,
-        error: 'Invalid onboarding ID',
+        error: error.message || 'Failed to update checklist item',
       });
     }
-
-    if (!category || !itemId || completed === undefined) {
-      return res.status(400).json({
-        success: false,
-        error: 'category, itemId, and completed are required',
-      });
-    }
-
-    const result = await onboardingService.updateChecklistItem({
-      onboardingId,
-      category,
-      itemId,
-      completed,
-      userId: req.user.id,
-    });
-
-    res.json({
-      success: true,
-      message: 'Checklist item updated',
-      data: result,
-    });
-  } catch (error) {
-    console.error('Error updating checklist:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to update checklist item',
-    });
-  }
-});
+  },
+);
 
 /**
  * PATCH /api/onboarding/:onboardingId/assign
  * Assign HR staff or buddy to onboarding
  */
-router.patch('/:onboardingId/assign', authenticateToken, requireHumanResources, async (req, res) => {
-  try {
-    const onboardingId = parseInt(req.params.onboardingId);
-    const { assignedTo, buddyId } = req.body;
+router.patch(
+  '/:onboardingId/assign',
+  authenticateToken,
+  requireHumanResources,
+  async (req, res) => {
+    try {
+      const onboardingId = parseInt(req.params.onboardingId);
+      const { assignedTo, buddyId } = req.body;
 
-    if (isNaN(onboardingId)) {
-      return res.status(400).json({
+      if (isNaN(onboardingId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid onboarding ID',
+        });
+      }
+
+      const onboarding = await onboardingService.assignOnboarding({
+        onboardingId,
+        assignedTo,
+        buddyId,
+      });
+
+      res.json({
+        success: true,
+        message: 'Assignment updated',
+        data: { onboarding },
+      });
+    } catch (error) {
+      console.error('Error assigning onboarding:', error);
+      res.status(500).json({
         success: false,
-        error: 'Invalid onboarding ID',
+        error: 'Failed to update assignment',
       });
     }
-
-    const onboarding = await onboardingService.assignOnboarding({
-      onboardingId,
-      assignedTo,
-      buddyId,
-    });
-
-    res.json({
-      success: true,
-      message: 'Assignment updated',
-      data: { onboarding },
-    });
-  } catch (error) {
-    console.error('Error assigning onboarding:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update assignment',
-    });
-  }
-});
+  },
+);
 
 /**
  * PATCH /api/onboarding/:onboardingId/notes
@@ -363,91 +380,106 @@ router.patch('/:onboardingId/notes', authenticateToken, requireHumanResources, a
  * POST /api/onboarding/:employeeId/emails/welcome
  * Send welcome email to new employee
  */
-router.post('/:employeeId/emails/welcome', authenticateToken, requireHumanResources, async (req, res) => {
-  try {
-    const employeeId = parseInt(req.params.employeeId);
+router.post(
+  '/:employeeId/emails/welcome',
+  authenticateToken,
+  requireHumanResources,
+  async (req, res) => {
+    try {
+      const employeeId = parseInt(req.params.employeeId);
 
-    if (isNaN(employeeId)) {
-      return res.status(400).json({
+      if (isNaN(employeeId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid employee ID',
+        });
+      }
+
+      const result = await onboardingService.sendWelcomeEmail(employeeId);
+
+      res.json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      res.status(500).json({
         success: false,
-        error: 'Invalid employee ID',
+        error: error.message || 'Failed to send welcome email',
       });
     }
-
-    const result = await onboardingService.sendWelcomeEmail(employeeId);
-
-    res.json({
-      success: true,
-      message: result.message,
-    });
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to send welcome email',
-    });
-  }
-});
+  },
+);
 
 /**
  * POST /api/onboarding/:employeeId/emails/documents
  * Send document request email
  */
-router.post('/:employeeId/emails/documents', authenticateToken, requireHumanResources, async (req, res) => {
-  try {
-    const employeeId = parseInt(req.params.employeeId);
+router.post(
+  '/:employeeId/emails/documents',
+  authenticateToken,
+  requireHumanResources,
+  async (req, res) => {
+    try {
+      const employeeId = parseInt(req.params.employeeId);
 
-    if (isNaN(employeeId)) {
-      return res.status(400).json({
+      if (isNaN(employeeId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid employee ID',
+        });
+      }
+
+      const result = await onboardingService.sendDocumentRequestEmail(employeeId);
+
+      res.json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      console.error('Error sending document request email:', error);
+      res.status(500).json({
         success: false,
-        error: 'Invalid employee ID',
+        error: error.message || 'Failed to send document request email',
       });
     }
-
-    const result = await onboardingService.sendDocumentRequestEmail(employeeId);
-
-    res.json({
-      success: true,
-      message: result.message,
-    });
-  } catch (error) {
-    console.error('Error sending document request email:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to send document request email',
-    });
-  }
-});
+  },
+);
 
 /**
  * POST /api/onboarding/:employeeId/emails/first-day
  * Send first day information email
  */
-router.post('/:employeeId/emails/first-day', authenticateToken, requireHumanResources, async (req, res) => {
-  try {
-    const employeeId = parseInt(req.params.employeeId);
+router.post(
+  '/:employeeId/emails/first-day',
+  authenticateToken,
+  requireHumanResources,
+  async (req, res) => {
+    try {
+      const employeeId = parseInt(req.params.employeeId);
 
-    if (isNaN(employeeId)) {
-      return res.status(400).json({
+      if (isNaN(employeeId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid employee ID',
+        });
+      }
+
+      const result = await onboardingService.sendFirstDayInfoEmail(employeeId);
+
+      res.json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      console.error('Error sending first day info email:', error);
+      res.status(500).json({
         success: false,
-        error: 'Invalid employee ID',
+        error: error.message || 'Failed to send first day info email',
       });
     }
-
-    const result = await onboardingService.sendFirstDayInfoEmail(employeeId);
-
-    res.json({
-      success: true,
-      message: result.message,
-    });
-  } catch (error) {
-    console.error('Error sending first day info email:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to send first day info email',
-    });
-  }
-});
+  },
+);
 
 /**
  * GET /api/onboarding/stats

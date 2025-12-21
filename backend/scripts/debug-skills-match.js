@@ -13,8 +13,8 @@ async function debugSkillsMatch() {
     // Find the Scrum Master job
     const scrumJob = await prisma.job_positions.findFirst({
       where: {
-        title: { contains: 'Scrum', mode: 'insensitive' }
-      }
+        title: { contains: 'Scrum', mode: 'insensitive' },
+      },
     });
 
     if (!scrumJob) {
@@ -32,9 +32,9 @@ async function debugSkillsMatch() {
       where: {
         OR: [
           { name: { contains: 'Anum', mode: 'insensitive' } },
-          { name: { contains: 'Usman', mode: 'insensitive' } }
-        ]
-      }
+          { name: { contains: 'Usman', mode: 'insensitive' } },
+        ],
+      },
     });
 
     for (const candidate of candidates) {
@@ -67,23 +67,28 @@ async function debugSkillsMatch() {
           }
         }
 
-        console.log(`   ${matched ? '✅' : '❌'} Required: "${reqSkill}" ${matched ? `→ ${matchedBy}` : '→ NO MATCH'}`);
+        console.log(
+          `   ${matched ? '✅' : '❌'} Required: "${reqSkill}" ${matched ? `→ ${matchedBy}` : '→ NO MATCH'}`,
+        );
       }
 
       // Calculate actual score
       const skillMatch = intelligentMatching.calculateSkillMatch(
         candidate.primary_skills || [],
         scrumJob.required_skills || [],
-        scrumJob.preferred_skills || []
+        scrumJob.preferred_skills || [],
       );
 
       console.log(`\n   📊 CALCULATED SCORE: ${skillMatch.score}%`);
-      console.log(`      Required: ${skillMatch.requiredMatch}% (${skillMatch.matchedRequired.length}/${scrumJob.required_skills?.length || 0})`);
-      console.log(`      Preferred: ${skillMatch.preferredMatch}% (${skillMatch.matchedPreferred.length}/${scrumJob.preferred_skills?.length || 0})`);
+      console.log(
+        `      Required: ${skillMatch.requiredMatch}% (${skillMatch.matchedRequired.length}/${scrumJob.required_skills?.length || 0})`,
+      );
+      console.log(
+        `      Preferred: ${skillMatch.preferredMatch}% (${skillMatch.matchedPreferred.length}/${scrumJob.preferred_skills?.length || 0})`,
+      );
       console.log(`      Matched Required:`, skillMatch.matchedRequired);
       console.log(`      Matched Preferred:`, skillMatch.matchedPreferred);
     }
-
   } catch (error) {
     console.error('Error:', error);
   } finally {

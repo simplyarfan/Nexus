@@ -5,10 +5,13 @@ const prisma = new PrismaClient();
 (async () => {
   try {
     console.log('🎯 Running matching for AI Engineer position...');
-    const result = await intelligentMatching.matchCandidatesForJob('ebff0708-3961-417d-829b-cebb456ea1f8', {
-      minScore: 0,
-      limit: 50
-    });
+    const result = await intelligentMatching.matchCandidatesForJob(
+      'ebff0708-3961-417d-829b-cebb456ea1f8',
+      {
+        minScore: 0,
+        limit: 50,
+      },
+    );
 
     if (!result.success || result.matches.length === 0) {
       console.log('❌ No matches found!');
@@ -22,9 +25,9 @@ const prisma = new PrismaClient();
         where: {
           candidate_id_job_position_id: {
             candidate_id: match.candidate_id,
-            job_position_id: 'ebff0708-3961-417d-829b-cebb456ea1f8'
-          }
-        }
+            job_position_id: 'ebff0708-3961-417d-829b-cebb456ea1f8',
+          },
+        },
       });
 
       if (!existing) {
@@ -43,8 +46,8 @@ const prisma = new PrismaClient();
             match_strengths: match.match_strengths,
             match_concerns: match.match_concerns,
             match_category: match.match_category,
-            auto_matched: true
-          }
+            auto_matched: true,
+          },
         });
         console.log(`  ✓ Stored match: ${match.candidate.name} (${match.position_match_score}%)`);
       } else {

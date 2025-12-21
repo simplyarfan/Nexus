@@ -1,6 +1,7 @@
 const Groq = require('groq-sdk');
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
+const WordExtractor = require('word-extractor');
 const fs = require('fs').promises;
 
 /**
@@ -18,12 +19,48 @@ class JDParsingService {
    */
   async extractTextFromPDF(filePath) {
     try {
+      console.log(`  📄 Reading PDF from: ${filePath}`);
+
+      // Check if file exists
+      const stats = await fs.stat(filePath);
+      console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+
+      if (stats.size === 0) {
+        throw new Error('PDF file is empty (0 bytes)');
+      }
+
+      if (stats.size > 10 * 1024 * 1024) {
+        throw new Error('PDF file is too large (maximum 10MB)');
+      }
+
+      // Read file buffer
       const dataBuffer = await fs.readFile(filePath);
+      console.log(`  ✓ File buffer read successfully (${dataBuffer.length} bytes)`);
+
+      // Parse PDF
       const data = await pdf(dataBuffer);
+
+      console.log(`  ✓ PDF parsed - Pages: ${data.numpages}, Text length: ${data.text?.length || 0} chars`);
+
+      if (!data.text || data.text.trim().length === 0) {
+        throw new Error('PDF contains no extractable text. The PDF may be image-based or encrypted.');
+      }
+
       return data.text;
     } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      throw new Error('Failed to extract text from PDF');
+      console.error('❌ Error extracting text from PDF:', error.message);
+      console.error('   Stack:', error.stack);
+
+      // Provide more specific error messages
+      if (error.message.includes('ENOENT')) {
+        throw new Error('PDF file not found at specified path');
+      } else if (error.message.includes('0 bytes')) {
+        throw new Error('PDF file is empty');
+      } else if (error.message.includes('image-based')) {
+        throw new Error('PDF appears to be image-based. Please use a PDF with selectable text.');
+      } else {
+        throw new Error(`Failed to extract text from PDF: ${error.message}`);
+      }
     }
   }
 
@@ -32,12 +69,92 @@ class JDParsingService {
    */
   async extractTextFromDOCX(filePath) {
     try {
+      console.log(`  📄 Reading DOCX from: ${filePath}`);
+
+      // Check if file exists
+      const stats = await fs.stat(filePath);
+      console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+
+      if (stats.size === 0) {
+        throw new Error('DOCX file is empty (0 bytes)');
+      }
+
+      if (stats.size > 10 * 1024 * 1024) {
+        throw new Error('DOCX file is too large (maximum 10MB)');
+      }
+
+      // Read file buffer
       const buffer = await fs.readFile(filePath);
+      console.log(`  ✓ File buffer read successfully (${buffer.length} bytes)`);
+
+      // Extract text using mammoth
       const result = await mammoth.extractRawText({ buffer });
+
+      console.log(`  ✓ DOCX parsed - Text length: ${result.value?.length || 0} chars`);
+
+      if (!result.value || result.value.trim().length === 0) {
+        throw new Error('DOCX contains no extractable text');
+      }
+
       return result.value;
     } catch (error) {
-      console.error('Error extracting text from DOCX:', error);
-      throw new Error('Failed to extract text from DOCX');
+      console.error('❌ Error extracting text from DOCX:', error.message);
+      console.error('   Stack:', error.stack);
+
+      // Provide more specific error messages
+      if (error.message.includes('ENOENT')) {
+        throw new Error('DOCX file not found at specified path');
+      } else if (error.message.includes('0 bytes')) {
+        throw new Error('DOCX file is empty');
+      } else {
+        throw new Error(`Failed to extract text from DOCX: ${error.message}`);
+      }
+    }
+  }
+
+  /**
+   * Extract text from DOC file (older binary format)
+   */
+  async extractTextFromDOC(filePath) {
+    try {
+      console.log(`  📄 Reading DOC from: ${filePath}`);
+
+      // Check if file exists
+      const stats = await fs.stat(filePath);
+      console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+
+      if (stats.size === 0) {
+        throw new Error('DOC file is empty (0 bytes)');
+      }
+
+      if (stats.size > 10 * 1024 * 1024) {
+        throw new Error('DOC file is too large (maximum 10MB)');
+      }
+
+      // Extract text using word-extractor
+      const extractor = new WordExtractor();
+      const extracted = await extractor.extract(filePath);
+      const text = extracted.getBody() || '';
+
+      console.log(`  ✓ DOC parsed - Text length: ${text?.length || 0} chars`);
+
+      if (!text || text.trim().length === 0) {
+        throw new Error('DOC contains no extractable text');
+      }
+
+      return text;
+    } catch (error) {
+      console.error('❌ Error extracting text from DOC:', error.message);
+      console.error('   Stack:', error.stack);
+
+      // Provide more specific error messages
+      if (error.message.includes('ENOENT')) {
+        throw new Error('DOC file not found at specified path');
+      } else if (error.message.includes('0 bytes')) {
+        throw new Error('DOC file is empty');
+      } else {
+        throw new Error(`Failed to extract text from DOC: ${error.message}`);
+      }
     }
   }
 
@@ -47,13 +164,14 @@ class JDParsingService {
   async extractTextFromJD(filePath, mimeType) {
     if (mimeType === 'application/pdf') {
       return await this.extractTextFromPDF(filePath);
-    } else if (
-      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      mimeType === 'application/msword'
-    ) {
+    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      // .docx files
       return await this.extractTextFromDOCX(filePath);
+    } else if (mimeType === 'application/msword') {
+      // .doc files (older binary format)
+      return await this.extractTextFromDOC(filePath);
     } else {
-      throw new Error('Unsupported file type. Only PDF and DOCX are supported.');
+      throw new Error('Unsupported file type. Only PDF, DOCX, and DOC are supported.');
     }
   }
 

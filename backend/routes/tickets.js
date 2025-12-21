@@ -385,7 +385,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
       const ticket = await tx.support_tickets.findUnique({
         where: { id: ticketId },
         include: {
-          user: {
+          users_support_tickets_user_idTousers: {
             select: {
               id: true,
               email: true,
@@ -394,9 +394,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
               role: true,
             },
           },
-          comments: {
+          ticket_comments: {
             include: {
-              user: {
+              users: {
                 select: {
                   id: true,
                   email: true,
@@ -453,19 +453,19 @@ router.get('/:id', authenticateToken, async (req, res) => {
           category: result.category,
           created_at: result.created_at,
           updated_at: result.updated_at,
-          user: result.user,
+          user: result.users_support_tickets_user_idTousers,
         },
-        comments: result.comments.map((comment) => ({
+        comments: result.ticket_comments.map((comment) => ({
           id: comment.id,
           ticket_id: comment.ticket_id,
           user_id: comment.user_id,
           comment: comment.comment,
           is_internal: comment.is_internal,
           created_at: comment.created_at,
-          first_name: comment.user.first_name,
-          last_name: comment.user.last_name,
-          email: comment.user.email,
-          role: comment.user.role,
+          first_name: comment.users.first_name,
+          last_name: comment.users.last_name,
+          email: comment.users.email,
+          role: comment.users.role,
         })),
       },
     });
@@ -599,7 +599,7 @@ router.post(
         const commentWithUser = await tx.ticket_comments.findUnique({
           where: { id: newComment.id },
           include: {
-            user: {
+            users: {
               select: {
                 id: true,
                 email: true,
@@ -632,7 +632,7 @@ router.post(
       const ticket = await prisma.support_tickets.findUnique({
         where: { id: ticketId },
         include: {
-          user: {
+          users_support_tickets_user_idTousers: {
             select: {
               id: true,
               first_name: true,
@@ -682,10 +682,10 @@ router.post(
             comment: result.comment,
             is_internal: result.is_internal,
             created_at: result.created_at,
-            first_name: result.user.first_name,
-            last_name: result.user.last_name,
-            email: result.user.email,
-            role: result.user.role,
+            first_name: result.users.first_name,
+            last_name: result.users.last_name,
+            email: result.users.email,
+            role: result.users.role,
           },
         },
       });

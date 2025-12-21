@@ -69,7 +69,7 @@ Please confirm your availability for this interview. If you have any questions o
 We look forward to speaking with you.
 
 Best regards,
-${user?.first_name || 'HR Team'}
+${user?.first_name || 'Recruitment Team'}
 ${user?.email || ''}`;
   };
 

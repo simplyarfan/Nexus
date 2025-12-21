@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Edit,
+  Edit2,
   Save,
   X,
   Mail,
@@ -17,6 +18,9 @@ import {
   Award,
   FileText,
   Plus,
+  Trash2,
+  GraduationCap,
+  Check,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import Button from '@/components/ui/Button';
@@ -38,6 +42,11 @@ export default function CandidateProfilePage() {
   const [editedData, setEditedData] = useState({});
   const [newNote, setNewNote] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editingNoteContent, setEditingNoteContent] = useState('');
+  const [isDeletingNote, setIsDeletingNote] = useState(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -77,8 +86,13 @@ export default function CandidateProfilePage() {
         // Ensure arrays exist even if empty
         candidateData.skills = candidateData.skills || [];
         candidateData.certifications = candidateData.certifications || [];
-        candidateData.applications = candidateData.applications || [];
-        candidateData.notes = candidateData.notes || [];
+        candidateData.experience_timeline = candidateData.experience_timeline || [];
+        // Map job_applications to suggestedJobs for display
+        candidateData.suggestedJobs = (candidateData.job_applications || []).map(app => ({
+          ...app,
+          jobPosition: app.job_positions, // Map snake_case to camelCase
+        }));
+        candidateData.notes = candidateData.candidate_notes || [];
 
         setCandidate(candidateData);
         setEditedData(candidateData);
@@ -154,6 +168,85 @@ export default function CandidateProfilePage() {
     }
   };
 
+  const handleEditNote = (note) => {
+    setEditingNoteId(note.id);
+    setEditingNoteContent(note.content);
+  };
+
+  const handleCancelEditNote = () => {
+    setEditingNoteId(null);
+    setEditingNoteContent('');
+  };
+
+  const handleSaveNote = async (noteId) => {
+    if (!editingNoteContent.trim()) return;
+
+    try {
+      const response = await api.put(`/candidates/${id}/notes/${noteId}`, {
+        content: editingNoteContent,
+      });
+
+      if (response.data.success) {
+        setCandidate((prev) => ({
+          ...prev,
+          notes: prev.notes.map((n) =>
+            n.id === noteId ? response.data.note : n
+          ),
+        }));
+        setEditingNoteId(null);
+        setEditingNoteContent('');
+        toast.success('Note updated successfully');
+      } else {
+        toast.error('Failed to update note');
+      }
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast.error('Failed to update note');
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      setIsDeletingNote(noteId);
+      const response = await api.delete(`/candidates/${id}/notes/${noteId}`);
+
+      if (response.data.success) {
+        setCandidate((prev) => ({
+          ...prev,
+          notes: prev.notes.filter((n) => n.id !== noteId),
+        }));
+        toast.success('Note deleted successfully');
+      } else {
+        toast.error('Failed to delete note');
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast.error('Failed to delete note');
+    } finally {
+      setIsDeletingNote(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const response = await api.delete(`/candidates/${id}`);
+
+      if (response.data.success) {
+        toast.success('Candidate deleted successfully');
+        router.push('/candidates');
+      } else {
+        toast.error('Failed to delete candidate');
+      }
+    } catch (error) {
+      console.error('Error deleting candidate:', error);
+      toast.error('Failed to delete candidate');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   const getScoreColor = (score) => {
     if (score >= 90) return 'text-green-600 dark:text-green-400';
     if (score >= 80) return 'text-blue-600 dark:text-blue-400';
@@ -225,31 +318,72 @@ export default function CandidateProfilePage() {
                 />
               </div>
 
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">{candidate.name}</h1>
+              <div className="flex-1">
+                {isEditing ? (
+                  <Input
+                    value={editedData.name || ''}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    placeholder="Candidate name"
+                    className="text-2xl font-bold mb-1"
+                  />
+                ) : (
+                  <h1 className="text-3xl font-bold text-foreground">{candidate.name}</h1>
+                )}
                 <p className="mt-1 text-sm text-muted-foreground">
                   {candidate.current_title} at {candidate.current_company}
                 </p>
                 <div className="mt-2">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getAvailabilityBadge(candidate.availability_status)}`}
-                  >
-                    {candidate.availability_status?.replace(/_/g, ' ').toUpperCase() || 'AVAILABLE'}
-                  </span>
+                  {isEditing ? (
+                    <select
+                      value={editedData.availability_status || 'passive'}
+                      onChange={(e) => handleChange('availability_status', e.target.value)}
+                      className="px-3 py-1 rounded-full text-xs font-medium bg-background text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="open_to_opportunities">OPEN TO OPPORTUNITIES</option>
+                      <option value="actively_looking">ACTIVELY LOOKING</option>
+                      <option value="passive">PASSIVE</option>
+                      <option value="not_looking">NOT LOOKING</option>
+                    </select>
+                  ) : (
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getAvailabilityBadge(candidate.availability_status)}`}
+                    >
+                      {candidate.availability_status?.replace(/_/g, ' ').toUpperCase() || 'AVAILABLE'}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="flex gap-2">
               {!isEditing ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  leftIcon={<Edit className="w-5 h-5" />}
-                  onClick={handleEdit}
-                >
-                  Edit Profile
-                </Button>
+                <>
+                  <div className="relative group">
+                    <Button
+                      variant="danger"
+                      size="lg"
+                      leftIcon={<Trash2 className="w-5 h-5" />}
+                      onClick={() => setShowDeleteModal(true)}
+                      disabled={candidate.is_hired}
+                      className={candidate.is_hired ? 'opacity-50 cursor-not-allowed' : ''}
+                    >
+                      Delete
+                    </Button>
+                    {candidate.is_hired && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-border z-10">
+                        Cannot delete - candidate has been hired as an employee
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    leftIcon={<Edit className="w-5 h-5" />}
+                    onClick={handleEdit}
+                  >
+                    Edit Profile
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button
@@ -405,20 +539,6 @@ export default function CandidateProfilePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Education Level
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={editedData.highest_education_level}
-                      onChange={(e) => handleChange('highest_education_level', e.target.value)}
-                    />
-                  ) : (
-                    <p className="text-foreground">{candidate.highest_education_level}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Notice Period
                   </label>
                   {isEditing ? (
@@ -442,6 +562,98 @@ export default function CandidateProfilePage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Work Experience */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5" />
+                Work Experience
+              </h2>
+              {candidate.experience_timeline && Array.isArray(candidate.experience_timeline) && candidate.experience_timeline.length > 0 ? (
+                <div className="space-y-6">
+                  {candidate.experience_timeline.map((exp, index) => (
+                    <div
+                      key={index}
+                      className="border-l-4 border-blue-500 dark:border-blue-400 pl-4 py-2"
+                    >
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {exp.role || 'Role not specified'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {exp.company || 'Company not specified'}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        {exp.period && (
+                          <>
+                            <Calendar className="w-4 h-4" />
+                            <span>{exp.period}</span>
+                          </>
+                        )}
+                        {exp.duration_months && (
+                          <>
+                            <span>•</span>
+                            <span>{exp.duration_months} months</span>
+                          </>
+                        )}
+                      </div>
+                      {exp.achievements && exp.achievements.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">
+                            Key Achievements:
+                          </p>
+                          <ul className="space-y-1">
+                            {exp.achievements.map((achievement, i) => (
+                              <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                                <span className="text-primary mt-1">•</span>
+                                <span>{achievement}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">
+                  <p>No work experience information available</p>
+                </div>
+              )}
+            </div>
+
+            {/* Education */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                <GraduationCap className="w-5 h-5" />
+                Education
+              </h2>
+              {candidate.education && Array.isArray(candidate.education) && candidate.education.length > 0 ? (
+                <div className="space-y-4">
+                  {candidate.education.map((edu, index) => (
+                    <div
+                      key={index}
+                      className="border-l-4 border-primary pl-4 py-2"
+                    >
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {edu.degree || 'Degree not specified'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {edu.institution || 'Institution not specified'}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        {edu.field && <span>{edu.field}</span>}
+                        {edu.field && edu.year && <span>•</span>}
+                        {edu.year && <span>{edu.year}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">
+                  <p>No education information available</p>
+                </div>
+              )}
             </div>
 
             {/* Skills */}
@@ -480,36 +692,40 @@ export default function CandidateProfilePage() {
 
           {/* Right Column - Applications & Notes */}
           <div className="space-y-6">
-            {/* Applications */}
+            {/* Suggested Jobs */}
             <div className="bg-card border border-border rounded-xl p-6">
               <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Briefcase className="w-5 h-5" />
-                Applications ({candidate.applications.length})
+                Suggested Jobs ({candidate.suggestedJobs?.length || 0})
               </h2>
-              <div className="space-y-3">
-                {candidate.applications.map((app) => (
-                  <div
-                    key={app.id}
-                    className="border border-border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => router.push(`/job-positions/${app.jobPosition.id}`)}
-                  >
-                    <h3 className="font-semibold text-foreground text-sm">
-                      {app.jobPosition.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {app.jobPosition.department}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs px-2 py-1 bg-blue-pastel text-blue-800 dark:bg-blue-600 dark:text-blue-100 rounded-full">
-                        {app.status}
-                      </span>
-                      <span className={`text-sm font-semibold ${getScoreColor(app.position_match_score || 0)}`}>
-                        {app.position_match_score || 0}%
-                      </span>
+              {candidate.suggestedJobs && candidate.suggestedJobs.length > 0 ? (
+                <div className="space-y-3">
+                  {candidate.suggestedJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="border border-border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/job-positions/${job.jobPosition?.id}`)}
+                    >
+                      <h3 className="font-semibold text-foreground text-sm">
+                        {job.jobPosition?.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {job.jobPosition?.department} • {job.jobPosition?.location}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                          {job.position_match_score || 0}% Match
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {job.jobPosition?.employment_type}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No suggested jobs at this time</p>
+              )}
             </div>
 
             {/* Notes */}
@@ -544,13 +760,57 @@ export default function CandidateProfilePage() {
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {candidate.notes.map((note) => (
                   <div key={note.id} className="border border-border rounded-lg p-3">
-                    <p className="text-sm text-foreground">{note.content}</p>
-                    <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                      <span>
-                        {note.author.first_name} {note.author.last_name}
-                      </span>
-                      <span>{new Date(note.created_at).toLocaleDateString()}</span>
-                    </div>
+                    {editingNoteId === note.id ? (
+                      <>
+                        <textarea
+                          value={editingNoteContent}
+                          onChange={(e) => setEditingNoteContent(e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 bg-background text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleSaveNote(note.id)}
+                            className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700"
+                          >
+                            <Check className="w-3 h-3" /> Save
+                          </button>
+                          <button
+                            onClick={handleCancelEditNote}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-3 h-3" /> Cancel
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-foreground">{note.content}</p>
+                        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                          <span>
+                            {note.author?.first_name} {note.author?.last_name}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span>{new Date(note.created_at).toLocaleDateString()}</span>
+                            <button
+                              onClick={() => handleEditNote(note)}
+                              className="text-blue-500 hover:text-blue-600"
+                              title="Edit note"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteNote(note.id)}
+                              disabled={isDeletingNote === note.id}
+                              className="text-red-500 hover:text-red-600 disabled:opacity-50"
+                              title="Delete note"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -558,6 +818,38 @@ export default function CandidateProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-xl"
+          >
+            <h3 className="text-xl font-semibold text-foreground mb-4">Confirm Deletion</h3>
+            <p className="text-muted-foreground mb-6">
+              Are you sure you want to delete {candidate.name}'s profile? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="secondary"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Profile'}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

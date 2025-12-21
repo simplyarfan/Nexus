@@ -1,6 +1,7 @@
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const logger = require('../utils/logger');
 
 /**
  * Security Headers Middleware
@@ -96,7 +97,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Get allowed origins from environment variable (required in production)
     if (!process.env.ALLOWED_ORIGINS) {
-      console.error('ALLOWED_ORIGINS environment variable is not set');
+      logger.error('ALLOWED_ORIGINS environment variable is not set - CORS configuration failed');
       callback(new Error('Server configuration error'));
       return;
     }
@@ -107,12 +108,8 @@ const corsOptions = {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      // In production, also allow Netlify preview URLs
-      if (process.env.NODE_ENV === 'production' && origin && origin.includes('netlify.app')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      // SECURITY: Removed wildcard netlify.app matching - add specific preview URLs to ALLOWED_ORIGINS if needed
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true, // Allow cookies

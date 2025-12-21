@@ -11,11 +11,10 @@ export default function TicketDetailPage() {
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
-  const [activities, setActivities] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [isInternalNote, setIsInternalNote] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInternal, setIsInternal] = useState(false);
 
   // Role check
   useEffect(() => {
@@ -24,12 +23,12 @@ export default function TicketDetailPage() {
     }
   }, [user, isSuperAdmin, authLoading, router]);
 
-  // Fetch ticket details
+  // Fetch data when authenticated and ID is available
   useEffect(() => {
-    if (id && isSuperAdmin) {
+    if (isSuperAdmin && id) {
       fetchTicketDetails();
     }
-  }, [id, isSuperAdmin]);
+  }, [isSuperAdmin, id]);
 
   const fetchTicketDetails = async () => {
     try {
@@ -37,40 +36,6 @@ export default function TicketDetailPage() {
       const result = await supportAPI.getTicketDetails(id);
       setTicket(result.data.ticket);
       setComments(result.data.comments || []);
-
-      // Build activity timeline from ticket data and comments
-      const activityList = [];
-
-      // Add ticket creation
-      activityList.push({
-        id: `created-${result.data.ticket.id}`,
-        type: 'created',
-        user: `${result.data.ticket.user?.first_name} ${result.data.ticket.user?.last_name}`,
-        timestamp: result.data.ticket.created_at,
-        content: 'Ticket created',
-      });
-
-      // Add comments and status changes
-      (result.data.comments || []).forEach((comment) => {
-        // Check if it's a system comment (status change)
-        const isStatusChange =
-          comment.is_system || comment.comment?.includes('Status changed from');
-
-        activityList.push({
-          id: comment.id,
-          type: isStatusChange ? 'status' : comment.is_internal ? 'internal' : 'comment',
-          user: `${comment.first_name} ${comment.last_name}`,
-          timestamp: comment.created_at,
-          content: comment.comment,
-          isInternal: comment.is_internal,
-          role: comment.role,
-        });
-      });
-
-      // Sort by timestamp
-      activityList.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-      setActivities(activityList);
     } catch (error) {
       toast.error('Failed to load ticket details');
       router.back();
@@ -85,15 +50,13 @@ export default function TicketDetailPage() {
 
     try {
       setIsSubmitting(true);
-      await supportAPI.addComment(id, newComment, isInternalNote);
-      toast.success(
-        isInternalNote ? 'Internal note added successfully' : 'Comment added successfully',
-      );
+      await supportAPI.addComment(id, newComment, isInternal);
+      toast.success('Comment added successfully');
 
       // Refresh ticket details
       await fetchTicketDetails();
       setNewComment('');
-      setIsInternalNote(false);
+      setIsInternal(false);
     } catch (error) {
       toast.error('Failed to add comment');
     } finally {
@@ -103,12 +66,11 @@ export default function TicketDetailPage() {
 
   const handleChangeStatus = async (newStatus) => {
     try {
-      const oldStatus = ticket.status;
       await supportAPI.updateTicketStatus(id, newStatus);
       toast.success('Status updated successfully');
 
-      // Refresh ticket details to get updated activities
-      await fetchTicketDetails();
+      // Update local state
+      setTicket({ ...ticket, status: newStatus });
     } catch (error) {
       toast.error('Failed to update status');
     }
@@ -167,39 +129,49 @@ export default function TicketDetailPage() {
   }
 
   if (!ticket) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Ticket Not Found</h2>
+          <button onClick={() => router.push('/superadmin/tickets')}>Back to Tickets</button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/superadmin/tickets')}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
+      <div className="border-b border-border bg-card">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Back Button */}
+          <button
+            onClick={() => router.push('/superadmin/tickets')}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                className="w-5 h-5 text-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <div>
-              <div className="flex items-center gap-3">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span className="text-sm font-medium">Back to Tickets</span>
+          </button>
+
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold text-foreground">{ticket.subject}</h1>
                 <span className="text-muted-foreground">#{id}</span>
               </div>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 Created by {ticket.user?.first_name} {ticket.user?.last_name} on{' '}
                 {new Date(ticket.created_at).toLocaleDateString()}
               </p>
@@ -208,9 +180,11 @@ export default function TicketDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8">
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
+          {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Ticket Description */}
             <motion.div
@@ -237,7 +211,7 @@ export default function TicketDetailPage() {
               <p className="text-muted-foreground whitespace-pre-wrap">{ticket.description}</p>
             </motion.div>
 
-            {/* Activity Timeline */}
+            {/* Activity / Comments */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -246,83 +220,61 @@ export default function TicketDetailPage() {
             >
               <h2 className="text-xl font-bold text-foreground mb-6">Activity</h2>
 
-              {/* Activity List */}
+              {/* Comments List */}
               <div className="space-y-6 mb-6">
-                {activities.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No activity yet</p>
+                {comments.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No comments yet</p>
                 ) : (
-                  activities.map((activity, index) => (
-                    <div key={activity.id} className="relative">
-                      {/* Timeline Line */}
-                      {index !== activities.length - 1 && (
-                        <div className="absolute left-6 top-14 w-0.5 h-full bg-border" />
-                      )}
-
-                      <div className="flex gap-4">
-                        {/* Avatar/Icon */}
-                        <div className="flex-shrink-0">
-                          {activity.type === 'created' || activity.type === 'status' ? (
-                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                              <svg
-                                className="w-5 h-5 text-muted-foreground"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                {activity.type === 'created' ? (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 4v16m8-8H4"
-                                  />
-                                ) : (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                )}
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-sm font-medium text-foreground">
-                                {activity.user?.[0] || 'A'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-foreground">{activity.user}</span>
-                            {activity.isInternal && (
-                              <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full">
-                                Internal Note
-                              </span>
-                            )}
-                            {activity.role && activity.role !== 'user' && !activity.isInternal && (
-                              <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded">
-                                {activity.role}
-                              </span>
-                            )}
+                  comments.map((comment, index) => (
+                    <div key={comment.id} className="flex gap-3">
+                      <div className="flex-shrink-0">
+                        {index === 0 ? (
+                          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
                             <span className="text-xs text-muted-foreground">
-                              {new Date(activity.timestamp).toLocaleString()}
+                              {comment.first_name?.[0]}
+                              {comment.last_name?.[0]}
                             </span>
                           </div>
-                          <div
-                            className={`${activity.type === 'comment' || activity.type === 'internal' ? 'bg-muted/50 rounded-lg p-4 mt-2' : ''}`}
-                          >
-                            <p
-                              className={`text-sm ${activity.type === 'status' ? 'text-muted-foreground italic' : 'text-foreground'} whitespace-pre-wrap`}
-                            >
-                              {activity.content}
-                            </p>
-                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-foreground">
+                            {comment.first_name} {comment.last_name}
+                          </span>
+                          {comment.role !== 'user' && (
+                            <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
+                              {comment.role}
+                            </span>
+                          )}
+                          {comment.is_internal && (
+                            <span className="px-2 py-0.5 text-xs bg-green-500/10 text-green-600 border border-green-500/20 rounded">
+                              Internal Note
+                            </span>
+                          )}
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(comment.created_at).toLocaleString()}
+                          </span>
                         </div>
+                        <p className="text-muted-foreground whitespace-pre-wrap">
+                          {comment.comment}
+                        </p>
                       </div>
                     </div>
                   ))
@@ -343,8 +295,8 @@ export default function TicketDetailPage() {
                   <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={isInternalNote}
-                      onChange={(e) => setIsInternalNote(e.target.checked)}
+                      checked={isInternal}
+                      onChange={(e) => setIsInternal(e.target.checked)}
                       className="rounded border-border"
                     />
                     Internal note (not visible to user)
@@ -352,10 +304,7 @@ export default function TicketDetailPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setNewComment('');
-                        setIsInternalNote(false);
-                      }}
+                      onClick={() => setNewComment('')}
                       className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background border border-border rounded-lg hover:bg-muted transition-colors"
                     >
                       Cancel
@@ -375,45 +324,47 @@ export default function TicketDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Status & Priority */}
+            {/* Status */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className="bg-card border border-border rounded-xl p-6"
             >
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Status</h3>
-                  <select
-                    value={ticket.status}
-                    onChange={(e) => handleChangeStatus(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="open">Open</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Status</h3>
+              <select
+                value={ticket.status}
+                onChange={(e) => handleChangeStatus(e.target.value)}
+                className="w-full px-3 py-2 bg-background border border-border text-foreground rounded-lg focus:ring-2 focus:ring-ring"
+              >
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+            </motion.div>
 
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Priority</h3>
-                  <span
-                    className={`inline-flex px-3 py-1.5 text-sm font-semibold rounded-lg ${getPriorityColor(
-                      ticket.priority,
-                    )}`}
-                  >
-                    {ticket.priority}
-                  </span>
-                </div>
-              </div>
+            {/* Priority */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-card border border-border rounded-xl p-6"
+            >
+              <h3 className="text-sm font-semibold text-foreground mb-3">Priority</h3>
+              <span
+                className={`inline-flex px-3 py-1.5 text-sm font-semibold rounded-lg ${getPriorityColor(
+                  ticket.priority,
+                )}`}
+              >
+                {ticket.priority}
+              </span>
             </motion.div>
 
             {/* User Information */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.05 }}
+              transition={{ delay: 0.1 }}
               className="bg-card border border-border rounded-xl p-6"
             >
               <h3 className="text-sm font-semibold text-foreground mb-3">User Information</h3>
@@ -427,6 +378,12 @@ export default function TicketDetailPage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Email</p>
                   <p className="text-sm text-foreground">{ticket.user?.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Assigned To</p>
+                  <p className="text-sm text-foreground">
+                    {ticket.assigned_to?.first_name || 'Admin User'}
+                  </p>
                 </div>
               </div>
             </motion.div>

@@ -94,16 +94,25 @@ const Login = () => {
   };
 
   const handleMicrosoftLogin = async () => {
+    // Prevent double-clicks
+    if (isMicrosoftLoading) return;
+
     setIsMicrosoftLoading(true);
     setError('');
 
     try {
-      // Initiate Microsoft OAuth redirect
+      // Use redirect flow - opens in same tab
       await microsoftAuthService.loginWithRedirect();
-      // User will be redirected to Microsoft login page, then back to /auth/callback
+      // User will be redirected to Microsoft, then back to /auth/callback
     } catch (error) {
-      setError(error.message || 'Failed to initiate Microsoft login');
-      toast.error('Failed to connect to Microsoft. Please try again.');
+      // Handle MSAL interaction_in_progress error
+      if (error.message && error.message.includes('interaction_in_progress')) {
+        // Clear stuck interaction state and retry
+        microsoftAuthService.clearInteractionState();
+        setError('Please try again.');
+      } else {
+        setError(error.message || 'Failed to initiate Microsoft login');
+      }
       setIsMicrosoftLoading(false);
     }
   };

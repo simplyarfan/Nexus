@@ -2,8 +2,9 @@ const Groq = require('groq-sdk');
 const path = require('path');
 const fs = require('fs').promises;
 const pdfParse = require('pdf-parse');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const mammoth = require('mammoth');
+const WordExtractor = require('word-extractor');
+const { prisma } = require('../lib/prisma');
 const intelligentMatching = require('./intelligentMatching.service');
 
 /**
@@ -32,10 +33,60 @@ class CandidateExtractionService {
   }
 
   /**
+   * Extract text from DOCX file (modern Word format)
+   */
+  async extractDocxText(filePath) {
+    try {
+      const dataBuffer = await fs.readFile(filePath);
+      const result = await mammoth.extractRawText({ buffer: dataBuffer });
+      if (!result.value || result.value.trim().length === 0) {
+        throw new Error('DOCX contains no extractable text');
+      }
+      return result.value;
+    } catch (error) {
+      console.error('Error extracting DOCX text:', error);
+      throw new Error(`Failed to extract text from DOCX: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract text from DOC file (older binary Word format)
+   */
+  async extractDocText(filePath) {
+    try {
+      const extractor = new WordExtractor();
+      const extracted = await extractor.extract(filePath);
+      const text = extracted.getBody() || '';
+      if (!text || text.trim().length === 0) {
+        throw new Error('DOC contains no extractable text');
+      }
+      return text;
+    } catch (error) {
+      console.error('Error extracting DOC text:', error);
+      throw new Error(`Failed to extract text from DOC: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract text from CV file based on MIME type
+   */
+  async extractTextFromFile(filePath, mimeType) {
+    if (mimeType === 'application/pdf') {
+      return await this.extractPdfText(filePath);
+    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      return await this.extractDocxText(filePath);
+    } else if (mimeType === 'application/msword') {
+      return await this.extractDocText(filePath);
+    } else {
+      throw new Error(`Unsupported file type: ${mimeType}. Only PDF, DOCX, and DOC are supported.`);
+    }
+  }
+
+  /**
    * Use AI to extract structured candidate data from CV text
    */
   async extractCandidateData(cvText) {
-    const prompt = `You are an expert HR assistant specialized in analyzing resumes/CVs. Extract the following information from the CV text and return it as a JSON object.
+    const prompt = `You are an expert HR assistant specialized in analyzing resumes/CVs. Extract information carefully following the rules below.
 
 CV Text:
 ${cvText}
@@ -46,33 +97,64 @@ Extract and return ONLY a JSON object (no markdown, no code blocks) with this ex
   "email": "Email address",
   "phone": "Phone number",
   "location": "Current location/city",
-  "linkedin_url": "LinkedIn profile URL if mentioned",
+  "linkedin_url": "LinkedIn profile URL with full https:// prefix (e.g., https://www.linkedin.com/in/username)",
   "portfolio_url": "Portfolio/website URL if mentioned",
   "current_company": "Current employer name",
   "current_title": "Current job title",
   "years_of_experience": total years of professional experience as a number,
-  "education_level": "highest degree: high_school, bachelors, masters, or phd",
+  "education": [
+    {
+      "degree": "Degree name (e.g., PhD in Computer Science)",
+      "institution": "University/College name",
+      "field": "Field of study",
+      "year": "Graduation year or period",
+      "level": education level as number (5=PhD, 4=Masters, 3=Bachelors, 2=Associate/Diploma, 1=High School)
+    }
+  ],
   "primary_skills": ["skill1", "skill2", "skill3"],
   "certifications": ["cert1", "cert2"],
-  "languages": ["language1", "language2"],
   "experience_timeline": [
     {
       "company": "Company name",
       "role": "Job title",
-      "period": "Date range",
+      "period": "Date range (e.g., Jan 2020 - Dec 2022)",
+      "duration_months": calculate approximate duration in months as a number,
       "achievements": ["achievement1", "achievement2"]
     }
   ],
   "strengths": ["strength1", "strength2"],
-  "summary": "Brief professional summary in 2-3 sentences"
+  "summary": "Professional summary exactly as written in CV, or null if not present"
 }
 
-Rules:
-- Use null for missing information
+CRITICAL RULES FOR SKILL EXTRACTION (primary_skills):
+1. NEVER extract standalone version numbers like "v9.0", "v10", "11", "12" as separate skills
+2. ALWAYS keep product name + version together: "IBM ACE v11", "WebSphere Message Broker v9.0", "MQ v8"
+3. Fix obvious typos and normalize spacing:
+   - "Corejava" → "Core Java"
+   - "IBM Ace vv11v12" → "IBM ACE v11/v12"
+   - "RESTFUL" → "RESTful"
+   - "Websphre" → "WebSphere"
+4. Extract skills from ALL sections including:
+   - Explicit skills/technical skills section
+   - Project descriptions (tools/technologies used)
+   - Work experience bullet points
+   - Certifications (if skill-related)
+5. Use proper capitalization and standard names:
+   - "IBM WebSphere Message Broker" not "WMB" (but include "WMB" as separate entry for searchability)
+   - "IBM Integration Bus (IIB)" to include both forms
+   - "Java" not "java" or "JAVA"
+6. EXCLUDE overly generic terms: "Development", "Coding", "Programming", "IT", "Software", "Technology"
+7. Include both the acronym and full name when applicable for major technologies
+8. Merge related versions: If CV mentions v9, v10, v11 of same product → "IBM ACE v9-v11" or list each fully: ["IBM ACE v9", "IBM ACE v10", "IBM ACE v11"]
+
+OTHER RULES:
+- achievements: Copy each bullet point/achievement EXACTLY as written in the CV. Include the full text.
+- strengths: Extract strengths/highlights EXACTLY as mentioned. If not explicitly listed, use null.
+- summary: If the CV has a summary/objective section, copy it EXACTLY. If not present, use null.
+- Use null for missing information - do NOT make up or infer data
 - For years_of_experience, calculate total from all positions
-- For education_level, pick the highest: high_school, bachelors, masters, phd
-- Extract only technical/professional skills for primary_skills (max 10)
-- Languages should be natural languages spoken (e.g., English, Spanish)
+- For education array: extract ALL education entries, sorted from HIGHEST to LOWEST level
+- For linkedin_url: MUST include full URL with https://www. prefix
 - Return valid JSON only, no explanations`;
 
     try {
@@ -85,7 +167,7 @@ Rules:
         ],
         model: 'llama-3.3-70b-versatile',
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 4000, // Increased for complex CVs
       });
 
       const response = completion.choices[0]?.message?.content || '{}';
@@ -97,11 +179,62 @@ Rules:
         .replace(/```/g, '')
         .trim();
 
-      return JSON.parse(cleanedResponse);
+      // Try to parse, if truncated try to repair
+      try {
+        return JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        console.log('  ⚠️ JSON parse failed, attempting repair...');
+        const repaired = this.repairTruncatedJson(cleanedResponse);
+        return JSON.parse(repaired);
+      }
     } catch (error) {
       console.error('Error extracting candidate data with AI:', error);
       throw new Error(`AI extraction failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Attempt to repair truncated JSON from AI response
+   */
+  repairTruncatedJson(jsonString) {
+    let repaired = jsonString;
+
+    // Count open brackets
+    const openBraces = (repaired.match(/{/g) || []).length;
+    const closeBraces = (repaired.match(/}/g) || []).length;
+    const openBrackets = (repaired.match(/\[/g) || []).length;
+    const closeBrackets = (repaired.match(/\]/g) || []).length;
+
+    // If in the middle of a string, close it
+    const lastQuote = repaired.lastIndexOf('"');
+    const lastColon = repaired.lastIndexOf(':');
+    const lastComma = repaired.lastIndexOf(',');
+
+    // Check if we're in an unclosed string (odd number of quotes after last structural char)
+    const afterLastStructural = Math.max(lastColon, lastComma);
+    if (afterLastStructural > 0) {
+      const afterPart = repaired.substring(afterLastStructural);
+      const quotesAfter = (afterPart.match(/"/g) || []).length;
+      if (quotesAfter % 2 === 1) {
+        // Odd quotes means unclosed string - close it
+        repaired += '"';
+      }
+    }
+
+    // Remove trailing comma if present
+    repaired = repaired.replace(/,\s*$/, '');
+
+    // Close any unclosed arrays
+    for (let i = 0; i < openBrackets - closeBrackets; i++) {
+      repaired += ']';
+    }
+
+    // Close any unclosed objects
+    for (let i = 0; i < openBraces - closeBraces; i++) {
+      repaired += '}';
+    }
+
+    return repaired;
   }
 
   /**
@@ -124,13 +257,25 @@ Rules:
       performanceScore += Math.min(candidateData.certifications.length * 3, 10);
     }
 
-    // Potential Score Factors
-    if (candidateData.education_level === 'phd') {
-      potentialScore += 25;
-    } else if (candidateData.education_level === 'masters') {
-      potentialScore += 20;
-    } else if (candidateData.education_level === 'bachelors') {
-      potentialScore += 15;
+    // Potential Score Factors - Based on highest education level (education[0])
+    if (candidateData.education && candidateData.education.length > 0) {
+      const highestEducation = candidateData.education[0];
+      if (highestEducation.level === 5) {
+        // PhD
+        potentialScore += 25;
+      } else if (highestEducation.level === 4) {
+        // Masters
+        potentialScore += 20;
+      } else if (highestEducation.level === 3) {
+        // Bachelors
+        potentialScore += 15;
+      } else if (highestEducation.level === 2) {
+        // Associate/Diploma
+        potentialScore += 10;
+      } else if (highestEducation.level === 1) {
+        // High School
+        potentialScore += 5;
+      }
     }
 
     if (candidateData.languages && candidateData.languages.length > 1) {
@@ -158,7 +303,7 @@ Rules:
     if (!email) return null;
 
     try {
-      const existing = await prisma.candidateProfile.findUnique({
+      const existing = await prisma.candidate_profiles.findUnique({
         where: { email: email.toLowerCase() },
       });
       return existing;
@@ -191,21 +336,13 @@ Rules:
         phone: candidateData.phone,
         location: candidateData.location,
         linkedin_url: candidateData.linkedin_url,
-        portfolio_url: candidateData.portfolio_url,
         current_company: candidateData.current_company,
         current_title: candidateData.current_title,
         years_of_experience: candidateData.years_of_experience,
-        education_level: candidateData.education_level,
+        education: candidateData.education || [],
         primary_skills: candidateData.primary_skills || [],
         certifications: candidateData.certifications || [],
-        languages: candidateData.languages || [],
         experience_timeline: candidateData.experience_timeline || [],
-        strengths: candidateData.strengths || [],
-        performance_score: scores.performance_score,
-        potential_score: scores.potential_score,
-        overall_match_score: scores.overall_match_score,
-        latest_cv_url: cvFilePath,
-        cv_last_updated: new Date(),
         updated_at: new Date(),
       };
 
@@ -213,7 +350,7 @@ Rules:
         // Update existing candidate
         console.log(`✓ Updating existing candidate: ${candidateData.name} (${email})`);
 
-        const updated = await prisma.candidateProfile.update({
+        const updated = await prisma.candidate_profiles.update({
           where: { id: existingCandidate.id },
           data: profileData,
         });
@@ -228,12 +365,10 @@ Rules:
         // Create new candidate
         console.log(`✓ Creating new candidate: ${candidateData.name} (${email})`);
 
-        const created = await prisma.candidateProfile.create({
+        const created = await prisma.candidate_profiles.create({
           data: {
             ...profileData,
             availability_status: 'available',
-            source_cv_batches: [],
-            merged_candidate_ids: [],
           },
         });
 
@@ -262,13 +397,16 @@ Rules:
   /**
    * Process a single CV file (main entry point)
    */
-  async processCv(filePath, fileName) {
+  async processCv(filePath, fileName, mimeType = 'application/pdf') {
     try {
-      console.log(`\n📄 Processing CV: ${fileName}`);
+      console.log(`\n📄 Processing CV: ${fileName} (${mimeType})`);
 
-      // Step 1: Extract text from PDF
-      console.log('  Step 1/3: Extracting text from PDF...');
-      const cvText = await this.extractPdfText(filePath);
+      // Step 1: Extract text from file based on type
+      const fileTypeLabel = mimeType === 'application/pdf' ? 'PDF' :
+                           mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'DOCX' :
+                           mimeType === 'application/msword' ? 'DOC' : 'file';
+      console.log(`  Step 1/3: Extracting text from ${fileTypeLabel}...`);
+      const cvText = await this.extractTextFromFile(filePath, mimeType);
 
       if (!cvText || cvText.length < 50) {
         throw new Error('Could not extract meaningful text from CV');
@@ -302,7 +440,7 @@ Rules:
     const results = [];
 
     for (const file of files) {
-      const result = await this.processCv(file.path, file.filename);
+      const result = await this.processCv(file.path, file.filename, file.mimetype);
       results.push({
         fileName: file.filename,
         ...result,
@@ -331,12 +469,12 @@ Rules:
       console.log(`\n🎯 Auto-matching candidate ${candidateId} to open positions...`);
 
       const matchResult = await intelligentMatching.matchJobsForCandidate(candidateId, {
-        minScore: 60,
+        minScore: 0,
         limit: 20,
       });
 
       if (!matchResult.success || matchResult.matches.length === 0) {
-        console.log(`  No suitable matches found (>= 60%)`);
+        console.log(`  No suitable matches found`);
         return;
       }
 

@@ -5,8 +5,9 @@
 
 const { openAI: axios } = require('../utils/axios'); // Use OpenAI-specific instance with 5-minute timeout
 const pdf = require('pdf-parse');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const mammoth = require('mammoth');
+const WordExtractor = require('word-extractor');
+const { prisma } = require('../lib/prisma');
 
 class CVIntelligenceHR01 {
   constructor() {
@@ -337,11 +338,13 @@ Return valid JSON only:`;
   }
 
   /**
+   * STEP 2: PARSING - Extract text from PDF, DOCX, or DOC files
    */
   async parseDocument(fileBuffer, fileType) {
     let text = '';
+    const fileTypeLower = fileType.toLowerCase();
 
-    if (fileType === 'pdf') {
+    if (fileTypeLower === 'pdf') {
       try {
         const pdfData = await pdf(fileBuffer);
         text = pdfData.text || '';
@@ -367,7 +370,40 @@ Return valid JSON only:`;
           );
         }
       }
+    } else if (fileTypeLower === 'docx') {
+      // Handle .docx files using mammoth
+      try {
+        console.log('   Parsing DOCX file with mammoth...');
+        const result = await mammoth.extractRawText({ buffer: fileBuffer });
+        text = result.value || '';
+
+        if (!text || text.trim().length === 0) {
+          throw new Error('DOCX contains no extractable text');
+        }
+        console.log(`   ✓ DOCX parsed successfully - ${text.length} characters`);
+      } catch (e) {
+        throw new Error(`Failed to parse DOCX file: ${e.message}`);
+      }
+    } else if (fileTypeLower === 'doc') {
+      // Handle .doc files (older binary format) using word-extractor
+      try {
+        console.log('   Parsing DOC file with word-extractor...');
+        const extractor = new WordExtractor();
+        const extracted = await extractor.extract(fileBuffer);
+        text = extracted.getBody() || '';
+
+        if (!text || text.trim().length === 0) {
+          throw new Error('DOC contains no extractable text');
+        }
+        console.log(`   ✓ DOC parsed successfully - ${text.length} characters`);
+      } catch (e) {
+        throw new Error(`Failed to parse DOC file: ${e.message}`);
+      }
+    } else if (fileTypeLower === 'txt') {
+      // Handle plain text files
+      text = fileBuffer.toString('utf-8');
     } else {
+      // Try to read as plain text as fallback
       text = fileBuffer.toString('utf-8');
     }
 

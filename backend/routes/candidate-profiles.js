@@ -24,16 +24,23 @@ const storage = multer.diskStorage({
   },
 });
 
+// Allowed MIME types for CV uploads
+const ALLOWED_CV_MIMETYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/msword', // .doc
+];
+
 const upload = multer({
   storage: storage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
+    if (ALLOWED_CV_MIMETYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF files are allowed'));
+      cb(new Error('Only PDF, DOCX, and DOC files are allowed'));
     }
   },
 });
@@ -80,12 +87,7 @@ router.get('/', authenticateToken, requireHRAccess, async (req, res) => {
       where.availability_status = status;
     }
 
-    // Score range filter
-    if (minScore || maxScore) {
-      where.overall_match_score = {};
-      if (minScore) where.overall_match_score.gte = parseInt(minScore);
-      if (maxScore) where.overall_match_score.lte = parseInt(maxScore);
-    }
+    // Score range filter (removed - overall_match_score column dropped)
 
     // Skills filter (contains any of the specified skills)
     if (skills) {
@@ -141,7 +143,7 @@ router.get('/', authenticateToken, requireHRAccess, async (req, res) => {
             },
           },
         },
-        orderBy: [{ overall_match_score: 'desc' }, { created_at: 'desc' }],
+        orderBy: [{ created_at: 'desc' }],
         skip,
         take: parseInt(limit),
       }),
@@ -185,19 +187,6 @@ router.get('/stats', authenticateToken, requireHRAccess, async (req, res) => {
       _count: true,
     });
 
-    const avgMatchScore = await prisma.candidate_profiles.aggregate({
-      _avg: {
-        overall_match_score: true,
-        performance_score: true,
-        potential_score: true,
-      },
-    });
-
-    const sourceBreakdown = await prisma.candidate_profiles.groupBy({
-      by: ['source'],
-      _count: true,
-    });
-
     res.json({
       success: true,
       stats: {
@@ -207,15 +196,6 @@ router.get('/stats', authenticateToken, requireHRAccess, async (req, res) => {
           status: s.availability_status,
           count: s._count,
         })),
-        bySource: sourceBreakdown.map((s) => ({
-          source: s.source || 'manual',
-          count: s._count,
-        })),
-        averageScores: {
-          overall: Math.round(avgMatchScore._avg.overall_match_score || 0),
-          performance: Math.round(avgMatchScore._avg.performance_score || 0),
-          potential: Math.round(avgMatchScore._avg.potential_score || 0),
-        },
       },
     });
   } catch (error) {
@@ -241,6 +221,11 @@ router.get('/:id', authenticateToken, requireHRAccess, async (req, res) => {
       where: { id: id },
       include: {
         job_applications: {
+          where: {
+            job_positions: {
+              status: 'open', // Only show jobs that are still open
+            },
+          },
           include: {
             job_positions: {
               select: {
@@ -253,7 +238,7 @@ router.get('/:id', authenticateToken, requireHRAccess, async (req, res) => {
               },
             },
           },
-          orderBy: { applied_at: 'desc' },
+          orderBy: { position_match_score: 'desc' }, // Order by match score
         },
         candidate_notes: {
           orderBy: { created_at: 'desc' },
@@ -297,9 +282,11 @@ router.put('/:id', authenticateToken, requireHRAccess, async (req, res) => {
       location,
       linkedin_url,
       skills,
+      primary_skills,
       years_of_experience,
-      highest_education_level,
+      education,
       certifications,
+      experience_timeline,
       current_company,
       current_title,
       availability_status,
@@ -330,14 +317,14 @@ router.put('/:id', authenticateToken, requireHRAccess, async (req, res) => {
         phone,
         location,
         linkedin_url,
-        skills,
+        primary_skills: skills || primary_skills,
         years_of_experience,
-        highest_education_level,
+        education,
         certifications,
+        experience_timeline,
         current_company,
         current_title,
         availability_status,
-        preferred_locations,
         expected_salary_min,
         expected_salary_max,
         notice_period_days,
@@ -363,9 +350,9 @@ router.put('/:id', authenticateToken, requireHRAccess, async (req, res) => {
 /**
  * DELETE /api/candidates/:id
  * Delete candidate profile
- * Access: HR admins only
+ * Access: HR department users (Recruitment) and HR admins
  */
-router.delete('/:id', authenticateToken, requireHRAdmin, async (req, res) => {
+router.delete('/:id', authenticateToken, requireHRAccess, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -378,6 +365,18 @@ router.delete('/:id', authenticateToken, requireHRAdmin, async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Candidate not found',
+      });
+    }
+
+    // Check if candidate has been hired (has an employee record)
+    const employeeRecord = await prisma.employees.findFirst({
+      where: { candidate_profile_id: id },
+    });
+
+    if (employeeRecord) {
+      return res.status(409).json({
+        success: false,
+        message: 'Cannot delete this candidate - they have been hired as an employee. Please delete the employee record first from HR Onboarding.',
       });
     }
 
@@ -451,39 +450,106 @@ router.post('/:id/notes', authenticateToken, requireHRAccess, async (req, res) =
 });
 
 /**
- * PUT /api/candidates/:id/scores
- * Update candidate scores (manual scoring)
- * Access: HR department users and HR admins
+ * PUT /api/candidates/:id/notes/:noteId
+ * Update a note
+ * Access: Any HR user with access
  */
-router.put('/:id/scores', authenticateToken, requireHRAccess, async (req, res) => {
+router.put('/:id/notes/:noteId', authenticateToken, requireHRAccess, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { overall_match_score, performance_score, potential_score } = req.body;
+    const { noteId } = req.params;
+    const { content } = req.body;
 
-    const updatedCandidate = await prisma.candidate_profiles.update({
-      where: { id: id },
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Note content is required',
+      });
+    }
+
+    // Check if note exists
+    const existingNote = await prisma.candidate_notes.findUnique({
+      where: { id: parseInt(noteId) },
+    });
+
+    if (!existingNote) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found',
+      });
+    }
+
+    const note = await prisma.candidate_notes.update({
+      where: { id: parseInt(noteId) },
       data: {
-        overall_match_score,
-        performance_score,
-        potential_score,
+        content,
         updated_at: new Date(),
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+          },
+        },
       },
     });
 
     res.json({
       success: true,
-      candidate: updatedCandidate,
-      message: 'Scores updated successfully',
+      note,
+      message: 'Note updated successfully',
     });
   } catch (error) {
-    console.error('Error updating scores:', error);
+    console.error('Error updating note:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update scores',
+      message: 'Failed to update note',
       error: error.message,
     });
   }
 });
+
+/**
+ * DELETE /api/candidates/:id/notes/:noteId
+ * Delete a note
+ * Access: Any HR user with access
+ */
+router.delete('/:id/notes/:noteId', authenticateToken, requireHRAccess, async (req, res) => {
+  try {
+    const { noteId } = req.params;
+
+    // Check if note exists
+    const existingNote = await prisma.candidate_notes.findUnique({
+      where: { id: parseInt(noteId) },
+    });
+
+    if (!existingNote) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found',
+      });
+    }
+
+    await prisma.candidate_notes.delete({
+      where: { id: parseInt(noteId) },
+    });
+
+    res.json({
+      success: true,
+      message: 'Note deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete note',
+      error: error.message,
+    });
+  }
+});
+
+// REMOVED: PUT /api/candidates/:id/scores endpoint - score fields no longer exist
 
 /**
  * POST /api/candidates/upload

@@ -1,18 +1,18 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   Search,
-  Filter,
-  Users,
-  Star,
-  TrendingUp,
   Briefcase,
   Upload,
   X,
   FileText,
   CheckCircle,
   XCircle,
+  GraduationCap,
+  Calendar,
+  Send,
+  UserCheck,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import Button from '@/components/ui/Button';
@@ -30,7 +30,6 @@ export default function CandidatesPage() {
   const [candidates, setCandidates] = useState([]);
   const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStage, setSelectedStage] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -38,6 +37,14 @@ export default function CandidatesPage() {
   const [uploadResults, setUploadResults] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Availability modal state
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [availabilityForm, setAvailabilityForm] = useState({
+    position: '',
+  });
+  const [isSendingAvailability, setIsSendingAvailability] = useState(false);
 
   // Fetch candidates from API
   const fetchCandidates = async () => {
@@ -74,40 +81,37 @@ export default function CandidatesPage() {
   useEffect(() => {
     let filtered = candidates;
 
-    // Filter by search query
+    // Filter by search query (name, email, location, company, title, and skills)
     if (searchQuery) {
-      filtered = filtered.filter(
-        (candidate) =>
-          candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          candidate.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          candidate.location.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-    }
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((candidate) => {
+        // Basic field search
+        const basicMatch =
+          candidate.name?.toLowerCase().includes(query) ||
+          candidate.email?.toLowerCase().includes(query) ||
+          candidate.location?.toLowerCase().includes(query) ||
+          candidate.current_company?.toLowerCase().includes(query) ||
+          candidate.current_title?.toLowerCase().includes(query);
 
-    // Filter by stage
-    if (selectedStage !== 'all') {
-      filtered = filtered.filter((candidate) => candidate.current_stage === selectedStage);
+        // Skills/keywords search
+        const skillsMatch = candidate.primary_skills?.some((skill) =>
+          skill.toLowerCase().includes(query)
+        );
+
+        // Education search
+        const educationMatch = candidate.education?.some(
+          (edu) =>
+            edu.degree?.toLowerCase().includes(query) ||
+            edu.institution?.toLowerCase().includes(query) ||
+            edu.field?.toLowerCase().includes(query)
+        );
+
+        return basicMatch || skillsMatch || educationMatch;
+      });
     }
 
     setFilteredCandidates(filtered);
-  }, [searchQuery, selectedStage, candidates]);
-
-  const getScoreColor = (score) => {
-    if (score >= 90) return 'text-green-600 dark:text-green-400';
-    if (score >= 80) return 'text-blue-600 dark:text-blue-400';
-    if (score >= 70) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-  };
-
-  const getStageLabel = (stage) => {
-    const labels = {
-      screening: 'Screening',
-      technical: 'Technical',
-      cultural: 'Cultural Fit',
-      final: 'Final Round',
-    };
-    return labels[stage] || stage;
-  };
+  }, [searchQuery, candidates]);
 
   // Generate artistic avatar using DiceBear
   const getAvatarSvg = (name) => {
@@ -118,16 +122,23 @@ export default function CandidatesPage() {
     return avatar.toDataUri();
   };
 
+  // Allowed MIME types for CV uploads
+  const ALLOWED_CV_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/msword', // .doc
+  ];
+
   // Upload CV handlers
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    const pdfFiles = files.filter((file) => file.type === 'application/pdf');
+    const validFiles = files.filter((file) => ALLOWED_CV_TYPES.includes(file.type));
 
-    if (pdfFiles.length !== files.length) {
-      toast.error('Only PDF files are allowed');
+    if (validFiles.length !== files.length) {
+      toast.error('Only PDF, DOCX, and DOC files are allowed');
     }
 
-    setSelectedFiles((prev) => [...prev, ...pdfFiles]);
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
   };
 
   const handleDragOver = (e) => {
@@ -145,13 +156,13 @@ export default function CandidatesPage() {
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    const pdfFiles = files.filter((file) => file.type === 'application/pdf');
+    const validFiles = files.filter((file) => ALLOWED_CV_TYPES.includes(file.type));
 
-    if (pdfFiles.length !== files.length) {
-      toast.error('Only PDF files are allowed');
+    if (validFiles.length !== files.length) {
+      toast.error('Only PDF, DOCX, and DOC files are allowed');
     }
 
-    setSelectedFiles((prev) => [...prev, ...pdfFiles]);
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
   };
 
   const removeFile = (index) => {
@@ -177,6 +188,7 @@ export default function CandidatesPage() {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 300000, // 5 minutes timeout for bulk CV processing (PDF extraction + AI analysis + matching)
       });
 
       if (response.data.success) {
@@ -208,6 +220,51 @@ export default function CandidatesPage() {
       setShowUploadModal(false);
       setSelectedFiles([]);
       setUploadResults(null);
+    }
+  };
+
+  // Check Availability handlers
+  const openAvailabilityModal = (candidate, e) => {
+    e.stopPropagation(); // Prevent card click
+    setSelectedCandidate(candidate);
+    setAvailabilityForm({
+      position: candidate.current_title || '',
+    });
+    setShowAvailabilityModal(true);
+  };
+
+  const closeAvailabilityModal = () => {
+    if (!isSendingAvailability) {
+      setShowAvailabilityModal(false);
+      setSelectedCandidate(null);
+      setAvailabilityForm({ position: '' });
+    }
+  };
+
+  const handleSendAvailabilityRequest = async () => {
+    if (!availabilityForm.position) {
+      toast.error('Please enter a position');
+      return;
+    }
+
+    setIsSendingAvailability(true);
+    try {
+      const response = await api.post('/interview-coordinator/request-availability', {
+        candidateId: selectedCandidate.id,
+        candidateName: selectedCandidate.name,
+        candidateEmail: selectedCandidate.email,
+        position: availabilityForm.position,
+      });
+
+      if (response.data.success) {
+        toast.success('Availability request sent successfully!');
+        closeAvailabilityModal();
+      }
+    } catch (error) {
+      console.error('Error sending availability request:', error);
+      toast.error(error.response?.data?.message || 'Failed to send availability request');
+    } finally {
+      setIsSendingAvailability(false);
     }
   };
 
@@ -245,33 +302,15 @@ export default function CandidatesPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search */}
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <Input
-                placeholder="Search candidates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                leftIcon={<Search className="w-5 h-5" />}
-              />
-            </div>
-
-            {/* Stage Filter */}
-            <select
-              value={selectedStage}
-              onChange={(e) => setSelectedStage(e.target.value)}
-              className="px-4 py-2 bg-background text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="all">All Stages</option>
-              <option value="screening">Screening</option>
-              <option value="technical">Technical</option>
-              <option value="cultural">Cultural Fit</option>
-              <option value="final">Final Round</option>
-            </select>
-          </div>
+          <Input
+            placeholder="Search by name, email, skills (python, scrum, etc.)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            leftIcon={<Search className="w-5 h-5" />}
+          />
         </div>
       </div>
 
@@ -311,13 +350,16 @@ export default function CandidatesPage() {
                       </div>
 
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-xl font-semibold text-foreground">
                             {candidate.name}
                           </h3>
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-pastel text-blue-800 dark:bg-blue-600 dark:text-blue-100">
-                            {getStageLabel(candidate.current_stage)}
-                          </span>
+                          {candidate.is_hired && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500 border border-green-500/20">
+                              <UserCheck className="w-3 h-3" />
+                              Employee
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-2">
@@ -338,8 +380,31 @@ export default function CandidatesPage() {
                           <span>•</span>
                           <span>{candidate.experience}</span>
                         </div>
+
+                        {candidate.education && Array.isArray(candidate.education) && candidate.education.length > 0 && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
+                            <GraduationCap className="w-4 h-4" />
+                            <span>
+                              {candidate.education[0].degree}
+                              {candidate.education[0].institution && ` - ${candidate.education[0].institution}`}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
+                  </div>
+
+                  {/* Check Availability Button */}
+                  <div className="flex-shrink-0 mt-4 lg:mt-0">
+                    <Button
+                      onClick={(e) => openAvailabilityModal(candidate, e)}
+                      variant="secondary"
+                      size="sm"
+                      className="flex items-center gap-2 whitespace-nowrap"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Check Availability
+                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -427,7 +492,7 @@ export default function CandidatesPage() {
                           ref={fileInputRef}
                           type="file"
                           multiple
-                          accept=".pdf"
+                          accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
                           onChange={handleFileSelect}
                           className="hidden"
                         />
@@ -436,7 +501,7 @@ export default function CandidatesPage() {
                           {isDragging ? 'Drop files here' : 'Drag and drop CV files'}
                         </p>
                         <p className="text-sm text-muted-foreground mb-4">
-                          or click to browse (PDF only, max 10 files)
+                          or click to browse (PDF, DOCX, DOC - max 10 files)
                         </p>
                       </div>
 
@@ -554,6 +619,115 @@ export default function CandidatesPage() {
                       Done
                     </Button>
                   )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Check Availability Modal */}
+      <AnimatePresence>
+        {showAvailabilityModal && selectedCandidate && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeAvailabilityModal}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div
+                className="bg-card border border-border rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-border">
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">Check Availability</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Send availability request to candidate
+                    </p>
+                  </div>
+                  <button
+                    onClick={closeAvailabilityModal}
+                    disabled={isSendingAvailability}
+                    className="p-2 hover:bg-muted rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 space-y-4">
+                  {/* Candidate Info */}
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-border bg-background">
+                        <img
+                          src={getAvatarSvg(selectedCandidate.name)}
+                          alt={selectedCandidate.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{selectedCandidate.name}</p>
+                        <p className="text-sm text-muted-foreground">{selectedCandidate.email}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Position Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Position <span className="text-destructive">*</span>
+                    </label>
+                    <Input
+                      placeholder="e.g., Senior Software Engineer"
+                      value={availabilityForm.position}
+                      onChange={(e) =>
+                        setAvailabilityForm((prev) => ({ ...prev, position: e.target.value }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
+                  <Button
+                    onClick={closeAvailabilityModal}
+                    variant="secondary"
+                    disabled={isSendingAvailability}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSendAvailabilityRequest}
+                    variant="primary"
+                    disabled={!availabilityForm.position || isSendingAvailability}
+                    className="flex items-center gap-2"
+                  >
+                    {isSendingAvailability ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Send Request
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </motion.div>

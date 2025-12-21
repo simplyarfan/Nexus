@@ -170,7 +170,7 @@ describe('Interview Coordinator Service (HR-02)', () => {
         notes: 'Please review the coding challenge beforehand',
       };
 
-      const ics = service.generateICSInvite(interviewData, 'hr@company.com', 'HR Team');
+      const ics = service.generateICSInvite(interviewData, 'recruitment@company.com', 'Recruitment Team');
 
       expect(ics).toContain('BEGIN:VCALENDAR');
       expect(ics).toContain('END:VCALENDAR');

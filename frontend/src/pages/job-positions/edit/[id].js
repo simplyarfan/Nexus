@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -12,7 +12,6 @@ export default function EditJobPositionPage() {
   const { id } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     department: '',
@@ -93,22 +92,6 @@ export default function EditJobPositionPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGenerateAI = async () => {
-    setIsGeneratingAI(true);
-    // Simulate AI generation - will be replaced with API call
-    setTimeout(() => {
-      setFormData((prev) => ({
-        ...prev,
-        description: `We are seeking a talented ${formData.title} to join our ${formData.department} team. This is an exciting opportunity to work on cutting-edge projects and make a significant impact.`,
-        requirements:
-          'Bachelor degree in relevant field\nProven experience in similar role\nStrong communication skills\nTeam player with leadership potential',
-        responsibilities:
-          'Lead key initiatives and projects\nCollaborate with cross-functional teams\nMentor and guide team members\nDrive innovation and best practices',
-      }));
-      setIsGeneratingAI(false);
-    }, 2000);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -177,18 +160,8 @@ export default function EditJobPositionPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="bg-card border border-border rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <h2 className="text-xl font-semibold text-foreground">Basic Information</h2>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                leftIcon={isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                onClick={handleGenerateAI}
-                disabled={isGeneratingAI || !formData.title || !formData.department}
-              >
-                {isGeneratingAI ? 'Generating...' : 'AI Generate'}
-              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

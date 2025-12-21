@@ -7,6 +7,7 @@ import DateTimePicker from '@/components/ui/DateTimePicker';
 import InterviewCalendar from '@/components/interview/InterviewCalendar';
 import InterviewProgressTimeline from '@/components/interview/InterviewProgressTimeline';
 import api from '@/utils/api';
+import { onboardingAPI } from '@/utils/onboardingAPI';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle } from 'lucide-react';
@@ -50,18 +51,44 @@ export default function InterviewsPage() {
   const [deletingInterview, setDeletingInterview] = useState(null);
   const [showOutlookWarning, setShowOutlookWarning] = useState(false);
   const [outlookWarningMessage, setOutlookWarningMessage] = useState('');
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [sendingRejection, setSendingRejection] = useState(false);
+  const [showSendToHRModal, setShowSendToHRModal] = useState(false);
+  const [sendingToHR, setSendingToHR] = useState(false);
+  const [sendToHRForm, setSendToHRForm] = useState({
+    jobTitle: '',
+    department: '',
+    startDate: '',
+    offeredSalary: '',
+    employmentType: 'full_time',
+  });
 
   // Request Availability Form (Stage 1)
+  // Default email content matches the email template exactly
+  const defaultEmailContent = 'We are excited to inform you that your application for the [Position] position has been shortlisted! We would like to schedule an interview with you to discuss your qualifications and learn more about your experience.';
+
   const [availabilityForm, setAvailabilityForm] = useState({
     candidateName: '',
     candidateEmail: '',
     position: '',
     googleFormLink: 'https://forms.gle/M4ed3ojoYPAUxSzH6',
     emailSubject: '',
-    emailContent: '',
+    emailContent: defaultEmailContent,
     ccEmails: '',
     bccEmails: '',
   });
+
+  // Pre-fill form from URL parameters
+  useEffect(() => {
+    if (router.query.candidateName || router.query.candidateEmail || router.query.position) {
+      setAvailabilityForm((prev) => ({
+        ...prev,
+        candidateName: router.query.candidateName || prev.candidateName,
+        candidateEmail: router.query.candidateEmail || prev.candidateEmail,
+        position: router.query.position || prev.position,
+      }));
+    }
+  }, [router.query]);
 
   // Auto-update email subject when position changes
   useEffect(() => {
@@ -73,31 +100,18 @@ export default function InterviewsPage() {
     }
   }, [availabilityForm.position]);
 
-  // Auto-update email content when candidateName or position changes
+  // Auto-update email content when position changes
+  // This shows ONLY the main paragraph content - "Dear [Name]" is added by the email template
   useEffect(() => {
-    if (availabilityForm.candidateName || availabilityForm.position) {
-      const candidateName = availabilityForm.candidateName || '[Candidate Name]';
+    if (availabilityForm.position) {
       const position = availabilityForm.position || '[Position]';
-      const googleFormLink =
-        availabilityForm.googleFormLink || 'https://forms.gle/M4ed3ojoYPAUxSzH6';
 
       setAvailabilityForm((prev) => ({
         ...prev,
-        emailContent: `Dear ${candidateName},
-
-We are pleased to inform you that we have shortlisted you for an interview for the ${position} position at our company.
-
-We need some details prior to the interview, which you can fill in the following Google Form: ${googleFormLink}
-
-Additionally, please mention what time would you be available for a meeting?
-
-We look forward to hearing from you soon.
-
-Best regards,
-SecureMax`,
+        emailContent: `We are excited to inform you that your application for the ${position} position has been shortlisted! We would like to schedule an interview with you to discuss your qualifications and learn more about your experience.`,
       }));
     }
-  }, [availabilityForm.candidateName, availabilityForm.position, availabilityForm.googleFormLink]);
+  }, [availabilityForm.position]);
 
   // Helper function to safely format date
   const formatDate = (dateString) => {
@@ -120,6 +134,7 @@ SecureMax`,
   // Helper function to transform snake_case to camelCase
   const transformInterview = (interview) => ({
     ...interview,
+    candidateId: interview.candidate_id || interview.candidateId,
     candidateName: interview.candidate_name || interview.candidateName || 'Unknown Candidate',
     candidateEmail: interview.candidate_email || interview.candidateEmail || 'No email provided',
     jobTitle: interview.job_title || interview.jobTitle || 'Position not specified',
@@ -135,6 +150,9 @@ SecureMax`,
     scheduledBy: interview.scheduled_by || interview.scheduledBy,
     createdAt: interview.created_at || interview.createdAt,
     updatedAt: interview.updated_at || interview.updatedAt,
+    rejectionEmailSent: interview.rejection_email_sent || interview.rejectionEmailSent || false,
+    rejectionEmailSentAt: interview.rejection_email_sent_at || interview.rejectionEmailSentAt,
+    hasEmployee: interview.has_employee || interview.hasEmployee || false,
   });
 
   // Check Outlook connection status on mount
@@ -232,7 +250,7 @@ We are impressed with your qualifications and would like to proceed with the nex
 We look forward to speaking with you soon.
 
 Best regards,
-HR Team`;
+Recruitment Team`;
 
       setAvailabilityForm({
         candidateName: candidateName,
@@ -393,25 +411,13 @@ HR Team`;
 
   const handleRequestAvailability = () => {
     setView('request-availability');
-    // Pre-fill subject and content with default template
+    // Pre-fill subject and content with default template that matches the email exactly
     const position = availabilityForm.position || '[Position]';
-    const candidateName = availabilityForm.candidateName || '[Candidate Name]';
 
     setAvailabilityForm((prev) => ({
       ...prev,
       emailSubject: `Interview Opportunity - ${position}`,
-      emailContent: `Dear ${candidateName},
-
-We are pleased to inform you that we have shortlisted you for an interview for the ${position} position at our company.
-
-We need some details prior to the interview, which you can fill in the following Google Form: [Google Form Link will be inserted here]
-
-Additionally, please mention what time would you be available for a meeting?
-
-We look forward to hearing from you soon.
-
-Best regards,
-[Your Company Name]`,
+      emailContent: `We are excited to inform you that your application for the ${position} position has been shortlisted! We would like to schedule an interview with you to discuss your qualifications and learn more about your experience.`,
     }));
   };
 
@@ -720,6 +726,130 @@ Best regards,
       toast.error(errorMessage);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleSendRejectionEmail = async () => {
+    if (!selectedInterview) return;
+
+    try {
+      setSendingRejection(true);
+
+      const response = await api.post(
+        `/interview-coordinator/${selectedInterview.id}/send-rejection-email`,
+      );
+
+      if (response.data.success) {
+        toast.success('Rejection email sent successfully');
+
+        // Refresh interviews list
+        const refreshResponse = await api.get('/interview-coordinator/interviews');
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
+
+        // Update selected interview
+        const updatedInterview = transformedInterviews.find((i) => i.id === selectedInterview.id);
+        if (updatedInterview) {
+          setSelectedInterview(updatedInterview);
+        }
+
+        // Close modal
+        setShowRejectionModal(false);
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to send rejection email';
+
+      // Check if already sent
+      if (error.response?.data?.alreadySent) {
+        toast.error('Rejection email has already been sent for this interview');
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setSendingRejection(false);
+    }
+  };
+
+  const openSendToHRModal = (interview) => {
+    setSendToHRForm({
+      jobTitle: interview.position || interview.jobTitle || '',
+      department: '',
+      startDate: '',
+      offeredSalary: '',
+      employmentType: 'full_time',
+    });
+    setSelectedInterview(interview);
+    setShowSendToHRModal(true);
+  };
+
+  const handleSendToHR = async () => {
+    if (!selectedInterview) return;
+
+    // Validation
+    if (!sendToHRForm.jobTitle || !sendToHRForm.department) {
+      toast.error('Please fill in required fields: Job Title and Department');
+      return;
+    }
+
+    try {
+      setSendingToHR(true);
+
+      // Use candidateId from transformed interview (originally candidate_id from database)
+      const candidateId = selectedInterview.candidateId || selectedInterview.candidate_id;
+
+      if (!candidateId) {
+        toast.error('Candidate ID not found. Please refresh and try again.');
+        setSendingToHR(false);
+        return;
+      }
+
+      // Get candidate email for fallback lookup (in case candidateId doesn't match candidate_profiles.id)
+      const candidateEmail = selectedInterview.candidateEmail || selectedInterview.candidate_email;
+
+      const response = await onboardingAPI.createEmployee({
+        candidateProfileId: candidateId,
+        candidateEmail: candidateEmail, // Fallback: look up by email if ID lookup fails
+        interviewId: selectedInterview.id,
+        jobTitle: sendToHRForm.jobTitle,
+        department: sendToHRForm.department,
+        startDate: sendToHRForm.startDate || null,
+        offeredSalary: sendToHRForm.offeredSalary ? parseFloat(sendToHRForm.offeredSalary) : null,
+        employmentType: sendToHRForm.employmentType,
+      });
+
+      if (response.success) {
+        toast.success('Candidate details sent to HR successfully! Employee profile created.');
+
+        // Close modal
+        setShowSendToHRModal(false);
+        setSendToHRForm({
+          jobTitle: '',
+          department: '',
+          startDate: '',
+          offeredSalary: '',
+          employmentType: 'full_time',
+        });
+
+        // Refresh interviews list
+        const refreshResponse = await api.get('/interview-coordinator/interviews');
+        const transformedInterviews = (refreshResponse.data.data || []).map(transformInterview);
+        setInterviews(transformedInterviews);
+
+        // Update selected interview if still viewing
+        if (selectedInterview) {
+          const updatedInterview = transformedInterviews.find((i) => i.id === selectedInterview.id);
+          if (updatedInterview) {
+            setSelectedInterview(updatedInterview);
+          }
+        }
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error || error.message || 'Failed to send candidate to HR';
+      toast.error(errorMessage);
+    } finally {
+      setSendingToHR(false);
     }
   };
 
@@ -1106,6 +1236,29 @@ Best regards,
                               Reschedule
                             </Button>
                           )}
+                          {interview.outcome === 'selected' && !interview.sent_to_hr && !interview.hasEmployee && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => openSendToHRModal(interview)}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                                />
+                              </svg>
+                              Send to HR
+                            </Button>
+                          )}
                         </div>
                       </motion.div>
                     ))}
@@ -1286,6 +1439,71 @@ Best regards,
                     >
                       Update Mark
                     </Button>
+                  )}
+                  {/* Send to HR Button - Only show if selected, not yet sent, and not already hired */}
+                  {selectedInterview.outcome === 'selected' && !selectedInterview.sent_to_hr && !selectedInterview.hasEmployee && (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={() => openSendToHRModal(selectedInterview)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                        />
+                      </svg>
+                      Send Candidate Details to HR
+                    </Button>
+                  )}
+                  {/* Send Rejection Email Button - Only show if NOT selected */}
+                  {selectedInterview.outcome !== 'selected' && (
+                    <div className="relative group">
+                      <Button
+                        variant="ghost"
+                        size="lg"
+                        onClick={() => setShowRejectionModal(true)}
+                        disabled={selectedInterview.rejectionEmailSent}
+                        className={
+                          selectedInterview.rejectionEmailSent
+                            ? 'text-muted-foreground cursor-not-allowed opacity-50'
+                            : 'text-orange-600 hover:bg-orange-500/10'
+                        }
+                      >
+                        <svg
+                          className="w-5 h-5 mr-2"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
+                        </svg>
+                        Send Rejection Email
+                      </Button>
+                      {selectedInterview.rejectionEmailSent && (
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-border z-10">
+                          Already sent email once
+                          {selectedInterview.rejectionEmailSentAt && (
+                            <span className="block text-muted-foreground">
+                              Sent on {new Date(selectedInterview.rejectionEmailSentAt).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                   <Button
                     variant="ghost"
@@ -1932,6 +2150,236 @@ Best regards,
                   setShowDeleteModal(false);
                   setDeletingInterview(null);
                 }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Send Rejection Email Confirmation Modal */}
+      {showRejectionModal && selectedInterview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-card border border-border rounded-2xl p-8 max-w-md w-full"
+          >
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-500/10 mb-4">
+              <svg
+                className="w-6 h-6 text-orange-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Send Rejection Email</h3>
+            <p className="text-muted-foreground mb-4">
+              Are you sure you want to send a rejection email to{' '}
+              <span className="font-semibold text-foreground">
+                {selectedInterview.candidateName}
+              </span>
+              ?
+            </p>
+            <div className="bg-accent border border-border rounded-lg p-4 mb-6">
+              <p className="text-sm text-muted-foreground">
+                This action can only be performed <span className="font-semibold text-foreground">once</span>.
+                The candidate will receive a professional rejection email informing them that:
+              </p>
+              <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
+                <li>The client has decided to proceed with other candidates</li>
+                <li>Their CV will be kept in our talent pool</li>
+                <li>We appreciate their interest in SecureMax</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                className="flex-1 bg-orange-500 hover:bg-orange-600"
+                onClick={handleSendRejectionEmail}
+                isLoading={sendingRejection}
+                disabled={sendingRejection}
+              >
+                {sendingRejection ? 'Sending...' : 'Send Email'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="flex-1"
+                onClick={() => setShowRejectionModal(false)}
+                disabled={sendingRejection}
+              >
+                Cancel
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Send to HR Modal */}
+      {showSendToHRModal && selectedInterview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-card border border-border rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10 mb-4">
+              <svg
+                className="w-6 h-6 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-2">Send Candidate Details to HR</h3>
+            <p className="text-muted-foreground mb-6">
+              Create an employee profile for{' '}
+              <span className="font-semibold text-foreground">
+                {selectedInterview.candidateName}
+              </span>{' '}
+              and send their details to the HR department for onboarding.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Job Title *
+                </label>
+                <input
+                  type="text"
+                  value={sendToHRForm.jobTitle}
+                  onChange={(e) =>
+                    setSendToHRForm({ ...sendToHRForm, jobTitle: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="e.g., Senior Full Stack Developer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Department *
+                </label>
+                <select
+                  value={sendToHRForm.department}
+                  onChange={(e) =>
+                    setSendToHRForm({ ...sendToHRForm, department: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Product">Product</option>
+                  <option value="Design">Design</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales & Marketing">Sales & Marketing</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Customer Support">Customer Support</option>
+                  <option value="Legal">Legal</option>
+                  <option value="IT">IT</option>
+                  <option value="Administration">Administration</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Employment Type
+                </label>
+                <select
+                  value={sendToHRForm.employmentType}
+                  onChange={(e) =>
+                    setSendToHRForm({ ...sendToHRForm, employmentType: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="full_time">Full-time</option>
+                  <option value="part_time">Part-time</option>
+                  <option value="contract">Contract</option>
+                  <option value="internship">Internship</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Start Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={sendToHRForm.startDate}
+                  onChange={(e) =>
+                    setSendToHRForm({ ...sendToHRForm, startDate: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Offered Salary (Optional)
+                </label>
+                <input
+                  type="number"
+                  value={sendToHRForm.offeredSalary}
+                  onChange={(e) =>
+                    setSendToHRForm({ ...sendToHRForm, offeredSalary: e.target.value })
+                  }
+                  className="w-full px-4 py-2 bg-secondary text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="e.g., 75000"
+                />
+              </div>
+            </div>
+
+            <div className="bg-accent border border-border rounded-lg p-4 mt-6">
+              <p className="text-sm text-muted-foreground">
+                This will:
+              </p>
+              <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
+                <li>Create an employee profile in the HR system</li>
+                <li>Mark the candidate as &quot;hired&quot;</li>
+                <li>Add the employee to the onboarding pipeline</li>
+                <li>Notify HR department about the new hire</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="primary"
+                size="lg"
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                onClick={handleSendToHR}
+                isLoading={sendingToHR}
+                disabled={sendingToHR}
+              >
+                {sendingToHR ? 'Sending...' : 'Send to HR'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="flex-1"
+                onClick={() => setShowSendToHRModal(false)}
+                disabled={sendingToHR}
               >
                 Cancel
               </Button>

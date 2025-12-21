@@ -4,9 +4,9 @@ const { authenticateToken, requireHRAccess } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleCheck');
 const jobPositionService = require('../services/jobPositionService');
 const candidateMatchingService = require('../services/candidateMatching.service');
+const intelligentMatching = require('../services/intelligentMatching.service');
 const jdParsingService = require('../services/jdParsing.service');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../lib/prisma');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -151,15 +151,121 @@ router.get('/:id', authenticateToken, async (req, res) => {
 /**
  * Get matched candidates for a job position (HR Access)
  * Returns pre-calculated matches from job_applications table
- * Query params: minScore (default: 60), category (excellent/strong/moderate), limit (default: 50)
+ * Query params: minScore (default: 0), category (excellent/strong/moderate), limit (default: 50), refresh (true/false)
+ * If refresh=true, re-runs matching algorithm to find new candidates before returning results
  */
 router.get('/:id/candidates', authenticateToken, requireHRAccess, async (req, res) => {
   try {
     const { id } = req.params;
-    const { minScore, category, limit } = req.query;
+    const { minScore, category, limit, refresh } = req.query;
 
-    const minMatchScore = minScore ? parseInt(minScore) : 60;
+    const minMatchScore = minScore ? parseInt(minScore) : 0;
     const maxResults = limit ? parseInt(limit) : 50;
+
+    // If refresh=true, re-run matching using SMART pre-filtering approach
+    if (refresh === 'true') {
+      console.log(`\n🔄 SMART Refresh: Re-matching candidates for job position: ${id}`);
+
+      const intelligentMatching = require('../services/intelligentMatching.service');
+
+      // Use the smart matchCandidatesForJob which does keyword pre-filtering
+      // This only sends candidates with matching skills to AI, not ALL candidates
+      // Uses default minScore=50 and minRequiredSkillsMatch=1 from service
+      const matchResult = await intelligentMatching.matchCandidatesForJob(id, {
+        limit: 100,
+      });
+
+      if (matchResult.success) {
+        console.log(`  Found ${matchResult.matches.length} candidates via smart matching (pre-filtered from ${matchResult.preFilteredCount || 'N/A'})`);
+
+        // Get existing matched candidate IDs
+        const existingMatches = await prisma.job_applications.findMany({
+          where: { job_position_id: id },
+          select: { candidate_id: true },
+        });
+        const existingCandidateIds = new Set(existingMatches.map(m => m.candidate_id));
+        const newMatchCandidateIds = new Set(matchResult.matches.map(m => m.candidate_id));
+
+        // DELETE candidates that are no longer in the matches (poor matches filtered out)
+        const candidatesToRemove = [...existingCandidateIds].filter(id => !newMatchCandidateIds.has(id));
+        if (candidatesToRemove.length > 0) {
+          await prisma.job_applications.deleteMany({
+            where: {
+              job_position_id: id,
+              candidate_id: { in: candidatesToRemove },
+              status: 'matched', // Only delete auto-matched, not manually added
+            },
+          });
+          console.log(`  🗑️ Removed ${candidatesToRemove.length} poor matches that no longer qualify`);
+        }
+
+        // Add new matches or update existing ones
+        for (const match of matchResult.matches) {
+          try {
+            if (existingCandidateIds.has(match.candidate_id)) {
+              // Update existing match
+              await prisma.job_applications.update({
+                where: {
+                  candidate_id_job_position_id: {
+                    candidate_id: match.candidate_id,
+                    job_position_id: id,
+                  },
+                },
+                data: {
+                  position_match_score: match.position_match_score,
+                  skills_match_score: match.skills_match_score,
+                  experience_match_score: match.experience_match_score,
+                  location_match_score: match.location_match_score,
+                  salary_match_score: match.salary_match_score,
+                  context_match_score: match.context_match_score,
+                  match_reasoning: match.match_reasoning,
+                  match_strengths: match.match_strengths,
+                  match_concerns: match.match_concerns,
+                  match_category: match.match_category,
+                  matched_required_skills: match.matched_required_skills || [],
+                  unmatched_required_skills: match.unmatched_required_skills || [],
+                  matched_preferred_skills: match.matched_preferred_skills || [],
+                  unmatched_preferred_skills: match.unmatched_preferred_skills || [],
+                  candidate_skills_used: match.candidate_skills_used || [],
+                },
+              });
+              console.log(`  ↻ Updated: ${match.candidate.name} (${match.position_match_score}%)`);
+            } else {
+              // Create new match
+              await prisma.job_applications.create({
+                data: {
+                  candidate_id: match.candidate_id,
+                  job_position_id: id,
+                  status: 'matched',
+                  position_match_score: match.position_match_score,
+                  skills_match_score: match.skills_match_score,
+                  experience_match_score: match.experience_match_score,
+                  location_match_score: match.location_match_score,
+                  salary_match_score: match.salary_match_score,
+                  context_match_score: match.context_match_score,
+                  match_reasoning: match.match_reasoning,
+                  match_strengths: match.match_strengths,
+                  match_concerns: match.match_concerns,
+                  match_category: match.match_category,
+                  matched_required_skills: match.matched_required_skills || [],
+                  unmatched_required_skills: match.unmatched_required_skills || [],
+                  matched_preferred_skills: match.matched_preferred_skills || [],
+                  unmatched_preferred_skills: match.unmatched_preferred_skills || [],
+                  candidate_skills_used: match.candidate_skills_used || [],
+                  auto_matched: true,
+                },
+              });
+              console.log(`  ✓ Added: ${match.candidate.name} (${match.position_match_score}%)`);
+            }
+          } catch (saveError) {
+            console.error(`  ✗ Error saving match:`, saveError.message);
+          }
+        }
+        console.log(`  ✓ Smart refresh complete: ${matchResult.matches.length} qualified candidates`);
+      } else {
+        console.log(`  ❌ Smart matching failed or returned no results`);
+      }
+    }
 
     // Build where clause for filtering
     const whereClause = {
@@ -185,18 +291,18 @@ router.get('/:id/candidates', authenticateToken, requireHRAccess, async (req, re
             email: true,
             phone: true,
             location: true,
+            linkedin_url: true,
             current_company: true,
             current_title: true,
             years_of_experience: true,
-            education_level: true,
+            education: true,
+            experience_timeline: true,
             primary_skills: true,
             certifications: true,
-            languages: true,
             availability_status: true,
-            overall_match_score: true,
-            performance_score: true,
-            potential_score: true,
-            latest_cv_url: true,
+            expected_salary_min: true,
+            expected_salary_max: true,
+            notice_period_days: true,
           },
         },
       },
@@ -221,6 +327,12 @@ router.get('/:id/candidates', authenticateToken, requireHRAccess, async (req, re
         match_concerns: match.match_concerns,
         match_category: match.match_category,
         auto_matched: match.auto_matched,
+        // Detailed skill breakdown for transparency
+        matched_required_skills: match.matched_required_skills || [],
+        unmatched_required_skills: match.unmatched_required_skills || [],
+        matched_preferred_skills: match.matched_preferred_skills || [],
+        unmatched_preferred_skills: match.unmatched_preferred_skills || [],
+        candidate_skills_used: match.candidate_skills_used || [],
       },
       application_status: match.status,
       application_id: match.id,
@@ -319,6 +431,13 @@ router.post('/', authenticateToken, requireHRAccess, async (req, res) => {
       return res.status(500).json({
         success: false,
         error: result.message,
+      });
+    }
+
+    // Auto-match candidates to new job (runs in background)
+    if (result.jobPosition && result.jobPosition.status === 'open') {
+      intelligentMatching.autoMatchCandidatesToJob(result.jobPosition.id).catch((err) => {
+        console.error('Error in background auto-matching for new job:', err);
       });
     }
 
@@ -494,9 +613,9 @@ router.put('/:id', authenticateToken, requireHRAccess, async (req, res) => {
 });
 
 /**
- * Delete job position (Admin only)
+ * Delete job position (HR Access)
  */
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticateToken, requireHRAccess, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -537,6 +656,9 @@ router.post('/parse-jd', authenticateToken, requireHRAccess, jdUpload.single('jd
     }
 
     console.log(`\n📤 Processing JD upload: ${req.file.originalname}`);
+    console.log(`   File size: ${req.file.size} bytes`);
+    console.log(`   File type: ${req.file.mimetype}`);
+    console.log(`   File path: ${req.file.path}`);
 
     // Parse JD file with AI
     const result = await jdParsingService.parseJDFile(req.file);
@@ -576,6 +698,160 @@ router.post('/parse-jd', authenticateToken, requireHRAccess, jdUpload.single('jd
       success: false,
       message: 'Failed to parse JD',
       error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /job-positions/:id/candidates/chat
+ * AI chat for asking questions about candidate matching
+ * Only answers questions - does not perform any actions
+ */
+router.post('/:id/candidates/chat', authenticateToken, requireHRAccess, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { question } = req.body;
+
+    if (!question || typeof question !== 'string' || question.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a question',
+      });
+    }
+
+    // Get job position
+    const jobPosition = await prisma.job_positions.findUnique({
+      where: { id },
+    });
+
+    if (!jobPosition) {
+      return res.status(404).json({
+        success: false,
+        error: 'Job position not found',
+      });
+    }
+
+    // Get matched candidates for this position
+    const matchedApplications = await prisma.job_applications.findMany({
+      where: { job_position_id: id },
+      include: {
+        candidate_profiles: true,
+      },
+      orderBy: {
+        position_match_score: 'desc',
+      },
+    });
+
+    // Get all candidates to provide context about unmatched ones too
+    const allCandidates = await prisma.candidate_profiles.findMany({
+      select: {
+        id: true,
+        name: true,
+        current_title: true,
+        years_of_experience: true,
+        primary_skills: true,
+        availability_status: true,
+      },
+    });
+
+    // Build context for the AI
+    const matchedCandidatesContext = matchedApplications.map(app => ({
+      name: app.candidate_profiles.name,
+      current_title: app.candidate_profiles.current_title,
+      years_of_experience: app.candidate_profiles.years_of_experience,
+      skills: app.candidate_profiles.primary_skills, // Send ALL skills
+      overall_match_score: app.position_match_score,
+      skills_match: app.skills_match_score,
+      experience_match: app.experience_match_score,
+      context_match: app.context_match_score,
+      reasoning: app.match_reasoning,
+      strengths: app.match_strengths,
+      concerns: app.match_concerns,
+      is_matched: true,
+    }));
+
+    const unmatchedCandidates = allCandidates
+      .filter(c => !matchedApplications.some(app => app.candidate_id === c.id))
+      .map(c => ({
+        name: c.name,
+        current_title: c.current_title,
+        years_of_experience: c.years_of_experience,
+        skills: c.primary_skills, // Send ALL skills
+        is_matched: false,
+      }));
+
+    const Groq = require('groq-sdk');
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+    const systemPrompt = `You are an AI assistant helping HR recruiters understand candidate matching for job positions.
+
+IMPORTANT RULES:
+1. You can ONLY answer questions about candidates, matching scores, and job requirements
+2. You CANNOT perform any actions like scheduling interviews, sending emails, or modifying data
+3. If asked to do something other than answer questions, politely explain you can only provide information
+4. Keep responses concise and focused
+5. Use the provided data to give accurate, specific answers
+6. If you don't have enough information, say so
+
+JOB POSITION:
+- Title: ${jobPosition.title}
+- Department: ${jobPosition.department}
+- Experience Level: ${jobPosition.experience_level}
+- Required Skills: ${jobPosition.required_skills?.join(', ') || 'Not specified'}
+- Preferred Skills: ${jobPosition.preferred_skills?.join(', ') || 'Not specified'}
+- Description: ${jobPosition.description || 'Not specified'}
+
+MATCHED CANDIDATES (${matchedCandidatesContext.length}):
+${matchedCandidatesContext.length > 0
+  ? matchedCandidatesContext.map((c, i) => `
+${i + 1}. ${c.name}
+   - Title: ${c.current_title || 'Not specified'}
+   - Experience: ${c.years_of_experience || 0} years
+   - Skills: ${c.skills?.join(', ') || 'None'}
+   - Overall Match: ${c.overall_match_score}%
+   - Skills Match: ${c.skills_match}%
+   - Experience Match: ${c.experience_match}%
+   - Context Match: ${c.context_match}%
+   - Why Matched: ${c.reasoning || 'AI determined suitable for the role'}
+   - Strengths: ${c.strengths?.join(', ') || 'None listed'}
+   - Concerns: ${c.concerns?.join(', ') || 'None listed'}
+`).join('\n')
+  : 'No candidates currently matched for this position.'}
+
+UNMATCHED CANDIDATES (${unmatchedCandidates.length}):
+${unmatchedCandidates.map(c => `- ${c.name} (${c.current_title || 'No title'}, ${c.years_of_experience || 0} yrs exp)`).join('\n')}
+
+Note: Unmatched candidates were analyzed but did not pass the suitability filter based on experience level, skill relevance, or domain fit.`;
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: question },
+      ],
+      model: 'llama-3.1-8b-instant', // Smaller model to save tokens
+      temperature: 0.5,
+      max_tokens: 500,
+    });
+
+    const answer = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+    res.json({
+      success: true,
+      data: {
+        question: question.trim(),
+        answer,
+        context: {
+          job_title: jobPosition.title,
+          matched_count: matchedCandidatesContext.length,
+          total_candidates: allCandidates.length,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error in candidates chat:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process your question',
     });
   }
 });

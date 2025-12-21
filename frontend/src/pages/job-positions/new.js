@@ -75,6 +75,8 @@ export default function NewJobPositionPage() {
 
   // Validate and set file
   const validateAndSetFile = (file) => {
+    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+
     const allowedTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -83,6 +85,11 @@ export default function NewJobPositionPage() {
 
     if (!allowedTypes.includes(file.type)) {
       toast.error('Please upload a PDF or DOCX file');
+      return;
+    }
+
+    if (file.size === 0) {
+      toast.error('The selected file is empty. Please choose a valid file.');
       return;
     }
 
@@ -100,6 +107,21 @@ export default function NewJobPositionPage() {
       toast.error('Please select a file first');
       return;
     }
+
+    // Double-check file size before uploading
+    if (selectedFile.size === 0) {
+      toast.error('Cannot upload empty file. Please select a valid PDF or DOCX file.');
+      setSelectedFile(null);
+      return;
+    }
+
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      setSelectedFile(null);
+      return;
+    }
+
+    console.log('Uploading file:', selectedFile.name, 'Size:', selectedFile.size, 'bytes');
 
     setIsParsing(true);
 
@@ -452,6 +474,7 @@ export default function NewJobPositionPage() {
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>
                 <option value="INR">INR</option>
+                <option value="SAR">SAR</option>
               </select>
             </div>
           </div>

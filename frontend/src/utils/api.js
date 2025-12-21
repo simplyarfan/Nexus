@@ -43,13 +43,6 @@ export const tokenManager = {
   },
 
   clearTokens: () => {
-    console.log('🧹 Clearing tokens...');
-    console.log('Before clear - accessToken:', Cookies.get('accessToken') ? 'EXISTS' : 'NOT FOUND');
-    console.log(
-      'Before clear - refreshToken:',
-      Cookies.get('refreshToken') ? 'EXISTS' : 'NOT FOUND',
-    );
-
     // Remove cookies with all possible path/domain combinations
     const cookieOptions = [
       { path: '/' },
@@ -79,16 +72,6 @@ export const tokenManager = {
         document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
       });
     }
-
-    console.log(
-      'After clear - accessToken:',
-      Cookies.get('accessToken') ? 'STILL EXISTS!' : 'CLEARED',
-    );
-    console.log(
-      'After clear - refreshToken:',
-      Cookies.get('refreshToken') ? 'STILL EXISTS!' : 'CLEARED',
-    );
-    console.log('✅ Token clearing complete');
   },
 
   isTokenExpired: (token) => {
@@ -118,7 +101,7 @@ const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL + '/api',
-  timeout: 30000,
+  timeout: 120000, // 2 minutes for AI-heavy operations
   headers: { 'Content-Type': 'application/json' },
 });
 

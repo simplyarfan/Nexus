@@ -56,6 +56,174 @@ const {
 // Public routes (no authentication required)
 
 /**
+ * POST /api/auth/check-user
+ * Check if a user exists by email (for Microsoft SSO)
+ */
+router.post('/check-user', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        exists: false,
+        message: 'Email is required',
+      });
+    }
+
+    await database.connect();
+    const user = await database.get(
+      `SELECT id, email, first_name, last_name, role, department, job_title,
+              is_active, is_verified, profile_picture_url
+       FROM users WHERE email = $1`,
+      [email.toLowerCase()],
+    );
+
+    if (user) {
+      res.json({
+        exists: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role,
+          department: user.department,
+          jobTitle: user.job_title,
+          isActive: user.is_active,
+          emailVerified: user.is_verified,
+          profilePictureUrl: user.profile_picture_url,
+        },
+      });
+    } else {
+      res.json({
+        exists: false,
+        user: null,
+      });
+    }
+  } catch (error) {
+    console.error('Check user error:', error);
+    res.status(500).json({
+      exists: false,
+      message: 'Failed to check user',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/auth/microsoft-sso-login
+ * Login via Microsoft SSO - creates Nexus JWT for existing users
+ */
+router.post('/microsoft-sso-login', authLimiter, async (req, res) => {
+  try {
+    const { email, microsoftAccessToken } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    await database.connect();
+
+    // Get user by email
+    const user = await database.get(
+      `SELECT id, email, first_name, last_name, role, department, job_title,
+              is_active, is_verified, profile_picture_url, two_factor_enabled
+       FROM users WHERE email = $1`,
+      [email.toLowerCase()],
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found. Please register first.',
+        requiresRegistration: true,
+      });
+    }
+
+    // Check if user is verified
+    if (!user.is_verified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email before logging in.',
+        requiresVerification: true,
+        userId: user.id,
+      });
+    }
+
+    // Check if user is active
+    if (!user.is_active) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support.',
+      });
+    }
+
+    // Generate Nexus JWT tokens (same as normal login)
+    const { accessToken, refreshToken, expiresIn } = require('../controllers/AuthController').generateTokensForSSO(
+      user.id,
+      user.email,
+      user.role,
+    );
+
+    // SECURITY: Hash tokens before storing in database
+    // Store SHA256 hash instead of plaintext to prevent token theft from database breaches
+    const hashedAccessToken = cryptoUtil.hash(accessToken);
+    const hashedRefreshToken = cryptoUtil.hash(refreshToken);
+
+    // Create session record (required for authenticateToken middleware)
+    await database.run(
+      `
+      INSERT INTO user_sessions (user_id, session_token, refresh_token, ip_address, user_agent, expires_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `,
+      [
+        user.id,
+        hashedAccessToken,
+        hashedRefreshToken,
+        req.ip,
+        req.get('User-Agent') || 'Unknown',
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      ],
+    );
+
+    // Update last login
+    await database.run(
+      `UPDATE users SET last_login = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+      [user.id],
+    );
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token: accessToken,
+      refreshToken: refreshToken,
+      expiresIn: expiresIn,
+      user: {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+        department: user.department,
+        job_title: user.job_title,
+        profile_picture_url: user.profile_picture_url,
+        two_factor_enabled: user.two_factor_enabled || false,
+      },
+    });
+  } catch (error) {
+    console.error('Microsoft SSO login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: error.message,
+    });
+  }
+});
+
+/**
  * @swagger
  * /api/auth/register:
  *   post:

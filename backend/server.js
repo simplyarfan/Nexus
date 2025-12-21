@@ -122,6 +122,26 @@ try {
   // Error loading swagger routes
 }
 
+// HR Analytics routes (superadmin interview tracking)
+let hrAnalyticsRoutes;
+try {
+  hrAnalyticsRoutes = require('./routes/hr-analytics');
+  console.log('✅ HR Analytics routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading HR Analytics routes:', error.message);
+  hrAnalyticsRoutes = null;
+}
+
+// Onboarding routes (HR Onboarding Assistant)
+let onboardingRoutes;
+try {
+  onboardingRoutes = require('./routes/onboarding');
+  console.log('✅ Onboarding routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading onboarding routes:', error.message);
+  onboardingRoutes = null;
+}
+
 // Optimized conditional request logger
 const conditionalLogger = (req, res, next) => {
   // Skip logging for health checks and static assets
@@ -467,6 +487,16 @@ if (jobPositionsRoutes) {
 // Candidate Profiles routes (Recruitment System)
 if (candidateProfilesRoutes) {
   app.use('/api/candidates', candidateProfilesRoutes);
+}
+
+// HR Analytics routes (superadmin interview tracking)
+if (hrAnalyticsRoutes) {
+  app.use('/api/hr-analytics', longCacheMiddleware, hrAnalyticsRoutes);
+}
+
+// Onboarding routes (HR Onboarding Assistant)
+if (onboardingRoutes) {
+  app.use('/api/onboarding', onboardingRoutes);
 }
 
 // Debug email routes (temporary, for diagnosing email issues)

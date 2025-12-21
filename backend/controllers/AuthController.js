@@ -8,6 +8,7 @@ const { generate2FACode, verify2FACode } = require('../utils/twoFactorAuth');
 const emailService = require('../services/email.service.js');
 const cryptoUtil = require('../utils/crypto');
 const { sanitizeStrict } = require('../utils/sanitize');
+const logger = require('../utils/logger');
 
 // Helper function to generate secure JWT tokens
 const generateTokens = (userId, email, role, rememberMe = false) => {
@@ -33,6 +34,11 @@ const generateTokens = (userId, email, role, rememberMe = false) => {
   });
 
   return { accessToken, refreshToken, expiresIn: rememberMe ? 14 : 7 };
+};
+
+// Helper function for SSO token generation (exposed for routes)
+const generateTokensForSSO = (userId, email, role) => {
+  return generateTokens(userId, email, role, false);
 };
 
 // Register new user - With Email Verification
@@ -1476,7 +1482,11 @@ const requestPasswordReset = async (req, res) => {
     try {
       await emailService.sendPasswordReset(user.email, resetToken, user.first_name);
     } catch (emailError) {
-      console.error('Password reset email failed:', emailError.message);
+      logger.error('Password reset email failed', {
+        email: user.email,
+        error: emailError.message,
+        stack: emailError.stack
+      });
       // Return error to user so they know email wasn't sent
       return res.status(500).json({
         success: false,
@@ -1569,7 +1579,11 @@ const resetPassword = async (req, res) => {
     try {
       await emailService.sendPasswordResetConfirmation(userDetails.email, userDetails.first_name);
     } catch (emailError) {
-      console.error('Failed to send password reset confirmation email:', emailError.message);
+      logger.error('Failed to send password reset confirmation email', {
+        email: userDetails.email,
+        error: emailError.message,
+        stack: emailError.stack
+      });
       // Continue - password was reset successfully, email is just a notification
     }
 
@@ -1832,4 +1846,5 @@ module.exports = {
   resetPassword,
   verifyEmail,
   resendVerificationCode,
+  generateTokensForSSO,
 };

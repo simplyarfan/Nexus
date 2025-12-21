@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import HRDashboard from '../components/user/HRDashboard';
+import HumanResourcesDashboard from '../components/user/HumanResourcesDashboard';
 import FinanceDashboard from '../components/user/FinanceDashboard';
 import SalesDashboard from '../components/user/SalesDashboard';
 import AdminDashboard from '../components/admin/AdminDashboard';
@@ -16,7 +17,8 @@ const Dashboard = () => {
 
   // Dashboard mapping for cleaner code
   const DASHBOARD_MAP = {
-    'Human Resources': HRDashboard,
+    'Recruitment': HRDashboard,
+    'Human Resources': HumanResourcesDashboard,
     Finance: FinanceDashboard,
     'Sales & Marketing': SalesDashboard,
   };

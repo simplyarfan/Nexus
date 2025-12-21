@@ -160,7 +160,7 @@ Make questions specific to the candidate's background and job requirements.`;
   /**
    * Generate ICS calendar invite with RFC 5545 compliance
    */
-  generateICSInvite(interviewData, organizerEmail = 'hr@company.com', organizerName = 'HR Team') {
+  generateICSInvite(interviewData, organizerEmail = 'recruitment@company.com', organizerName = 'Recruitment Team') {
     const startDate = new Date(interviewData.scheduledTime);
     const duration = interviewData.duration || 60;
     const endDate = new Date(startDate.getTime() + duration * 60000);
@@ -325,7 +325,7 @@ Make questions specific to the candidate's background and job requirements.`;
                 <p>If you need to reschedule, please contact us at least 24 hours in advance.</p>
                 <p>We look forward to meeting you!</p>
                 <br>
-                <p>Best regards,<br>HR Team</p>
+                <p>Best regards,<br>Recruitment Team</p>
             </div>
         </div>
     </body>

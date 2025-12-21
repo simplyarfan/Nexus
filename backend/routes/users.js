@@ -284,6 +284,11 @@ router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     updateData.updated_at = new Date();
 
+    // Check if department is being assigned/changed
+    const departmentChanged =
+      updateData.department !== undefined && updateData.department !== existingUser.department;
+    const wasUnassigned = !existingUser.department || existingUser.department === '';
+
     // Update user
     const user = await prisma.users.update({
       where: { id: userId },
@@ -300,6 +305,31 @@ router.patch('/:id', authenticateToken, requireAdmin, async (req, res) => {
         updated_at: true,
       },
     });
+
+    // Send notification if department was assigned/changed
+    if (departmentChanged && updateData.department) {
+      try {
+        const notificationTitle = wasUnassigned
+          ? 'Department Assigned!'
+          : 'Department Updated';
+        const notificationMessage = wasUnassigned
+          ? `You have been assigned to the ${updateData.department} department. You now have access to your department's AI agents and tools.`
+          : `Your department has been changed to ${updateData.department}.`;
+
+        await prisma.notifications.create({
+          data: {
+            user_id: userId,
+            title: notificationTitle,
+            message: notificationMessage,
+            type: 'department_assignment',
+            is_read: false,
+          },
+        });
+      } catch (notificationError) {
+        // Don't fail the request if notification fails
+        console.error('Failed to create department notification:', notificationError);
+      }
+    }
 
     res.json({
       success: true,

@@ -236,14 +236,8 @@ export default function AdminDashboard() {
         {/* Logo */}
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-primary-foreground"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/images/logo_N.png" alt="Nexus" className="w-10 h-10 object-contain" />
             </div>
             <span className="text-xl font-bold text-foreground">Nexus</span>
           </div>
@@ -266,7 +260,6 @@ export default function AdminDashboard() {
                   <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium text-foreground">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                   <svg
                     className="w-4 h-4 flex-shrink-0 mt-1"
@@ -301,7 +294,6 @@ export default function AdminDashboard() {
                   <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium text-foreground">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                   <svg
                     className="w-4 h-4 flex-shrink-0 mt-1"

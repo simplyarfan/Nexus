@@ -31,7 +31,7 @@ const AdminDashboard = () => {
         metrics: { processed: 1247, timeSaved: '312h', accuracy: '94.5%' },
         features: ['Parse PDFs/Word', 'Skill Matching', 'Auto-Ranking', '+1 more'],
         gradient: 'from-primary to-primary', // GREEN THEME
-        department: 'Human Resources',
+        department: 'Recruitment',
       },
       {
         id: 'interview_coordinator',
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
         metrics: { scheduled: 89, conflictsAvoided: 23, satisfaction: '4.8/5' },
         features: ['Calendar Sync', 'Auto-Reminders', 'Panel Coordination', '+1 more'],
         gradient: 'from-primary to-primary', // GREEN THEME
-        department: 'Human Resources',
+        department: 'Recruitment',
       },
       {
         id: 'onboarding_assistant',
@@ -53,7 +53,7 @@ const AdminDashboard = () => {
         metrics: { onboarded: 34, completion: '98.2%', avgTime: '2 days' },
         features: ['Custom Plans', 'Task Tracking', 'Document Generation', '+1 more'],
         gradient: 'from-primary to-primary', // GREEN THEME
-        department: 'Human Resources',
+        department: 'Recruitment',
       },
       {
         id: 'hr_analytics',
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
         metrics: { reports: 156, insights: 42, predictions: '91.3%' },
         features: ['Turnover Prediction', 'Performance Analytics', 'DEI Metrics', '+1 more'],
         gradient: 'from-primary to-primary', // GREEN THEME
-        department: 'Human Resources',
+        department: 'Recruitment',
       },
     ],
     finance: [
@@ -141,7 +141,7 @@ const AdminDashboard = () => {
 
   const departments = [
     { id: 'all', name: 'All Departments', count: 10 },
-    { id: 'hr', name: 'Human Resources', count: 4 },
+    { id: 'hr', name: 'Recruitment', count: 4 },
     { id: 'finance', name: 'Finance', count: 3 },
     { id: 'sales', name: 'Sales & Marketing', count: 3 },
   ];

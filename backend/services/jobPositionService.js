@@ -348,9 +348,6 @@ CRITICAL GUIDELINES:
                   email: true,
                   phone: true,
                   location: true,
-                  overall_match_score: true,
-                  performance_score: true,
-                  potential_score: true,
                   availability_status: true,
                 },
               },
@@ -509,12 +506,12 @@ CRITICAL GUIDELINES:
       console.log(`\n🎯 Auto-matching job position ${jobPositionId} to existing candidates...`);
 
       const matchResult = await intelligentMatching.matchCandidatesForJob(jobPositionId, {
-        minScore: 60,
+        minScore: 0,
         limit: 50,
       });
 
       if (!matchResult.success || matchResult.matches.length === 0) {
-        console.log(`  No suitable matches found (>= 60%)`);
+        console.log(`  No suitable matches found`);
         return;
       }
 

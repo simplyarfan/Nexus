@@ -10,9 +10,12 @@ import {
   Clock,
   Edit3,
   CheckCircle2,
+  Trash2,
+  XCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import Button from '@/components/ui/Button';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import api from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -21,6 +24,18 @@ export default function JobPositionDetailPage() {
   const { id } = router.query;
   const [position, setPosition] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Modal state
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    cancelText: 'Cancel',
+    variant: 'default',
+    onConfirm: () => {},
+    onCancel: () => {},
+  });
 
   // Mock data - will be replaced with API call
   const mockPositions = {
@@ -244,6 +259,92 @@ export default function JobPositionDetailPage() {
     }
   }, [id]);
 
+  // Handle delete position
+  const handleDelete = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Position',
+      message: 'Are you sure you want to delete this position? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          const response = await api.delete(`/job-positions/${id}`);
+
+          if (response.data.success) {
+            toast.success('Position deleted successfully');
+            router.push('/job-positions');
+          } else {
+            toast.error('Failed to delete position');
+          }
+        } catch (error) {
+          console.error('Error deleting position:', error);
+          toast.error('Failed to delete position');
+        }
+      },
+    });
+  };
+
+  // Handle status change from dropdown
+  const handleStatusChange = (e) => {
+    const newStatus = e.target.value;
+    const selectElement = e.target;
+
+    if (newStatus === position.status) {
+      return; // No change
+    }
+
+    const actionText = newStatus === 'closed' ? 'close' : 'reopen';
+    const originalStatus = position.status;
+
+    setConfirmModal({
+      isOpen: true,
+      title: `${actionText === 'close' ? 'Close' : 'Reopen'} Position`,
+      message: `Are you sure you want to ${actionText} this position?`,
+      confirmText: actionText === 'close' ? 'Close Position' : 'Reopen Position',
+      cancelText: 'Cancel',
+      variant: 'default',
+      onConfirm: async () => {
+        try {
+          const response = await api.put(`/job-positions/${id}`, {
+            ...position,
+            status: newStatus,
+          });
+
+          if (response.data.success) {
+            toast.success(`Position ${newStatus === 'closed' ? 'closed' : 'reopened'} successfully`);
+            setPosition(response.data.data.position);
+          } else {
+            toast.error(`Failed to ${actionText} position`);
+            selectElement.value = position.status; // Reset on failure
+          }
+        } catch (error) {
+          console.error(`Error ${actionText}ing position:`, error);
+          toast.error(`Failed to ${actionText} position`);
+          selectElement.value = position.status; // Reset on error
+        }
+      },
+      onCancel: () => {
+        // Reset dropdown to original value when user cancels
+        selectElement.value = originalStatus;
+      },
+    });
+  };
+
+  // Close confirmation modal
+  const closeModal = () => {
+    // Call onCancel callback if it exists
+    if (confirmModal.onCancel) {
+      confirmModal.onCancel();
+    }
+
+    setConfirmModal({
+      ...confirmModal,
+      isOpen: false,
+    });
+  };
+
   const getDepartmentColor = (dept) => {
     const colors = {
       Engineering: 'bg-blue-pastel text-blue-800 dark:bg-blue-600 dark:text-blue-100',
@@ -304,62 +405,87 @@ export default function JobPositionDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <h1 className="text-4xl lg:text-5xl font-bold text-foreground">{position.title}</h1>
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-sm font-semibold ${getDepartmentColor(position.department)}`}
-                  >
-                    {position.department}
+            {/* Title and Department */}
+            <div className="flex items-center gap-3 mb-4">
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{position.title}</h1>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${getDepartmentColor(position.department)}`}
+              >
+                {position.department}
+              </span>
+            </div>
+
+            {/* Metadata and Action Buttons Row */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              {/* Left: Metadata */}
+              <div className="flex-1 space-y-3">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{position.location}</span>
+                  </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4" />
+                    <span className="capitalize">{position.employment_type?.replace('-', ' ')}</span>
+                  </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span className="capitalize">{position.remote_policy}</span>
+                  </div>
+                </div>
+
+                {/* Salary and Openings */}
+                <div className="flex items-center gap-6">
+                  {position.salary_range_min && position.salary_range_max ? (
+                    <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                      <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span>
+                        {formatSalary(position.salary_range_min, position.salary_range_max, position.currency)}
+                      </span>
+                    </div>
+                  ) : null}
+                  <span className="text-sm text-muted-foreground">
+                    {position.openings_count} opening{position.openings_count !== 1 ? 's' : ''}
                   </span>
                 </div>
-
-                <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    <span className="text-base">{position.location}</span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="w-5 h-5" />
-                    <span className="text-base capitalize">
-                      {position.employment_type.replace('-', ' ')}
-                    </span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    <span className="text-base capitalize">{position.remote_policy}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-3xl font-bold text-foreground">
-                  <DollarSign className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  {formatSalary(position.salary_range_min, position.salary_range_max, position.currency)}
-                </div>
-                <p className="text-muted-foreground mt-2">
-                  {position.openings_count} opening{position.openings_count !== 1 ? 's' : ''} available
-                </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
+              {/* Right: Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Status Dropdown */}
+                <select
+                  value={position.status || 'open'}
+                  onChange={handleStatusChange}
+                  className="px-4 py-2.5 bg-background text-foreground border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium capitalize cursor-pointer hover:border-primary transition-colors"
+                >
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+
                 <Button
                   variant="secondary"
-                  size="lg"
-                  leftIcon={<Edit3 className="w-5 h-5" />}
+                  leftIcon={<Edit3 className="w-4 h-4" />}
                   onClick={() => router.push(`/job-positions/edit/${position.id}`)}
                 >
-                  Edit Position
+                  Edit
                 </Button>
+
                 <Button
                   variant="primary"
-                  size="lg"
-                  leftIcon={<Users className="w-5 h-5" />}
+                  leftIcon={<Users className="w-4 h-4" />}
                   onClick={() => router.push(`/job-positions/${position.id}/candidates`)}
                 >
                   View Candidates
+                </Button>
+
+                <Button
+                  variant="danger"
+                  leftIcon={<Trash2 className="w-4 h-4" />}
+                  onClick={handleDelete}
+                >
+                  Delete
                 </Button>
               </div>
             </div>
@@ -404,7 +530,7 @@ export default function JobPositionDetailPage() {
             </div>
             <p className="text-3xl font-bold text-foreground capitalize">{position.status || 'open'}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {position.status === 'open' ? 'Actively hiring' : 'Current status'}
+              {position.status === 'open' ? 'Actively hiring' : 'Not currently hiring'}
             </p>
           </div>
         </motion.div>
@@ -569,6 +695,18 @@ export default function JobPositionDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeModal}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        variant={confirmModal.variant}
+      />
     </div>
   );
 }

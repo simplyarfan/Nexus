@@ -1,15 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import microsoftAuthService from '../../services/microsoftAuthService';
+import { tokenManager } from '../../utils/api';
+
 
 export default function AuthCallback() {
   const router = useRouter();
   const [status, setStatus] = useState('processing'); // processing, success, error
   const [message, setMessage] = useState('Processing authentication...');
+  const isProcessing = useRef(false);
 
   useEffect(() => {
+    // Prevent double processing
+    if (isProcessing.current) return;
+    isProcessing.current = true;
     handleCallback();
   }, []);
 
@@ -22,6 +28,12 @@ export default function AuthCallback() {
       const result = await microsoftAuthService.handleRedirectCallback();
 
       if (!result.success) {
+        if (result.error) {
+          setStatus('error');
+          setMessage(result.error || 'Authentication failed. Please try again.');
+          setTimeout(() => router.push('/auth/login'), 3000);
+          return;
+        }
         setStatus('error');
         setMessage('Authentication failed. Please try again.');
         setTimeout(() => router.push('/auth/login'), 3000);
@@ -63,26 +75,30 @@ export default function AuthCallback() {
           return;
         }
 
-        // User exists and is verified - log them in
+        // User exists and is verified - call SSO login endpoint to get Nexus JWT
         setMessage('Logging you in...');
 
-        // Store user data and token
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('user', JSON.stringify(user));
+        const loginResult = await microsoftAuthService.loginWithMicrosoftSSO(email, accessToken);
+
+        if (!loginResult.success) {
+          setStatus('error');
+          setMessage(loginResult.message || 'Login failed. Please try again.');
+          setTimeout(() => router.push('/auth/login'), 3000);
+          return;
+        }
+
+        // Store Nexus JWT token using tokenManager (stores in cookies)
+        tokenManager.setTokens(loginResult.token, loginResult.refreshToken || '');
+        // Also store user data in localStorage for quick access
+        localStorage.setItem('user', JSON.stringify(loginResult.user));
 
         setStatus('success');
-        setMessage('Login successful! Redirecting to dashboard...');
+        setMessage('Login successful! Redirecting...');
 
-        // Redirect to appropriate dashboard based on role
+        // Use window.location.href for full page reload to ensure AuthContext picks up the token
         setTimeout(() => {
-          if (user.role === 'admin') {
-            router.push('/admin');
-          } else if (user.role === 'superadmin') {
-            router.push('/admin');
-          } else {
-            router.push('/');
-          }
-        }, 1500);
+          window.location.href = '/';
+        }, 1000);
       } else {
         // User doesn't exist - redirect to register
         setStatus('success');
@@ -98,7 +114,7 @@ export default function AuthCallback() {
             email,
             firstName,
             lastName,
-            accessToken,
+            microsoftAccessToken: accessToken,
           }),
         );
 

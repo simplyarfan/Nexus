@@ -42,7 +42,7 @@ const Input = forwardRef(
           />
 
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground flex items-center justify-center">
               {rightIcon}
             </div>
           )}

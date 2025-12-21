@@ -195,6 +195,8 @@ class OutlookEmailService {
     const enrichedData = {
       ...data,
       senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
+      // Pass custom content to template generator so it can be used within the fancy template
+      customContent: data.customContent || null,
     };
 
     const htmlBody = this.generateAvailabilityRequestHTML(enrichedData);
@@ -204,7 +206,7 @@ class OutlookEmailService {
       cc: data.ccEmails || [],
       bcc: data.bccEmails || [],
       subject: data.customSubject || `Interview Opportunity - ${data.position}`,
-      htmlBody: data.customContent ? this.wrapCustomContent(data.customContent) : htmlBody,
+      htmlBody: htmlBody,
     };
 
     return await this.sendEmail(userId, emailData);
@@ -236,9 +238,9 @@ class OutlookEmailService {
     const enrichedData = {
       ...data,
       senderName:
-        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'HR Team',
+        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Recruitment Team',
       senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
-      senderDesignation: user?.job_title || 'Human Resources',
+      senderDesignation: user?.job_title || 'Recruitment Team',
     };
 
     const htmlBody = this.generateInterviewConfirmationHTML(enrichedData);
@@ -319,9 +321,20 @@ class OutlookEmailService {
    * Generate HTML for availability request email (Stage 1)
    */
   generateAvailabilityRequestHTML(data) {
-    const senderName = data.senderName || 'HR Team';
-    const senderDesignation = data.senderDesignation || 'Human Resources';
+    const senderName = data.senderName || 'Recruitment Team';
+    const senderDesignation = data.senderDesignation || 'Recruitment Team';
     const companyName = data.companyName || 'SecureMax';
+
+    // Use custom content if provided, otherwise use default
+    const defaultContent = `We are excited to inform you that your application for the <strong>${data.position}</strong> position has been shortlisted! We would like to schedule an interview with you to discuss your qualifications and learn more about your experience.`;
+
+    // Convert plain text custom content to HTML (preserve line breaks)
+    // Note: [Position] placeholder can still be replaced if user uses it in custom content
+    const mainContent = data.customContent
+      ? data.customContent
+          .replace(/\[Position\]/gi, `<strong>${data.position}</strong>`)
+          .replace(/\n/g, '<br>')
+      : defaultContent;
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -365,7 +378,7 @@ class OutlookEmailService {
                             </p>
 
                             <p style="margin: 0 0 24px 0; font-size: 16px; color: #374151;">
-                                We are excited to inform you that your application for the <strong>${data.position}</strong> position has been shortlisted! We would like to schedule an interview with you to discuss your qualifications and learn more about your experience.
+                                ${mainContent}
                             </p>
 
                             <!-- Content Box: Next Steps -->
@@ -769,9 +782,9 @@ class OutlookEmailService {
     const enrichedData = {
       ...data,
       senderName:
-        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'HR Team',
+        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Recruitment Team',
       senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
-      senderDesignation: user?.job_title || 'Human Resources',
+      senderDesignation: user?.job_title || 'Recruitment Team',
     };
 
     const htmlBody = this.generateRescheduleNotificationHTML(enrichedData);
@@ -1153,6 +1166,162 @@ class OutlookEmailService {
         `Failed to cancel Teams meeting: ${error.response?.data?.error?.message || error.message}`,
       );
     }
+  }
+
+  /**
+   * Send rejection email to candidate
+   */
+  async sendRejectionEmail(userId, recipientEmail, data) {
+    // Get user's info for email signature
+    const user = await prisma.users.findUnique({
+      where: { id: userId },
+      select: {
+        first_name: true,
+        last_name: true,
+        outlook_email: true,
+        job_title: true,
+      },
+    });
+
+    // Enrich data with sender information
+    const enrichedData = {
+      ...data,
+      senderName:
+        user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Recruitment Team',
+      senderEmail: user?.outlook_email || 'hr@securemaxtech.com',
+      senderDesignation: user?.job_title || 'Recruitment Team',
+    };
+
+    const htmlBody = this.generateRejectionEmailHTML(enrichedData);
+
+    const emailData = {
+      to: [recipientEmail],
+      subject: `Application Update - ${data.position}`,
+      htmlBody: htmlBody,
+    };
+
+    return await this.sendEmail(userId, emailData);
+  }
+
+  /**
+   * Generate HTML for rejection email
+   */
+  generateRejectionEmailHTML(data) {
+    const senderName = data.senderName || 'Recruitment Team';
+    const companyName = data.companyName || 'SecureMax';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Application Update - ${data.position}</title>
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
+    </style>
+    <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f3f4f6;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f3f4f6; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Email Container -->
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: #f9fafb; border-bottom: 1px solid #e5e7eb; padding: 32px 32px 24px 32px; text-align: center;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center" style="padding-bottom: 20px;">
+                                        <img src="https://securemaxtech.com/wp-content/uploads/2024/04/logo.png" alt="${companyName} Logo" width="180" style="width: 180px; max-width: 180px; height: auto; display: block; border: 0; margin: 0 auto;" />
+                                    </td>
+                                </tr>
+                            </table>
+                            <h1 style="margin: 0 0 6px 0; font-size: 24px; font-weight: 600; color: #111827;">Application Update</h1>
+                            <p style="margin: 0; font-size: 16px; color: #6b7280;">${data.position}</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 32px;">
+                            <p style="margin: 0 0 24px 0; font-size: 16px; color: #374151;">
+                                Dear ${data.candidateName},
+                            </p>
+
+                            <p style="margin: 0 0 24px 0; font-size: 16px; color: #374151;">
+                                Thank you for taking the time to interview with us for the <strong>${data.position}</strong> position. We truly appreciate your interest in joining ${companyName} and the effort you put into the interview process.
+                            </p>
+
+                            <p style="margin: 0 0 24px 0; font-size: 16px; color: #374151;">
+                                After careful consideration, the client has decided to move forward with other candidates whose qualifications more closely match the specific requirements for this role at this time.
+                            </p>
+
+                            <!-- Positive Note Box -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px; margin: 24px 0;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 600; color: #166534;">Your CV is in Our Talent Pool</h3>
+                                        <p style="margin: 0; font-size: 15px; color: #15803d;">
+                                            We were impressed with your background and have added your CV to our talent pool for future opportunities. Should a position that better matches your skills become available, we will certainly reach out.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 24px 0; font-size: 16px; color: #374151;">
+                                We encourage you to keep an eye on our careers page for future openings that may be a better fit for your experience and aspirations.
+                            </p>
+
+                            <p style="margin: 0 0 24px 0; font-size: 16px; color: #374151;">
+                                Thank you once again for choosing ${companyName}. We wish you all the best in your career journey and future endeavors.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 32px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+                            <!-- Signature -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Best regards,</p>
+                                        <p style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #111827;">${senderName}</p>
+                                        <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280;">The Recruitment Team | ${companyName}</p>
+
+                                        <!-- Contact Information -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 12px 0 0 0; border-top: 1px solid #e5e7eb;">
+                                                    <p style="margin: 0 0 6px 0; font-size: 13px; color: #6b7280;">
+                                                        Office #10, Postal Box 3139, 8929 Prince Mansur Bin Abdulaziz st, Al Olaya | Riyadh: 12611 | Saudi Arabia
+                                                    </p>
+                                                    <p style="margin: 0 0 6px 0; font-size: 13px; color: #6b7280;">
+                                                        Telephone: <a href="tel:+966112884870" style="color: #2563eb; text-decoration: none;">+966-11-2884870</a>
+                                                    </p>
+                                                    <p style="margin: 0 0 6px 0; font-size: 13px; color: #6b7280;">
+                                                        Web: <a href="http://www.securemaxtech.com" target="_blank" style="color: #2563eb; text-decoration: none;">http://www.securemaxtech.com</a>
+                                                    </p>
+                                                    <p style="margin: 0; font-size: 13px; color: #6b7280;">
+                                                        Email: <a href="mailto:${data.senderEmail}" style="color: #2563eb; text-decoration: none;">${data.senderEmail}</a>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
   }
 }
 

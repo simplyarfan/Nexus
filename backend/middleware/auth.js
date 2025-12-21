@@ -200,7 +200,7 @@ const cleanupExpiredSessions = async (req, res, next) => {
   next(); // Skip session cleanup for now - will implement proper session management later
 };
 
-// HR Department access middleware
+// Recruitment Department access middleware
 const requireHRAccess = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
@@ -214,27 +214,27 @@ const requireHRAccess = (req, res, next) => {
     return next();
   }
 
-  // Allow admins with HR department (accepts both "HR" and "Human Resources")
-  const isHRDepartment = req.user.department === 'HR' || req.user.department === 'Human Resources';
+  // Only allow Recruitment department access
+  const isRecruitmentDepartment = req.user.department === 'Recruitment';
 
-  if (req.user.role === 'admin' && isHRDepartment) {
-    req.user.isHRAdmin = true;
+  if (req.user.role === 'admin' && isRecruitmentDepartment) {
+    req.user.isRecruitmentAdmin = true;
     return next();
   }
 
-  // Allow regular users with HR department
-  if (isHRDepartment) {
-    req.user.isHRAdmin = false;
+  // Allow regular users with Recruitment department
+  if (isRecruitmentDepartment) {
+    req.user.isRecruitmentAdmin = false;
     return next();
   }
 
   return res.status(403).json({
     success: false,
-    message: 'Access denied. This feature requires HR department access.',
+    message: 'Access denied. This feature requires Recruitment department access.',
   });
 };
 
-// HR Admin only middleware (for create/delete operations)
+// Recruitment Admin only middleware (for create/delete operations)
 const requireHRAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
@@ -248,16 +248,16 @@ const requireHRAdmin = (req, res, next) => {
     return next();
   }
 
-  // Allow admins with HR department (accepts both "HR" and "Human Resources")
-  const isHRDepartment = req.user.department === 'HR' || req.user.department === 'Human Resources';
+  // Only allow admins with Recruitment department
+  const isRecruitmentDepartment = req.user.department === 'Recruitment';
 
-  if (req.user.role === 'admin' && isHRDepartment) {
+  if (req.user.role === 'admin' && isRecruitmentDepartment) {
     return next();
   }
 
   return res.status(403).json({
     success: false,
-    message: 'Access denied. This operation requires HR admin privileges.',
+    message: 'Access denied. This operation requires Recruitment admin privileges.',
   });
 };
 

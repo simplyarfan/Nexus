@@ -1,435 +1,518 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import {
-  Clock,
-  Brain,
-  Sparkles,
-  Settings,
-  User,
-  LogOut,
-  Menu,
-  Search,
-  Bell,
-  Plus,
-  MessageSquare,
-  ChevronUp,
-  Gamepad2,
-  Dice1,
-  Target,
-  Puzzle,
-  Zap,
-  Trophy,
-} from 'lucide-react';
+import { useRouter } from 'next/router';
+import { notificationsAPI } from '../../utils/notificationsAPI';
 
-const WaitingDashboard = () => {
-  const { user, logout } = useAuth();
-  const router = useRouter();
+export default function WaitingDashboard() {
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setNotifications([]);
+        const result = await notificationsAPI.getNotifications({ limit: 5, unread_only: true });
+        setNotifications(result.data?.notifications || []);
+      } catch (error) {
+        setNotifications([]);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const fetchNotificationsData = async () => {
+    try {
+      const result = await notificationsAPI.getNotifications({ limit: 5, unread_only: true });
+      const fetchedNotifications = result.data?.notifications || [];
+      setNotifications(fetchedNotifications);
+    } catch (error) {
+      setNotifications([]);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId, e) => {
+    e.stopPropagation();
+    try {
+      await notificationsAPI.markAsRead(notificationId);
+      await fetchNotificationsData();
+    } catch (error) {
+      // Silent failure
+    }
+  };
+
+  const handleNotificationClick = () => {
+    if (!showNotifications) {
+      fetchNotificationsData();
+    }
+    setShowNotifications(!showNotifications);
+  };
 
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/auth/login');
+      router.push('/landing');
     } catch (error) {
       // Intentionally empty - user is redirected regardless, error is non-critical
     }
   };
 
-  const quickActions = [
-    { name: 'Create Ticket', icon: Plus, route: '/support/create-ticket' },
-    { name: 'My Tickets', icon: MessageSquare, route: '/support/my-tickets' },
-    { name: 'Profile Settings', icon: User, route: '/profile' },
-  ];
-
-  // Fun mini-games for waiting users
-  const miniGames = [
-    {
-      id: 'memory',
-      name: 'Memory Game',
-      description: 'Test your memory with card matching',
-      icon: Brain,
-      color: 'from-blue-500 to-indigo-600',
-      action: () => setCurrentGame('memory'),
-    },
-    {
-      id: 'reaction',
-      name: 'Reaction Time',
-      description: 'How fast are your reflexes?',
-      icon: Zap,
-      color: 'from-yellow-500 to-primary',
-      action: () => setCurrentGame('reaction'),
-    },
-    {
-      id: 'puzzle',
-      name: 'Number Puzzle',
-      description: 'Solve the sliding number puzzle',
-      icon: Puzzle,
-      color: 'from-primary to-emerald-600',
-      action: () => setCurrentGame('puzzle'),
-    },
-  ];
-
-  const [currentGame, setCurrentGame] = useState(null);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [reactionTimer, setReactionTimer] = useState('WAIT...');
-  const [reactionGreen, setReactionGreen] = useState(false);
-  const [reactionScore, setReactionScore] = useState(null);
-
   return (
-    <div className="min-h-screen bg-secondary">
-      {/* Mobile sidebar backdrop */}
+    <div className="min-h-screen bg-background flex">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`w-64 bg-sidebar border-r border-sidebar-border flex flex-col fixed h-screen ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform z-50`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-border">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-card rounded-sm transform rotate-45"></div>
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/images/logo_N.png" alt="Nexus" className="w-10 h-10 object-contain" />
             </div>
             <span className="text-xl font-bold text-foreground">Nexus</span>
           </div>
         </div>
 
-        <nav className="mt-6 px-4">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Status
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-sidebar-foreground uppercase tracking-wider mb-3">
+              STATUS
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center">
-                <Clock className="w-5 h-5 text-yellow-600 mr-2" />
-                <p className="text-sm text-yellow-800">Your account is being reviewed</p>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <svg
+                  className="w-5 h-5 text-amber-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                  Pending Assignment
+                </p>
               </div>
             </div>
           </div>
-        </nav>
+        </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
-          <div className="relative">
-            {/* Dropdown Menu */}
-            {userDropdownOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-lg shadow-lg py-2">
-                {quickActions.map((action) => (
-                  <button
-                    key={action.name}
-                    onClick={() => {
-                      router.push(action.route);
-                      setUserDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center px-4 py-2 text-left text-muted-foreground hover:bg-muted transition-colors"
-                  >
-                    <action.icon className="w-4 h-4 mr-3 text-muted-foreground" />
-                    <span className="text-sm font-medium">{action.name}</span>
-                  </button>
-                ))}
-                <div className="border-t border-border my-1"></div>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setUserDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center px-4 py-2 text-left text-red-500 hover:bg-red-50 transition-colors"
-                >
-                  <LogOut className="w-4 h-4 mr-3 text-red-500" />
-                  <span className="text-sm font-medium">Logout</span>
-                </button>
+        <div className="p-4 border-t border-sidebar-border relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-sidebar-accent transition-colors"
+          >
+            {user?.profile_picture_url ? (
+              <img
+                src={user.profile_picture_url}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold">
+                {user?.first_name?.[0]?.toUpperCase() || ''}
+                {user?.last_name?.[0]?.toUpperCase() || ''}
               </div>
             )}
-
-            {/* User Profile Button */}
-            <button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-muted transition-colors"
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-foreground">
+                {user?.first_name && user?.last_name
+                  ? `${user.first_name} ${user.last_name}`
+                  : user?.email || 'User'}
+              </p>
+              <p className="text-xs text-muted-foreground">Pending Assignment</p>
+            </div>
+            <svg
+              className="w-4 h-4 text-sidebar-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              {user?.profile_picture_url ? (
-                <img
-                  src={user.profile_picture_url}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-semibold">
-                  {user?.first_name?.[0]?.toUpperCase() || ''}
-                  {user?.last_name?.[0]?.toUpperCase() || ''}
-                </div>
-              )}
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {user?.first_name} {user?.last_name}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">Pending Assignment</p>
-              </div>
-              <ChevronUp
-                className={`w-4 h-4 text-muted-foreground transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
               />
-            </button>
-          </div>
+            </svg>
+          </button>
+
+          <AnimatePresence>
+            {showUserMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute bottom-full left-4 right-4 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
+                >
+                  <button
+                    onClick={() => router.push('/support/create-ticket')}
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                  >
+                    <svg
+                      className="w-5 h-5 text-muted-foreground"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    <span className="text-sm text-foreground">Create Ticket</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/support/my-tickets')}
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                  >
+                    <svg
+                      className="w-5 h-5 text-muted-foreground"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                    <span className="text-sm text-foreground">My Tickets</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/profile')}
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                  >
+                    <svg
+                      className="w-5 h-5 text-muted-foreground"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    <span className="text-sm text-foreground">Profile Settings</span>
+                  </button>
+                  <div className="border-t border-border" />
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                  >
+                    <svg
+                      className="w-5 h-5 text-red-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    <span className="text-sm text-red-500">Logout</span>
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="lg:pl-64 min-h-screen">
-        {/* Top bar */}
-        <div className="bg-card shadow-sm border-b border-border">
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-muted"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">Waiting for Assignment</h1>
-                <p className="text-sm text-muted-foreground">
-                  Welcome, {user?.first_name} {user?.last_name}!
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
-                />
-              </div>
-              <button className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg hover:bg-muted">
-                <Bell className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Dashboard content */}
-        <div className="p-6 pb-20">
-          {/* Welcome section */}
-          <div className="bg-gradient-to-r from-primary to-primary rounded-2xl p-8 text-white mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Welcome to Nexus AI Platform!</h2>
-                <p className="text-primary-foreground">
-                  Your account is being reviewed. You&apos;ll be assigned to a department soon.
-                </p>
-              </div>
-              <div className="hidden md:block">
-                <div className="w-24 h-24 bg-card bg-opacity-20 rounded-full flex items-center justify-center">
-                  <Clock className="w-12 h-12 text-white" />
+      <div className="flex-1 lg:ml-64 overflow-auto">
+        <div className="min-h-screen bg-background">
+          <div className="border-b border-border bg-card sticky top-0 z-30">
+            <div className="max-w-7xl mx-auto px-8 py-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="lg:hidden p-2 hover:bg-muted rounded-lg"
+                    aria-label="Toggle sidebar"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
+                    </svg>
+                  </button>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <h1 className="text-4xl font-bold text-foreground mb-2">
+                      Waiting for Assignment
+                    </h1>
+                    <p className="text-muted-foreground text-lg">
+                      Welcome, {user?.first_name}! Your account is being reviewed.
+                    </p>
+                  </motion.div>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Status Card */}
-          <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground mb-2">Account Under Review</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Our admin team is reviewing your account and will assign you to the appropriate
-                  department based on your role and responsibilities.
-                </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800">
-                    <strong>What happens next?</strong> Once assigned, you&apos;ll have access to
-                    your department&apos;s AI agents and tools.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Fun Mini-Games Grid */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-foreground">Play While You Wait</h3>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Trophy className="w-4 h-4 mr-1" />
-                <span>Pass the time with fun games!</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {miniGames.map((game) => (
-                <div
-                  key={game.id}
-                  onClick={game.action}
-                  className="bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all duration-200 cursor-pointer group hover:scale-105"
-                >
-                  <div className="flex items-start space-x-4">
-                    <div
-                      className={`w-12 h-12 bg-gradient-to-br ${game.color} rounded-xl flex items-center justify-center flex-shrink-0`}
+                <div className="relative">
+                  <button
+                    onClick={handleNotificationClick}
+                    className="relative p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <svg
+                      className="w-6 h-6 text-foreground"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <game.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-foreground mb-2">{game.name}</h3>
-                      <p className="text-muted-foreground text-sm mb-4">{game.description}</p>
-                      <div className="flex items-center text-primary text-sm font-medium group-hover:text-primary">
-                        <span>Play Now</span>
-                        <Gamepad2 className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+                    {notifications.length > 0 && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full"></span>
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {showNotifications && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setShowNotifications(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute right-0 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50"
+                        >
+                          <div className="p-4 border-b border-border">
+                            <h3 className="font-semibold text-foreground">Notifications</h3>
+                          </div>
+                          <div className="max-h-96 overflow-y-auto">
+                            {notifications.length > 0 ? (
+                              notifications.map((notification, index) => (
+                                <div
+                                  key={notification.id || index}
+                                  className="p-4 hover:bg-muted transition-colors border-b border-border last:border-0"
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1">
+                                      <p className="font-medium text-foreground text-sm">
+                                        {notification.title}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {notification.message}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-2">
+                                        {new Date(notification.created_at).toLocaleString()}
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={(e) => handleMarkAsRead(notification.id, e)}
+                                      className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors flex-shrink-0"
+                                      title="Mark as read"
+                                    >
+                                      ✓
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="p-8 text-center">
+                                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-3 border-t border-border text-center">
+                            <button
+                              onClick={() => router.push('/notifications')}
+                              className="text-sm text-primary hover:opacity-80"
+                            >
+                              View all notifications
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-8 py-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-card border-2 border-border rounded-2xl p-8"
+            >
+              <div className="flex items-start gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  <svg
+                    className="w-8 h-8 text-amber-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                    Welcome to Nexus AI Platform!
+                  </h2>
+                  <p className="text-muted-foreground mb-4">
+                    Your account is currently being reviewed by our admin team. Once approved,
+                    you&apos;ll be assigned to a department and gain access to AI-powered tools
+                    designed specifically for your role.
+                  </p>
+                  <div className="bg-muted rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-semibold text-foreground">What happens next?</span> Our
+                      admin team will review your account and assign you to the appropriate
+                      department based on your role and responsibilities. You&apos;ll receive a
+                      notification once your department has been assigned.
+                    </p>
                   </div>
                 </div>
-              ))}
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                onClick={() => router.push('/profile')}
+                className="bg-card border-2 border-border rounded-2xl p-6 hover:border-primary hover:shadow-xl transition-all cursor-pointer group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-6 h-6 text-primary"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                      Complete Your Profile
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Add more details to your account while you wait for department assignment.
+                    </p>
+                  </div>
+                  <svg
+                    className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                onClick={() => router.push('/support/create-ticket')}
+                className="bg-card border-2 border-border rounded-2xl p-6 hover:border-primary hover:shadow-xl transition-all cursor-pointer group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-6 h-6 text-blue-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                      Need Help?
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      If you have questions or need assistance, our support team is here to help.
+                    </p>
+                  </div>
+                  <svg
+                    className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </motion.div>
             </div>
           </div>
-
-          {/* Game Modal */}
-          {currentGame && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-card rounded-2xl p-8 max-w-md w-full mx-4">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-foreground">
-                    {miniGames.find((g) => g.id === currentGame)?.name}
-                  </h3>
-                  <button
-                    onClick={() => setCurrentGame(null)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <Plus className="w-5 h-5 text-muted-foreground rotate-45" />
-                  </button>
-                </div>
-
-                <div className="text-center py-8">
-                  {currentGame === 'memory' && (
-                    <div>
-                      <Brain className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">
-                        Match the pairs of cards by remembering their positions!
-                      </p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[...Array(8)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center cursor-pointer hover:bg-blue-200 transition-colors"
-                          >
-                            <span className="text-blue-600 font-bold">?</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {currentGame === 'reaction' && (
-                    <div>
-                      <Zap className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">
-                        {!gameStarted
-                          ? 'Click START to begin!'
-                          : 'Click as fast as you can when the circle turns green!'}
-                      </p>
-                      {reactionScore !== null && (
-                        <div className="mb-4 p-3 bg-accent rounded-lg">
-                          <p className="text-primary font-bold">Your time: {reactionScore}ms</p>
-                        </div>
-                      )}
-                      <div
-                        onClick={() => {
-                          if (gameStarted && reactionGreen) {
-                            const time = Date.now() - reactionTimer;
-                            setReactionScore(time);
-                            setGameStarted(false);
-                            setReactionGreen(false);
-                          }
-                        }}
-                        className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center cursor-pointer transition-all ${
-                          !gameStarted ? 'bg-muted' : reactionGreen ? 'bg-primary' : 'bg-red-400'
-                        }`}
-                      >
-                        <span
-                          className={`font-bold ${
-                            !gameStarted
-                              ? 'text-muted-foreground'
-                              : reactionGreen
-                                ? 'text-primary'
-                                : 'text-red-900'
-                          }`}
-                        >
-                          {!gameStarted ? 'READY' : reactionGreen ? 'CLICK!' : 'WAIT...'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentGame === 'puzzle' && (
-                    <div>
-                      <Puzzle className="w-16 h-16 text-primary mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">
-                        Arrange the numbers from 1 to 8 in order!
-                      </p>
-                      <div className="grid grid-cols-3 gap-1 max-w-32 mx-auto">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, ''].map((num, i) => (
-                          <div
-                            key={i}
-                            className={`w-10 h-10 ${num ? 'bg-accent hover:bg-accent' : 'bg-secondary'} rounded border flex items-center justify-center cursor-pointer transition-colors`}
-                          >
-                            <span className="text-primary font-bold">{num}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-center space-x-3">
-                  <button
-                    onClick={() => {
-                      setCurrentGame(null);
-                      setGameStarted(false);
-                      setReactionScore(null);
-                      setReactionGreen(false);
-                    }}
-                    className="px-4 py-2 text-muted-foreground bg-muted rounded-lg hover:bg-muted transition-colors"
-                  >
-                    Close
-                  </button>
-                  {currentGame === 'reaction' && !gameStarted && (
-                    <button
-                      onClick={() => {
-                        setGameStarted(true);
-                        setReactionScore(null);
-                        const delay = Math.random() * 3000 + 1000; // 1-4 seconds
-                        setTimeout(() => {
-                          setReactionGreen(true);
-                          setReactionTimer(Date.now());
-                        }, delay);
-                      }}
-                      className="px-4 py-2 text-white bg-gradient-to-r from-primary to-primary rounded-lg hover:from-primary hover:to-primary transition-colors"
-                    >
-                      Start Game
-                    </button>
-                  )}
-                  {currentGame !== 'reaction' && (
-                    <button className="px-4 py-2 text-white bg-gradient-to-r from-primary to-primary rounded-lg hover:from-primary hover:to-primary transition-colors opacity-50 cursor-not-allowed">
-                      Coming Soon
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
-};
-
-export default WaitingDashboard;
+}

@@ -9,6 +9,7 @@ const database = require('../models/database');
 const { prisma } = require('../lib/prisma');
 const auth = require('../middleware/auth');
 const authenticateToken = auth.authenticateToken;
+const requireHRAccess = auth.requireHRAccess;
 const { generalLimiter } = require('../middleware/rateLimiting');
 const fs = require('fs').promises;
 const path = require('path');
@@ -55,10 +56,11 @@ const router = express.Router();
 
 /**
  * GET /outlook/connection-status - Check if Outlook email is connected and valid
+ * Now attempts token refresh if expired (since we have auto-refresh capability)
  */
 router.get('/outlook/connection-status', authenticateToken, async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: req.user.id },
       select: {
         outlook_access_token: true,
@@ -94,13 +96,50 @@ router.get('/outlook/connection-status', authenticateToken, async (req, res) => 
       : null;
     const isExpired = expiresAt && expiresAt < now;
 
+    // If expired but we have a refresh token, try to refresh it
+    if (isExpired && user.outlook_refresh_token) {
+      try {
+        // Use the OutlookEmailService to refresh the token
+        if (!OutlookEmailService) {
+          throw new Error('OutlookEmailService not available');
+        }
+        await OutlookEmailService.getUserAccessToken(req.user.id);
+
+        // Token refreshed successfully - get updated expiry
+        const updatedUser = await prisma.users.findUnique({
+          where: { id: req.user.id },
+          select: { outlook_token_expires_at: true },
+        });
+
+        return res.json({
+          success: true,
+          connected: true,
+          expired: false,
+          email: user.outlook_email,
+          expiresAt: updatedUser?.outlook_token_expires_at?.toISOString() || null,
+          message: 'Outlook connected (token refreshed)',
+        });
+      } catch (refreshError) {
+        // Refresh failed - token is truly expired and needs reconnection
+        return res.json({
+          success: true,
+          connected: false,
+          expired: true,
+          email: user.outlook_email,
+          expiresAt: expiresAt ? expiresAt.toISOString() : null,
+          message: 'Outlook token expired and refresh failed. Please reconnect your account.',
+        });
+      }
+    }
+
+    // Token is valid
     res.json({
       success: true,
       connected: true,
-      expired: isExpired,
+      expired: false,
       email: user.outlook_email,
       expiresAt: expiresAt ? expiresAt.toISOString() : null,
-      message: isExpired ? 'Outlook token expired, please reconnect' : 'Outlook connected',
+      message: 'Outlook connected',
     });
   } catch (error) {
     res.status(500).json({
@@ -269,17 +308,32 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
       take,
     });
 
+    // Check for each interview if an employee has been created (candidate was hired)
+    const interviewsWithEmployeeStatus = await Promise.all(
+      interviews.map(async (interview) => {
+        // Check if there's an employee record linked to this interview
+        const employee = await prisma.employees.findFirst({
+          where: { interview_id: interview.id },
+          select: { id: true },
+        });
+        return {
+          ...interview,
+          has_employee: !!employee,
+        };
+      })
+    );
+
     // Debug logging
     console.log('📋 Interviews query result:', {
-      count: interviews?.length || 0,
-      firstInterview: interviews?.[0] || null,
+      count: interviewsWithEmployeeStatus?.length || 0,
+      firstInterview: interviewsWithEmployeeStatus?.[0] || null,
     });
 
     const totalPages = Math.ceil(total / take);
 
     res.json({
       success: true,
-      data: interviews || [],
+      data: interviewsWithEmployeeStatus || [],
       pagination: {
         currentPage: parseInt(page),
         pageSize: take,
@@ -518,7 +572,7 @@ router.post('/request-availability', authenticateToken, async (req, res) => {
       console.log('✉️  About to send email with user info:', userInfo);
       console.log(
         '📧 Sender Name:',
-        userInfo ? `${userInfo.first_name} ${userInfo.last_name}` : 'HR Team',
+        userInfo ? `${userInfo.first_name} ${userInfo.last_name}` : 'Recruitment Team',
       );
 
       // Check if OutlookEmailService is loaded
@@ -534,13 +588,14 @@ router.post('/request-availability', authenticateToken, async (req, res) => {
         position,
         googleFormLink,
         customSubject: emailSubject,
-        // Only pass customContent if it's explicitly different from default
-        // Don't pass emailContent here to use the professional HTML template
+        // Pass custom email content if provided - this will use the user's custom text
+        // If emailContent is provided, it will be used instead of the default HTML template
+        customContent: emailContent || null,
         ccEmails: ccEmails || [],
         bccEmails: bccEmails || [],
         // Sender information for professional email template
-        senderName: userInfo ? `${userInfo.first_name} ${userInfo.last_name}` : 'HR Team',
-        senderDesignation: userInfo?.job_title || 'Human Resources',
+        senderName: userInfo ? `${userInfo.first_name} ${userInfo.last_name}` : 'Recruitment Team',
+        senderDesignation: userInfo?.job_title || 'Recruitment Team',
         companyName: 'SecureMax',
       });
 
@@ -1613,4 +1668,75 @@ router.delete('/interview/:id', authenticateToken, async (req, res) => {
  *       500:
  *         description: Failed to send availability request
  */
+
+/**
+ * POST /interview-coordinator/:id/send-rejection-email
+ * Send rejection email to candidate (can only be sent once per interview)
+ */
+router.post('/:id/send-rejection-email', authenticateToken, requireHRAccess, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get the interview
+    const interview = await prisma.interviews.findUnique({
+      where: { id },
+    });
+
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interview not found',
+      });
+    }
+
+    // Check if rejection email was already sent
+    if (interview.rejection_email_sent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rejection email has already been sent for this interview',
+        alreadySent: true,
+        sentAt: interview.rejection_email_sent_at,
+      });
+    }
+
+    // Check if OutlookEmailService is loaded
+    if (!OutlookEmailService) {
+      throw new Error(
+        'Email service is not available. Please ensure Outlook integration is configured.',
+      );
+    }
+
+    // Send rejection email
+    await OutlookEmailService.sendRejectionEmail(req.user.id, interview.candidate_email, {
+      candidateName: interview.candidate_name,
+      position: interview.job_title,
+    });
+
+    // Update the interview to mark rejection email as sent
+    const updatedInterview = await prisma.interviews.update({
+      where: { id },
+      data: {
+        rejection_email_sent: true,
+        rejection_email_sent_at: new Date(),
+        outcome: 'rejected',
+      },
+    });
+
+    console.log(`✉️ Rejection email sent to ${interview.candidate_email} for position ${interview.job_title}`);
+
+    res.json({
+      success: true,
+      message: 'Rejection email sent successfully',
+      interview: updatedInterview,
+    });
+  } catch (error) {
+    console.error('Error sending rejection email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send rejection email',
+      error: error.message,
+    });
+  }
+});
+
 module.exports = router;

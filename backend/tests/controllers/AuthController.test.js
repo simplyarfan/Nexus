@@ -704,6 +704,7 @@ describe('AuthController', () => {
 
       database.connect.mockResolvedValue();
       database.all.mockResolvedValue(mockUsers);
+      database.get.mockResolvedValue({ first_name: 'Test', email: 'test@example.com' }); // For email notification
       bcrypt.compare.mockResolvedValue(true); // Token matches
       bcrypt.hash.mockResolvedValue('new_hashed_password');
       database.run.mockResolvedValue();

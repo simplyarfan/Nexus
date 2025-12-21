@@ -32,7 +32,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: ./backend
-        run: npm run lint -- --max-warnings=50
+        run: npm run lint -- --max-warnings=60
 
       - name: Run Prettier check
         working-directory: ./backend

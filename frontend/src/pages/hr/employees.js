@@ -16,6 +16,10 @@ export default function EmployeeDirectory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, pages: 1 });
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -102,6 +106,24 @@ export default function EmployeeDirectory() {
 
   // Get unique departments from employees
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
+
+  // Handle employee deletion
+  const handleDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+
+    try {
+      setDeleting(true);
+      await onboardingAPI.deleteEmployee(employeeToDelete.id);
+      setShowDeleteModal(false);
+      setSelectedEmployee(null);
+      setEmployeeToDelete(null);
+      fetchEmployees(); // Refresh the list
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete employee');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (authLoading || loading) {
     return (

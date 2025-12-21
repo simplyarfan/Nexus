@@ -378,7 +378,7 @@ export default function JobPositionDetailPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-foreground mb-2">Position Not Found</h2>
-          <p className="text-muted-foreground mb-6">The job position you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground mb-6">The job position you&apos;re looking for doesn&apos;t exist.</p>
           <Button onClick={() => router.push('/job-positions')}>Back to Positions</Button>
         </div>
       </div>

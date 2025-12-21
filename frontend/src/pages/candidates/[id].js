@@ -829,7 +829,7 @@ export default function CandidateProfilePage() {
           >
             <h3 className="text-xl font-semibold text-foreground mb-4">Confirm Deletion</h3>
             <p className="text-muted-foreground mb-6">
-              Are you sure you want to delete {candidate.name}'s profile? This action cannot be undone.
+              Are you sure you want to delete {candidate.name}&apos;s profile? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <Button

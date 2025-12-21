@@ -19,6 +19,9 @@ const nextConfig = {
     unoptimized: true,
   },
 
+  // Transpile ESM modules that cause issues
+  transpilePackages: ['gsap'],
+
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,

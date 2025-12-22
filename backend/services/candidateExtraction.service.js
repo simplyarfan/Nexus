@@ -32,7 +32,33 @@ class CandidateExtractionService {
         dataBuffer = await fs.readFile(filePathOrBuffer);
         console.log(`  📄 Reading PDF from: ${filePathOrBuffer}`);
       }
-      const pdfData = await pdfParse(dataBuffer);
+
+      // Parse PDF with error handling for corrupted files
+      let pdfData;
+      try {
+        pdfData = await pdfParse(dataBuffer);
+      } catch (pdfError) {
+        console.error('  ⚠️ PDF parsing error:', pdfError.message);
+
+        // Check for common PDF corruption errors
+        if (
+          pdfError.message.includes('XRef') ||
+          pdfError.message.includes('Invalid') ||
+          pdfError.message.includes('Encrypt')
+        ) {
+          throw new Error(
+            'This PDF file appears to be corrupted, password-protected, or has an incompatible format. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX format.',
+          );
+        }
+        throw pdfError;
+      }
+
+      if (!pdfData.text || pdfData.text.trim().length === 0) {
+        throw new Error(
+          'PDF contains no extractable text. The PDF may be image-based or encrypted.',
+        );
+      }
+
       return pdfData.text;
     } catch (error) {
       console.error('Error extracting PDF text:', error);

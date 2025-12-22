@@ -353,7 +353,20 @@ Return valid JSON only:`;
           throw new Error('PDF contains no extractable text');
         }
       } catch (e) {
-        // Try with different options for corrupted PDFs
+        console.error('  ⚠️ PDF parsing error:', e.message);
+
+        // Check for common PDF corruption errors (XRef, Invalid structure, Encryption)
+        if (
+          e.message.includes('XRef') ||
+          e.message.includes('Invalid') ||
+          e.message.includes('Encrypt')
+        ) {
+          throw new Error(
+            'This PDF file appears to be corrupted, password-protected, or has an incompatible format. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX or TXT format.',
+          );
+        }
+
+        // Try with different options for other PDF issues
         try {
           const pdfData = await pdf(fileBuffer, {
             normalizeWhitespace: false,
@@ -366,7 +379,7 @@ Return valid JSON only:`;
           }
         } catch (e2) {
           throw new Error(
-            `PDF is corrupted or unreadable. Please save as a new PDF or convert to TXT format. Error: ${e.message}`,
+            'This PDF file appears to be corrupted or unreadable. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX or TXT format.',
           );
         }
       }

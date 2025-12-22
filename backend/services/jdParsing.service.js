@@ -55,8 +55,25 @@ class JDParsingService {
         throw new Error('PDF file is too large (maximum 10MB)');
       }
 
-      // Parse PDF
-      const data = await pdf(dataBuffer);
+      // Parse PDF with error handling for corrupted files
+      let data;
+      try {
+        data = await pdf(dataBuffer);
+      } catch (pdfError) {
+        console.error('  ⚠️ PDF parsing error:', pdfError.message);
+
+        // Check for common PDF corruption errors
+        if (
+          pdfError.message.includes('XRef') ||
+          pdfError.message.includes('Invalid') ||
+          pdfError.message.includes('Encrypt')
+        ) {
+          throw new Error(
+            'PDF_CORRUPTED: This PDF file appears to be corrupted, password-protected, or has an incompatible format. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX format.',
+          );
+        }
+        throw pdfError;
+      }
 
       console.log(
         `  ✓ PDF parsed - Pages: ${data.numpages}, Text length: ${data.text?.length || 0} chars`,
@@ -80,6 +97,9 @@ class JDParsingService {
         throw new Error('PDF file is empty');
       } else if (error.message.includes('image-based')) {
         throw new Error('PDF appears to be image-based. Please use a PDF with selectable text.');
+      } else if (error.message.includes('PDF_CORRUPTED')) {
+        // Re-throw with user-friendly message (remove the prefix)
+        throw new Error(error.message.replace('PDF_CORRUPTED: ', ''));
       } else {
         throw new Error(`Failed to extract text from PDF: ${error.message}`);
       }

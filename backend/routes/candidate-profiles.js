@@ -7,32 +7,18 @@ const path = require('path');
 const fs = require('fs').promises;
 const candidateExtractionService = require('../services/candidateExtraction.service');
 
-// Configure multer for CV uploads
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/cvs');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
 // Allowed MIME types for CV uploads
 const ALLOWED_CV_MIMETYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
   'application/msword', // .doc
+  'text/plain', // .txt
 ];
 
+// Use memory storage for Vercel compatibility (no persistent disk)
+// The candidateExtractionService now supports both buffer and file path
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
@@ -40,7 +26,7 @@ const upload = multer({
     if (ALLOWED_CV_MIMETYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF, DOCX, and DOC files are allowed'));
+      cb(new Error('Only PDF, DOCX, DOC, and TXT files are allowed'));
     }
   },
 });
@@ -557,6 +543,7 @@ router.delete('/:id/notes/:noteId', authenticateToken, requireHRAccess, async (r
  * Upload CV(s) and auto-create candidate profiles
  * Access: HR department users and HR admins
  * Supports single or multiple file upload
+ * Uses memory storage for Vercel compatibility
  */
 router.post(
   '/upload',
@@ -573,18 +560,12 @@ router.post(
       }
 
       console.log(`\n📤 Processing ${req.files.length} CV upload(s)...`);
+      console.log(`  📦 Storage: memory (buffer-based)`);
 
-      // Process CVs
+      // Process CVs - service now handles both buffer and path
       const result = await candidateExtractionService.processBulkCvs(req.files);
 
-      // Clean up uploaded files after processing
-      for (const file of req.files) {
-        try {
-          await fs.unlink(file.path);
-        } catch (error) {
-          console.error(`Failed to delete temp file: ${file.path}`);
-        }
-      }
+      // No need to clean up files - using memory storage (buffers are garbage collected)
 
       res.json({
         success: true,

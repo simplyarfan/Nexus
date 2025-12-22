@@ -19,11 +19,19 @@ const groq = new Groq({
 
 class CandidateExtractionService {
   /**
-   * Extract text from PDF file
+   * Extract text from PDF file (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractPdfText(filePath) {
+  async extractPdfText(filePathOrBuffer) {
     try {
-      const dataBuffer = await fs.readFile(filePath);
+      let dataBuffer;
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        dataBuffer = filePathOrBuffer;
+        console.log(`  📄 Reading PDF from buffer (${dataBuffer.length} bytes)`);
+      } else {
+        dataBuffer = await fs.readFile(filePathOrBuffer);
+        console.log(`  📄 Reading PDF from: ${filePathOrBuffer}`);
+      }
       const pdfData = await pdfParse(dataBuffer);
       return pdfData.text;
     } catch (error) {
@@ -33,11 +41,19 @@ class CandidateExtractionService {
   }
 
   /**
-   * Extract text from DOCX file (modern Word format)
+   * Extract text from DOCX file (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractDocxText(filePath) {
+  async extractDocxText(filePathOrBuffer) {
     try {
-      const dataBuffer = await fs.readFile(filePath);
+      let dataBuffer;
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        dataBuffer = filePathOrBuffer;
+        console.log(`  📄 Reading DOCX from buffer (${dataBuffer.length} bytes)`);
+      } else {
+        dataBuffer = await fs.readFile(filePathOrBuffer);
+        console.log(`  📄 Reading DOCX from: ${filePathOrBuffer}`);
+      }
       const result = await mammoth.extractRawText({ buffer: dataBuffer });
       if (!result.value || result.value.trim().length === 0) {
         throw new Error('DOCX contains no extractable text');
@@ -50,13 +66,40 @@ class CandidateExtractionService {
   }
 
   /**
-   * Extract text from DOC file (older binary Word format)
+   * Extract text from DOC file (supports both file path and buffer)
+   * Note: word-extractor requires file path, so buffer is written to temp file
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractDocText(filePath) {
+  async extractDocText(filePathOrBuffer) {
     try {
+      let filePath;
+      let tempFile = false;
+
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        // word-extractor doesn't support buffers, write to temp file
+        const os = require('os');
+        filePath = path.join(os.tmpdir(), `temp_doc_${Date.now()}.doc`);
+        await fs.writeFile(filePath, filePathOrBuffer);
+        tempFile = true;
+        console.log(`  📄 Reading DOC from buffer (written to temp: ${filePath})`);
+      } else {
+        filePath = filePathOrBuffer;
+        console.log(`  📄 Reading DOC from: ${filePath}`);
+      }
+
       const extractor = new WordExtractor();
       const extracted = await extractor.extract(filePath);
       const text = extracted.getBody() || '';
+
+      // Clean up temp file if created
+      if (tempFile) {
+        try {
+          await fs.unlink(filePath);
+        } catch (unlinkErr) {
+          console.warn(`  ⚠️ Failed to delete temp file: ${filePath}`);
+        }
+      }
+
       if (!text || text.trim().length === 0) {
         throw new Error('DOC contains no extractable text');
       }
@@ -68,19 +111,48 @@ class CandidateExtractionService {
   }
 
   /**
-   * Extract text from CV file based on MIME type
+   * Extract text from TXT file (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractTextFromFile(filePath, mimeType) {
+  async extractTxtText(filePathOrBuffer) {
+    try {
+      let text;
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        text = filePathOrBuffer.toString('utf-8');
+        console.log(`  📄 Reading TXT from buffer (${filePathOrBuffer.length} bytes)`);
+      } else {
+        text = await fs.readFile(filePathOrBuffer, 'utf-8');
+        console.log(`  📄 Reading TXT from: ${filePathOrBuffer}`);
+      }
+
+      if (!text || text.trim().length === 0) {
+        throw new Error('TXT file is empty');
+      }
+      return text;
+    } catch (error) {
+      console.error('Error extracting TXT text:', error);
+      throw new Error(`Failed to extract text from TXT: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract text from CV file based on MIME type (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
+   * @param {string} mimeType - MIME type of the file
+   */
+  async extractTextFromFile(filePathOrBuffer, mimeType) {
     if (mimeType === 'application/pdf') {
-      return await this.extractPdfText(filePath);
+      return await this.extractPdfText(filePathOrBuffer);
     } else if (
       mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ) {
-      return await this.extractDocxText(filePath);
+      return await this.extractDocxText(filePathOrBuffer);
     } else if (mimeType === 'application/msword') {
-      return await this.extractDocText(filePath);
+      return await this.extractDocText(filePathOrBuffer);
+    } else if (mimeType === 'text/plain') {
+      return await this.extractTxtText(filePathOrBuffer);
     } else {
-      throw new Error(`Unsupported file type: ${mimeType}. Only PDF, DOCX, and DOC are supported.`);
+      throw new Error(`Unsupported file type: ${mimeType}. Only PDF, DOCX, DOC, and TXT are supported.`);
     }
   }
 
@@ -398,10 +470,15 @@ OTHER RULES:
 
   /**
    * Process a single CV file (main entry point)
+   * Supports both file path (disk storage) and buffer (memory storage)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
+   * @param {string} fileName - Original filename
+   * @param {string} mimeType - MIME type of the file
    */
-  async processCv(filePath, fileName, mimeType = 'application/pdf') {
+  async processCv(filePathOrBuffer, fileName, mimeType = 'application/pdf') {
     try {
       console.log(`\n📄 Processing CV: ${fileName} (${mimeType})`);
+      console.log(`  📦 Source: ${Buffer.isBuffer(filePathOrBuffer) ? 'memory (buffer)' : 'disk (path)'}`);
 
       // Step 1: Extract text from file based on type
       const fileTypeLabel =
@@ -411,9 +488,11 @@ OTHER RULES:
             ? 'DOCX'
             : mimeType === 'application/msword'
               ? 'DOC'
-              : 'file';
+              : mimeType === 'text/plain'
+                ? 'TXT'
+                : 'file';
       console.log(`  Step 1/3: Extracting text from ${fileTypeLabel}...`);
-      const cvText = await this.extractTextFromFile(filePath, mimeType);
+      const cvText = await this.extractTextFromFile(filePathOrBuffer, mimeType);
 
       if (!cvText || cvText.length < 50) {
         throw new Error('Could not extract meaningful text from CV');
@@ -442,14 +521,30 @@ OTHER RULES:
 
   /**
    * Process multiple CV files (bulk upload)
+   * Supports both disk storage (file.path) and memory storage (file.buffer)
+   * @param {Array} files - Array of multer file objects
    */
   async processBulkCvs(files) {
     const results = [];
 
     for (const file of files) {
-      const result = await this.processCv(file.path, file.filename, file.mimetype);
+      // Support both memory storage (buffer) and disk storage (path)
+      const fileSource = file.buffer || file.path;
+      const fileName = file.originalname || file.filename;
+
+      if (!fileSource) {
+        results.push({
+          fileName: fileName,
+          success: false,
+          error: 'No file data available',
+          message: `Failed to process CV: ${fileName}`,
+        });
+        continue;
+      }
+
+      const result = await this.processCv(fileSource, fileName, file.mimetype);
       results.push({
-        fileName: file.filename,
+        fileName: fileName,
         ...result,
       });
     }

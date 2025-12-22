@@ -322,11 +322,13 @@ CRITICAL GUIDELINES:
           ...position,
           daysOpen,
           candidateCount: position._count.job_applications,
-          created_by_user: position.creator ? {
-            id: position.creator.id,
-            name: `${position.creator.first_name} ${position.creator.last_name}`,
-            email: position.creator.email,
-          } : null,
+          created_by_user: position.creator
+            ? {
+                id: position.creator.id,
+                name: `${position.creator.first_name} ${position.creator.last_name}`,
+                email: position.creator.email,
+              }
+            : null,
         };
       });
 

@@ -329,11 +329,13 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
         return {
           ...interview,
           has_employee: !!employee,
-          scheduled_by_user: interview.scheduler ? {
-            id: interview.scheduler.id,
-            name: `${interview.scheduler.first_name} ${interview.scheduler.last_name}`,
-            email: interview.scheduler.email,
-          } : null,
+          scheduled_by_user: interview.scheduler
+            ? {
+                id: interview.scheduler.id,
+                name: `${interview.scheduler.first_name} ${interview.scheduler.last_name}`,
+                email: interview.scheduler.email,
+              }
+            : null,
         };
       }),
     );

@@ -518,7 +518,12 @@ OTHER RULES:
    * @param {string} mimeType - MIME type of the file
    * @param {number|null} createdByUserId - Optional user ID who uploaded this CV
    */
-  async processCv(filePathOrBuffer, fileName, mimeType = 'application/pdf', createdByUserId = null) {
+  async processCv(
+    filePathOrBuffer,
+    fileName,
+    mimeType = 'application/pdf',
+    createdByUserId = null,
+  ) {
     try {
       console.log(`\n📄 Processing CV: ${fileName} (${mimeType})`);
       console.log(

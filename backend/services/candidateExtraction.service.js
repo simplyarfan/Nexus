@@ -152,7 +152,9 @@ class CandidateExtractionService {
     } else if (mimeType === 'text/plain') {
       return await this.extractTxtText(filePathOrBuffer);
     } else {
-      throw new Error(`Unsupported file type: ${mimeType}. Only PDF, DOCX, DOC, and TXT are supported.`);
+      throw new Error(
+        `Unsupported file type: ${mimeType}. Only PDF, DOCX, DOC, and TXT are supported.`,
+      );
     }
   }
 
@@ -478,7 +480,9 @@ OTHER RULES:
   async processCv(filePathOrBuffer, fileName, mimeType = 'application/pdf') {
     try {
       console.log(`\n📄 Processing CV: ${fileName} (${mimeType})`);
-      console.log(`  📦 Source: ${Buffer.isBuffer(filePathOrBuffer) ? 'memory (buffer)' : 'disk (path)'}`);
+      console.log(
+        `  📦 Source: ${Buffer.isBuffer(filePathOrBuffer) ? 'memory (buffer)' : 'disk (path)'}`,
+      );
 
       // Step 1: Extract text from file based on type
       const fileTypeLabel =

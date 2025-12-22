@@ -1473,8 +1473,9 @@ Recruitment Team`;
                       Send Candidate Details to HR
                     </Button>
                   )}
-                  {/* Send Rejection Email Button - Only show if NOT selected */}
-                  {selectedInterview.outcome !== 'selected' && (
+                  {/* Send Rejection Email Button - Only show in completed stage and if NOT selected */}
+                  {selectedInterview.status === 'completed' &&
+                    selectedInterview.outcome !== 'selected' && (
                     <div className="relative group">
                       <Button
                         variant="ghost"

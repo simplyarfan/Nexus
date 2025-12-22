@@ -298,6 +298,14 @@ CRITICAL GUIDELINES:
               job_applications: true,
             },
           },
+          creator: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
         },
         orderBy: {
           created_at: 'desc',
@@ -314,6 +322,11 @@ CRITICAL GUIDELINES:
           ...position,
           daysOpen,
           candidateCount: position._count.job_applications,
+          created_by_user: position.creator ? {
+            id: position.creator.id,
+            name: `${position.creator.first_name} ${position.creator.last_name}`,
+            email: position.creator.email,
+          } : null,
         };
       });
 

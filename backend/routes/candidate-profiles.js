@@ -123,6 +123,14 @@ router.get('/', authenticateToken, requireHRAccess, async (req, res) => {
               },
             },
           },
+          creator: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
           _count: {
             select: {
               job_applications: true,
@@ -136,9 +144,21 @@ router.get('/', authenticateToken, requireHRAccess, async (req, res) => {
       prisma.candidate_profiles.count({ where }),
     ]);
 
+    // Add formatted created_by_user field
+    const candidatesWithCreator = candidates.map((candidate) => ({
+      ...candidate,
+      created_by_user: candidate.creator
+        ? {
+            id: candidate.creator.id,
+            name: `${candidate.creator.first_name} ${candidate.creator.last_name}`,
+            email: candidate.creator.email,
+          }
+        : null,
+    }));
+
     res.json({
       success: true,
-      candidates,
+      candidates: candidatesWithCreator,
       pagination: {
         total,
         page: parseInt(page),
@@ -563,7 +583,8 @@ router.post(
       console.log(`  📦 Storage: memory (buffer-based)`);
 
       // Process CVs - service now handles both buffer and path
-      const result = await candidateExtractionService.processBulkCvs(req.files);
+      // Pass userId to track who created the candidates
+      const result = await candidateExtractionService.processBulkCvs(req.files, req.user.id);
 
       // No need to clean up files - using memory storage (buffers are garbage collected)
 

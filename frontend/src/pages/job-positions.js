@@ -431,6 +431,13 @@ export default function JobPositionsPage() {
                             position.currency,
                           )}
                         </div>
+                        {position.created_by_user && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                              Created by: {position.created_by_user.name}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

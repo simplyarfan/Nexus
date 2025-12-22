@@ -191,12 +191,15 @@ router.get('/outlook/connection-status', authenticateToken, async (req, res) => 
  */
 router.get('/stats', authenticateToken, generalLimiter, async (req, res) => {
   try {
+    const { myOnly = 'false' } = req.query;
+
+    // If myOnly is true, filter by current user only; otherwise show all HR interviews
+    const whereClause = myOnly === 'true' ? { scheduled_by: req.user.id } : {};
+
     // Use Prisma groupBy to count interviews by status in a single query
     const statusCounts = await prisma.interviews.groupBy({
       by: ['status'],
-      where: {
-        scheduled_by: req.user.id,
-      },
+      where: whereClause,
       _count: {
         id: true,
       },
@@ -204,9 +207,7 @@ router.get('/stats', authenticateToken, generalLimiter, async (req, res) => {
 
     // Get total count
     const total = await prisma.interviews.count({
-      where: {
-        scheduled_by: req.user.id,
-      },
+      where: whereClause,
     });
 
     // Transform the results into a more usable format
@@ -285,21 +286,30 @@ router.get('/stats', authenticateToken, generalLimiter, async (req, res) => {
  */
 router.get('/interviews', authenticateToken, generalLimiter, async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, myOnly = 'false' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
 
+    // If myOnly is true, filter by current user only; otherwise show all HR interviews
+    const whereClause = myOnly === 'true' ? { scheduled_by: req.user.id } : {};
+
     // Get total count
     const total = await prisma.interviews.count({
-      where: {
-        scheduled_by: req.user.id,
-      },
+      where: whereClause,
     });
 
-    // Get paginated interviews using Prisma
+    // Get paginated interviews using Prisma with scheduler info
     const interviews = await prisma.interviews.findMany({
-      where: {
-        scheduled_by: req.user.id,
+      where: whereClause,
+      include: {
+        scheduler: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+          },
+        },
       },
       orderBy: {
         created_at: 'desc',
@@ -319,6 +329,11 @@ router.get('/interviews', authenticateToken, generalLimiter, async (req, res) =>
         return {
           ...interview,
           has_employee: !!employee,
+          scheduled_by_user: interview.scheduler ? {
+            id: interview.scheduler.id,
+            name: `${interview.scheduler.first_name} ${interview.scheduler.last_name}`,
+            email: interview.scheduler.email,
+          } : null,
         };
       }),
     );

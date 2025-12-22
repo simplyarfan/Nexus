@@ -148,6 +148,7 @@ export default function InterviewsPage() {
     panelMembers: interview.panel_members || interview.panelMembers,
     generatedQuestions: interview.generated_questions || interview.generatedQuestions,
     scheduledBy: interview.scheduled_by || interview.scheduledBy,
+    scheduledByUser: interview.scheduled_by_user || interview.scheduledByUser || null,
     createdAt: interview.created_at || interview.createdAt,
     updatedAt: interview.updated_at || interview.updatedAt,
     rejectionEmailSent: interview.rejection_email_sent || interview.rejectionEmailSent || false,
@@ -1196,6 +1197,14 @@ Recruitment Team`;
                               <p className="text-xs text-muted-foreground mb-1">Interview Type</p>
                               <p className="text-sm font-medium text-foreground">
                                 {interview.interviewType}
+                              </p>
+                            </div>
+                          )}
+                          {interview.scheduledByUser && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Scheduled By</p>
+                              <p className="text-sm font-medium text-foreground">
+                                {interview.scheduledByUser.name}
                               </p>
                             </div>
                           )}

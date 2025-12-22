@@ -427,8 +427,11 @@ OTHER RULES:
 
   /**
    * Create or update candidate profile
+   * @param {Object} candidateData - Extracted candidate data
+   * @param {string|null} cvFilePath - Optional CV file path
+   * @param {number|null} createdByUserId - Optional user ID who created this candidate
    */
-  async createOrUpdateCandidate(candidateData, cvFilePath = null) {
+  async createOrUpdateCandidate(candidateData, cvFilePath = null, createdByUserId = null) {
     try {
       const email = candidateData.email?.toLowerCase();
 
@@ -481,6 +484,7 @@ OTHER RULES:
           data: {
             ...profileData,
             availability_status: 'available',
+            created_by: createdByUserId || null,
           },
         });
 
@@ -512,8 +516,9 @@ OTHER RULES:
    * @param {string|Buffer} filePathOrBuffer - File path or buffer
    * @param {string} fileName - Original filename
    * @param {string} mimeType - MIME type of the file
+   * @param {number|null} createdByUserId - Optional user ID who uploaded this CV
    */
-  async processCv(filePathOrBuffer, fileName, mimeType = 'application/pdf') {
+  async processCv(filePathOrBuffer, fileName, mimeType = 'application/pdf', createdByUserId = null) {
     try {
       console.log(`\n📄 Processing CV: ${fileName} (${mimeType})`);
       console.log(
@@ -544,7 +549,7 @@ OTHER RULES:
 
       // Step 3: Create or update candidate profile
       console.log('  Step 3/3: Creating/updating candidate profile...');
-      const result = await this.createOrUpdateCandidate(candidateData, fileName);
+      const result = await this.createOrUpdateCandidate(candidateData, fileName, createdByUserId);
 
       console.log(`✅ CV processed successfully: ${result.action}`);
 
@@ -563,8 +568,9 @@ OTHER RULES:
    * Process multiple CV files (bulk upload)
    * Supports both disk storage (file.path) and memory storage (file.buffer)
    * @param {Array} files - Array of multer file objects
+   * @param {number|null} createdByUserId - Optional user ID who uploaded these CVs
    */
-  async processBulkCvs(files) {
+  async processBulkCvs(files, createdByUserId = null) {
     const results = [];
 
     for (const file of files) {
@@ -582,7 +588,7 @@ OTHER RULES:
         continue;
       }
 
-      const result = await this.processCv(fileSource, fileName, file.mimetype);
+      const result = await this.processCv(fileSource, fileName, file.mimetype, createdByUserId);
       results.push({
         fileName: fileName,
         ...result,

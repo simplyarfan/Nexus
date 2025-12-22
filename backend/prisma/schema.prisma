@@ -60,14 +60,18 @@ model candidate_profiles {
   // Hiring status fields
   is_hired             Boolean?           @default(false)
   hired_at             DateTime?          @db.Timestamp(6)
+  // User tracking
+  created_by           Int?               // User who added this candidate
   // Relations
   candidate_notes      candidate_notes[]
   job_applications     job_applications[]
   employee             employees?
+  creator              users?             @relation("CandidateCreator", fields: [created_by], references: [id])
 
   @@index([availability_status], map: "idx_candidate_profiles_availability")
   @@index([email], map: "idx_candidate_profiles_email")
   @@index([is_hired], map: "idx_candidate_profiles_is_hired")
+  @@index([created_by], map: "idx_candidate_profiles_created_by")
 }
 
 model candidates {
@@ -161,6 +165,7 @@ model interviews {
   rejection_email_sent   Boolean?              @default(false)
   rejection_email_sent_at DateTime?            @db.Timestamp(6)
   interview_reminders interview_reminders[]
+  scheduler           users                 @relation("InterviewScheduler", fields: [scheduled_by], references: [id])
 
   @@index([candidate_email], map: "idx_interviews_candidate_email")
   @@index([candidate_id], map: "idx_interviews_candidate_id")
@@ -252,6 +257,7 @@ model job_positions {
   updated_at        DateTime?          @default(now()) @db.Timestamp(6)
   filled_at         DateTime?          @db.Timestamp(6)
   job_applications  job_applications[]
+  creator           users?             @relation("JobPositionCreator", fields: [created_by], references: [id])
 
   @@index([status], map: "idx_job_positions_status")
   @@index([department], map: "idx_job_positions_department")
@@ -461,6 +467,10 @@ model users {
   employees_created                                  employees[]         @relation("EmployeeCreator")
   onboarding_assigned                                onboarding[]        @relation("OnboardingAssignee")
   onboarding_buddy                                   onboarding[]        @relation("OnboardingBuddy")
+  // HR Recruitment tracking relations
+  candidates_created                                 candidate_profiles[] @relation("CandidateCreator")
+  job_positions_created                              job_positions[]     @relation("JobPositionCreator")
+  interviews_scheduled                               interviews[]        @relation("InterviewScheduler")
 
   @@index([created_at], map: "idx_users_created_at")
   @@index([department], map: "idx_users_department")

@@ -36,13 +36,14 @@ const jdUpload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/msword', // .doc
+      'text/plain', // .txt
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF and DOCX files are allowed'));
+      cb(new Error('Only PDF, DOCX, DOC, and TXT files are allowed'));
     }
   },
 });

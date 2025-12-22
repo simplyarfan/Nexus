@@ -24,17 +24,23 @@ try {
 let multer, upload;
 try {
   multer = require('multer');
+
+  // Allowed MIME types for CV and JD uploads
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/msword', // .doc
+    'text/plain', // .txt
+  ];
+
   upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     fileFilter: (req, file, cb) => {
-      if (
-        file.mimetype === 'application/pdf' ||
-        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      ) {
+      if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Only PDF and DOCX files allowed'));
+        cb(new Error('Only PDF, DOCX, DOC, and TXT files are allowed'));
       }
     },
   });

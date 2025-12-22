@@ -19,16 +19,18 @@ const FILE_SIZE_LIMITS = {
 const ALLOWED_MIME_TYPES = {
   cv: [
     'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword', // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'text/plain', // .txt
   ],
   image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   document: [
     'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword', // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain', // .txt
   ],
 };
 

@@ -15,27 +15,45 @@ const groq = new Groq({
 
 class JDParsingService {
   /**
-   * Extract text from PDF file
+   * Extract text from PDF file (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractTextFromPDF(filePath) {
+  async extractTextFromPDF(filePathOrBuffer) {
     try {
-      console.log(`  📄 Reading PDF from: ${filePath}`);
+      let dataBuffer;
 
-      // Check if file exists
-      const stats = await fs.stat(filePath);
-      console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+      // Check if input is a buffer or file path
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        dataBuffer = filePathOrBuffer;
+        console.log(`  📄 Reading PDF from buffer (${dataBuffer.length} bytes)`);
+      } else {
+        console.log(`  📄 Reading PDF from: ${filePathOrBuffer}`);
 
-      if (stats.size === 0) {
+        // Check if file exists
+        const stats = await fs.stat(filePathOrBuffer);
+        console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+
+        if (stats.size === 0) {
+          throw new Error('PDF file is empty (0 bytes)');
+        }
+
+        if (stats.size > 10 * 1024 * 1024) {
+          throw new Error('PDF file is too large (maximum 10MB)');
+        }
+
+        // Read file buffer
+        dataBuffer = await fs.readFile(filePathOrBuffer);
+      }
+
+      console.log(`  ✓ File buffer read successfully (${dataBuffer.length} bytes)`);
+
+      if (dataBuffer.length === 0) {
         throw new Error('PDF file is empty (0 bytes)');
       }
 
-      if (stats.size > 10 * 1024 * 1024) {
+      if (dataBuffer.length > 10 * 1024 * 1024) {
         throw new Error('PDF file is too large (maximum 10MB)');
       }
-
-      // Read file buffer
-      const dataBuffer = await fs.readFile(filePath);
-      console.log(`  ✓ File buffer read successfully (${dataBuffer.length} bytes)`);
 
       // Parse PDF
       const data = await pdf(dataBuffer);
@@ -69,27 +87,45 @@ class JDParsingService {
   }
 
   /**
-   * Extract text from DOCX file
+   * Extract text from DOCX file (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractTextFromDOCX(filePath) {
+  async extractTextFromDOCX(filePathOrBuffer) {
     try {
-      console.log(`  📄 Reading DOCX from: ${filePath}`);
+      let buffer;
 
-      // Check if file exists
-      const stats = await fs.stat(filePath);
-      console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+      // Check if input is a buffer or file path
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        buffer = filePathOrBuffer;
+        console.log(`  📄 Reading DOCX from buffer (${buffer.length} bytes)`);
+      } else {
+        console.log(`  📄 Reading DOCX from: ${filePathOrBuffer}`);
 
-      if (stats.size === 0) {
+        // Check if file exists
+        const stats = await fs.stat(filePathOrBuffer);
+        console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+
+        if (stats.size === 0) {
+          throw new Error('DOCX file is empty (0 bytes)');
+        }
+
+        if (stats.size > 10 * 1024 * 1024) {
+          throw new Error('DOCX file is too large (maximum 10MB)');
+        }
+
+        // Read file buffer
+        buffer = await fs.readFile(filePathOrBuffer);
+      }
+
+      console.log(`  ✓ File buffer read successfully (${buffer.length} bytes)`);
+
+      if (buffer.length === 0) {
         throw new Error('DOCX file is empty (0 bytes)');
       }
 
-      if (stats.size > 10 * 1024 * 1024) {
+      if (buffer.length > 10 * 1024 * 1024) {
         throw new Error('DOCX file is too large (maximum 10MB)');
       }
-
-      // Read file buffer
-      const buffer = await fs.readFile(filePath);
-      console.log(`  ✓ File buffer read successfully (${buffer.length} bytes)`);
 
       // Extract text using mammoth
       const result = await mammoth.extractRawText({ buffer });
@@ -118,27 +154,53 @@ class JDParsingService {
 
   /**
    * Extract text from DOC file (older binary format)
+   * Note: word-extractor requires a file path, so we write buffer to temp file if needed
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractTextFromDOC(filePath) {
+  async extractTextFromDOC(filePathOrBuffer) {
     try {
-      console.log(`  📄 Reading DOC from: ${filePath}`);
+      let filePath;
+      let tempFile = false;
 
-      // Check if file exists
-      const stats = await fs.stat(filePath);
-      console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+      // Check if input is a buffer or file path
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        // word-extractor doesn't support buffers directly, write to temp file
+        const os = require('os');
+        const path = require('path');
+        filePath = path.join(os.tmpdir(), `temp_doc_${Date.now()}.doc`);
+        await fs.writeFile(filePath, filePathOrBuffer);
+        tempFile = true;
+        console.log(`  📄 Reading DOC from buffer (written to temp: ${filePath})`);
+      } else {
+        filePath = filePathOrBuffer;
+        console.log(`  📄 Reading DOC from: ${filePath}`);
 
-      if (stats.size === 0) {
-        throw new Error('DOC file is empty (0 bytes)');
-      }
+        // Check if file exists
+        const stats = await fs.stat(filePath);
+        console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
 
-      if (stats.size > 10 * 1024 * 1024) {
-        throw new Error('DOC file is too large (maximum 10MB)');
+        if (stats.size === 0) {
+          throw new Error('DOC file is empty (0 bytes)');
+        }
+
+        if (stats.size > 10 * 1024 * 1024) {
+          throw new Error('DOC file is too large (maximum 10MB)');
+        }
       }
 
       // Extract text using word-extractor
       const extractor = new WordExtractor();
       const extracted = await extractor.extract(filePath);
       const text = extracted.getBody() || '';
+
+      // Clean up temp file if created
+      if (tempFile) {
+        try {
+          await fs.unlink(filePath);
+        } catch (unlinkErr) {
+          console.warn(`  ⚠️ Failed to delete temp file: ${filePath}`);
+        }
+      }
 
       console.log(`  ✓ DOC parsed - Text length: ${text?.length || 0} chars`);
 
@@ -163,21 +225,77 @@ class JDParsingService {
   }
 
   /**
-   * Extract text from JD file based on file type
+   * Extract text from TXT file (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
-  async extractTextFromJD(filePath, mimeType) {
+  async extractTextFromTXT(filePathOrBuffer) {
+    try {
+      let text;
+
+      // Check if input is a buffer or file path
+      if (Buffer.isBuffer(filePathOrBuffer)) {
+        text = filePathOrBuffer.toString('utf-8');
+        console.log(`  📄 Reading TXT from buffer (${filePathOrBuffer.length} bytes)`);
+      } else {
+        console.log(`  📄 Reading TXT from: ${filePathOrBuffer}`);
+
+        // Check if file exists
+        const stats = await fs.stat(filePathOrBuffer);
+        console.log(`  📊 File size: ${stats.size} bytes (${(stats.size / 1024).toFixed(2)} KB)`);
+
+        if (stats.size === 0) {
+          throw new Error('TXT file is empty (0 bytes)');
+        }
+
+        if (stats.size > 10 * 1024 * 1024) {
+          throw new Error('TXT file is too large (maximum 10MB)');
+        }
+
+        // Read file
+        text = await fs.readFile(filePathOrBuffer, 'utf-8');
+      }
+
+      console.log(`  ✓ TXT parsed - Text length: ${text?.length || 0} chars`);
+
+      if (!text || text.trim().length === 0) {
+        throw new Error('TXT file is empty or contains no readable text');
+      }
+
+      return text;
+    } catch (error) {
+      console.error('❌ Error extracting text from TXT:', error.message);
+
+      if (error.message.includes('ENOENT')) {
+        throw new Error('TXT file not found at specified path');
+      } else if (error.message.includes('0 bytes')) {
+        throw new Error('TXT file is empty');
+      } else {
+        throw new Error(`Failed to extract text from TXT: ${error.message}`);
+      }
+    }
+  }
+
+  /**
+   * Extract text from JD file based on file type (supports both file path and buffer)
+   * @param {string|Buffer} filePathOrBuffer - File path or buffer
+   * @param {string} mimeType - MIME type of the file
+   */
+  async extractTextFromJD(filePathOrBuffer, mimeType) {
     if (mimeType === 'application/pdf') {
-      return await this.extractTextFromPDF(filePath);
+      return await this.extractTextFromPDF(filePathOrBuffer);
     } else if (
       mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ) {
       // .docx files
-      return await this.extractTextFromDOCX(filePath);
+      return await this.extractTextFromDOCX(filePathOrBuffer);
     } else if (mimeType === 'application/msword') {
       // .doc files (older binary format)
-      return await this.extractTextFromDOC(filePath);
+      return await this.extractTextFromDOC(filePathOrBuffer);
+    } else if (mimeType === 'text/plain') {
+      // .txt files
+      return await this.extractTextFromTXT(filePathOrBuffer);
     } else {
-      throw new Error('Unsupported file type. Only PDF, DOCX, and DOC are supported.');
+      throw new Error('Unsupported file type. Only PDF, DOCX, DOC, and TXT are supported.');
     }
   }
 
@@ -304,13 +422,26 @@ Other Guidelines:
 
   /**
    * Main function: Parse JD file and return structured job details
+   * Supports both disk storage (file.path) and memory storage (file.buffer)
+   * @param {Object} file - Multer file object
    */
   async parseJDFile(file) {
     try {
       console.log(`\n📄 Parsing JD file: ${file.originalname}`);
 
-      // Step 1: Extract text from file
-      const jdText = await this.extractTextFromJD(file.path, file.mimetype);
+      // Determine if we're using disk storage or memory storage
+      // Memory storage provides file.buffer, disk storage provides file.path
+      const fileSource = file.buffer || file.path;
+
+      if (!fileSource) {
+        throw new Error('No file data available. File must have either buffer or path.');
+      }
+
+      console.log(`  📦 File source: ${file.buffer ? 'memory (buffer)' : 'disk (path)'}`);
+      console.log(`  📊 Size: ${file.buffer ? file.buffer.length : 'unknown'} bytes`);
+
+      // Step 1: Extract text from file (now supports both buffer and path)
+      const jdText = await this.extractTextFromJD(fileSource, file.mimetype);
 
       if (!jdText || jdText.trim().length < 100) {
         throw new Error('Insufficient text extracted from JD. File may be empty or corrupted.');
@@ -335,6 +466,20 @@ Other Guidelines:
         error: error.message,
       };
     }
+  }
+
+  /**
+   * Parse JD from buffer directly (for memory storage usage)
+   * @param {Buffer} buffer - File buffer
+   * @param {string} originalname - Original filename
+   * @param {string} mimetype - MIME type
+   */
+  async parseJDFromBuffer(buffer, originalname, mimetype) {
+    return await this.parseJDFile({
+      buffer,
+      originalname,
+      mimetype,
+    });
   }
 }
 

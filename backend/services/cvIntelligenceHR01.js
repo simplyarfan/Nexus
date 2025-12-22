@@ -386,11 +386,27 @@ Return valid JSON only:`;
       }
     } else if (fileTypeLower === 'doc') {
       // Handle .doc files (older binary format) using word-extractor
+      // Note: word-extractor requires a file path, so we need to write buffer to temp file
       try {
         console.log('   Parsing DOC file with word-extractor...');
+        const os = require('os');
+        const path = require('path');
+        const fs = require('fs').promises;
+
+        // Write buffer to temp file (word-extractor doesn't support buffers directly)
+        const tempFilePath = path.join(os.tmpdir(), `temp_doc_${Date.now()}.doc`);
+        await fs.writeFile(tempFilePath, fileBuffer);
+
         const extractor = new WordExtractor();
-        const extracted = await extractor.extract(fileBuffer);
+        const extracted = await extractor.extract(tempFilePath);
         text = extracted.getBody() || '';
+
+        // Clean up temp file
+        try {
+          await fs.unlink(tempFilePath);
+        } catch (unlinkErr) {
+          console.warn(`   ⚠️ Failed to delete temp file: ${tempFilePath}`);
+        }
 
         if (!text || text.trim().length === 0) {
           throw new Error('DOC contains no extractable text');

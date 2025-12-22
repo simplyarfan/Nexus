@@ -11,25 +11,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 
-// Configure multer for JD uploads
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads/jds');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
+// Use memory storage for Vercel compatibility (no persistent disk)
+// The jdParsingService now supports both buffer and file path
 const jdUpload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
@@ -662,6 +647,7 @@ router.delete('/:id', authenticateToken, requireHRAccess, async (req, res) => {
  * POST /job-positions/parse-jd
  * Upload and parse Job Description (PDF/DOCX) using AI
  * Access: HR Department users
+ * Uses memory storage for Vercel compatibility
  */
 router.post(
   '/parse-jd',
@@ -680,17 +666,12 @@ router.post(
       console.log(`\n📤 Processing JD upload: ${req.file.originalname}`);
       console.log(`   File size: ${req.file.size} bytes`);
       console.log(`   File type: ${req.file.mimetype}`);
-      console.log(`   File path: ${req.file.path}`);
+      console.log(`   Storage: memory (buffer-based)`);
 
-      // Parse JD file with AI
+      // Parse JD file with AI - service handles both buffer and path
       const result = await jdParsingService.parseJDFile(req.file);
 
-      // Clean up uploaded file
-      try {
-        await fs.unlink(req.file.path);
-      } catch (error) {
-        console.error(`Failed to delete temp file: ${req.file.path}`);
-      }
+      // No need to clean up - using memory storage (buffers are garbage collected)
 
       if (!result.success) {
         return res.status(400).json({
@@ -706,15 +687,6 @@ router.post(
       });
     } catch (error) {
       console.error('Error parsing JD:', error);
-
-      // Clean up file on error
-      if (req.file?.path) {
-        try {
-          await fs.unlink(req.file.path);
-        } catch (unlinkError) {
-          console.error(`Failed to delete temp file: ${req.file.path}`);
-        }
-      }
 
       res.status(500).json({
         success: false,

@@ -2,6 +2,7 @@ const Groq = require('groq-sdk');
 const path = require('path');
 const fs = require('fs').promises;
 const pdfParse = require('pdf-parse');
+const { extractText: extractTextUnpdf } = require('unpdf');
 const mammoth = require('mammoth');
 const WordExtractor = require('word-extractor');
 const { prisma } = require('../lib/prisma');
@@ -20,6 +21,7 @@ const groq = new Groq({
 class CandidateExtractionService {
   /**
    * Extract text from PDF file (supports both file path and buffer)
+   * Uses pdf-parse as primary parser with unpdf as fallback
    * @param {string|Buffer} filePathOrBuffer - File path or buffer
    */
   async extractPdfText(filePathOrBuffer) {
@@ -33,33 +35,41 @@ class CandidateExtractionService {
         console.log(`  📄 Reading PDF from: ${filePathOrBuffer}`);
       }
 
-      // Parse PDF with error handling for corrupted files
-      let pdfData;
+      // Parse PDF with fallback - try pdf-parse first, then unpdf
+      let text;
       try {
-        pdfData = await pdfParse(dataBuffer);
+        const pdfData = await pdfParse(dataBuffer);
+        text = pdfData.text;
+        console.log(
+          `  ✓ PDF parsed (pdf-parse) - Pages: ${pdfData.numpages}, Text length: ${text?.length || 0} chars`,
+        );
       } catch (pdfError) {
-        console.error('  ⚠️ PDF parsing error:', pdfError.message);
+        console.log('  ⚠️ pdf-parse failed, trying unpdf fallback...', pdfError.message);
 
-        // Check for common PDF corruption errors
-        if (
-          pdfError.message.includes('XRef') ||
-          pdfError.message.includes('Invalid') ||
-          pdfError.message.includes('Encrypt')
-        ) {
+        // Try unpdf as fallback (handles more PDF formats)
+        try {
+          const uint8Array = new Uint8Array(dataBuffer);
+          const result = await extractTextUnpdf(uint8Array);
+          // unpdf returns { text: string[] } - join array into single string
+          text = Array.isArray(result.text) ? result.text.join('\n') : result.text;
+          console.log(
+            `  ✓ PDF parsed (unpdf fallback) - Pages: ${result.totalPages}, Text length: ${text?.length || 0} chars`,
+          );
+        } catch (unpdfError) {
+          console.error('  ❌ Both PDF parsers failed');
           throw new Error(
-            'This PDF file appears to be corrupted, password-protected, or has an incompatible format. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX format.',
+            'This PDF file could not be parsed. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX format.',
           );
         }
-        throw pdfError;
       }
 
-      if (!pdfData.text || pdfData.text.trim().length === 0) {
+      if (!text || text.trim().length === 0) {
         throw new Error(
           'PDF contains no extractable text. The PDF may be image-based or encrypted.',
         );
       }
 
-      return pdfData.text;
+      return text;
     } catch (error) {
       console.error('Error extracting PDF text:', error);
       throw new Error(`Failed to extract text from PDF: ${error.message}`);

@@ -1,5 +1,6 @@
 const Groq = require('groq-sdk');
 const pdf = require('pdf-parse');
+const { extractText: extractTextUnpdf } = require('unpdf');
 const mammoth = require('mammoth');
 const WordExtractor = require('word-extractor');
 const fs = require('fs').promises;
@@ -56,36 +57,41 @@ class JDParsingService {
       }
 
       // Parse PDF with error handling for corrupted files
-      let data;
+      // Try pdf-parse first, fall back to unpdf if it fails
+      let text;
       try {
-        data = await pdf(dataBuffer);
+        const data = await pdf(dataBuffer);
+        text = data.text;
+        console.log(
+          `  ✓ PDF parsed (pdf-parse) - Pages: ${data.numpages}, Text length: ${text?.length || 0} chars`,
+        );
       } catch (pdfError) {
-        console.error('  ⚠️ PDF parsing error:', pdfError.message);
+        console.log('  ⚠️ pdf-parse failed, trying unpdf fallback...', pdfError.message);
 
-        // Check for common PDF corruption errors
-        if (
-          pdfError.message.includes('XRef') ||
-          pdfError.message.includes('Invalid') ||
-          pdfError.message.includes('Encrypt')
-        ) {
+        // Try unpdf as fallback (handles more PDF formats)
+        try {
+          const uint8Array = new Uint8Array(dataBuffer);
+          const result = await extractTextUnpdf(uint8Array);
+          // unpdf returns { text: string[] } - join array into single string
+          text = Array.isArray(result.text) ? result.text.join('\n') : result.text;
+          console.log(
+            `  ✓ PDF parsed (unpdf fallback) - Pages: ${result.totalPages}, Text length: ${text?.length || 0} chars`,
+          );
+        } catch (unpdfError) {
+          console.error('  ❌ Both PDF parsers failed');
           throw new Error(
-            'PDF_CORRUPTED: This PDF file appears to be corrupted, password-protected, or has an incompatible format. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX format.',
+            'PDF_CORRUPTED: This PDF file could not be parsed. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX format.',
           );
         }
-        throw pdfError;
       }
 
-      console.log(
-        `  ✓ PDF parsed - Pages: ${data.numpages}, Text length: ${data.text?.length || 0} chars`,
-      );
-
-      if (!data.text || data.text.trim().length === 0) {
+      if (!text || text.trim().length === 0) {
         throw new Error(
           'PDF contains no extractable text. The PDF may be image-based or encrypted.',
         );
       }
 
-      return data.text;
+      return text;
     } catch (error) {
       console.error('❌ Error extracting text from PDF:', error.message);
       console.error('   Stack:', error.stack);

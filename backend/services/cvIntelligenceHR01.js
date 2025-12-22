@@ -5,6 +5,7 @@
 
 const { openAI: axios } = require('../utils/axios'); // Use OpenAI-specific instance with 5-minute timeout
 const pdf = require('pdf-parse');
+const { extractText: extractTextUnpdf } = require('unpdf');
 const mammoth = require('mammoth');
 const WordExtractor = require('word-extractor');
 const { prisma } = require('../lib/prisma');
@@ -345,41 +346,37 @@ Return valid JSON only:`;
     const fileTypeLower = fileType.toLowerCase();
 
     if (fileTypeLower === 'pdf') {
+      // Try pdf-parse first, fall back to unpdf if it fails
       try {
         const pdfData = await pdf(fileBuffer);
         text = pdfData.text || '';
+        console.log(
+          `   ✓ PDF parsed (pdf-parse) - Pages: ${pdfData.numpages}, Text length: ${text?.length || 0} chars`,
+        );
 
         if (!text || text.trim().length === 0) {
           throw new Error('PDF contains no extractable text');
         }
       } catch (e) {
-        console.error('  ⚠️ PDF parsing error:', e.message);
+        console.log('   ⚠️ pdf-parse failed, trying unpdf fallback...', e.message);
 
-        // Check for common PDF corruption errors (XRef, Invalid structure, Encryption)
-        if (
-          e.message.includes('XRef') ||
-          e.message.includes('Invalid') ||
-          e.message.includes('Encrypt')
-        ) {
-          throw new Error(
-            'This PDF file appears to be corrupted, password-protected, or has an incompatible format. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX or TXT format.',
-          );
-        }
-
-        // Try with different options for other PDF issues
+        // Try unpdf as fallback (handles more PDF formats including those with XRef issues)
         try {
-          const pdfData = await pdf(fileBuffer, {
-            normalizeWhitespace: false,
-            disableCombineTextItems: false,
-          });
-          text = pdfData.text || '';
+          const uint8Array = new Uint8Array(fileBuffer);
+          const result = await extractTextUnpdf(uint8Array);
+          // unpdf returns { text: string[] } - join array into single string
+          text = Array.isArray(result.text) ? result.text.join('\n') : result.text;
+          console.log(
+            `   ✓ PDF parsed (unpdf fallback) - Pages: ${result.totalPages}, Text length: ${text?.length || 0} chars`,
+          );
 
           if (!text || text.trim().length === 0) {
-            throw new Error('PDF contains no extractable text even with alternative parsing');
+            throw new Error('PDF contains no extractable text');
           }
-        } catch (e2) {
+        } catch (unpdfError) {
+          console.error('   ❌ Both PDF parsers failed');
           throw new Error(
-            'This PDF file appears to be corrupted or unreadable. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX or TXT format.',
+            'This PDF file could not be parsed. Please try: (1) Re-saving the PDF from the original source, (2) Using a different PDF file, or (3) Converting to DOCX or TXT format.',
           );
         }
       }

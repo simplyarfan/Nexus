@@ -237,73 +237,72 @@ If NO candidates are relevant, return: []`;
       const requirementsText =
         (jobPosition.requirements || []).map((req) => `  - ${req}`).join('\n') || 'Not specified';
 
-      const prompt = `You are an expert HR recruiter. Analyze this candidate's fit for the job position.
+      const prompt = `You are an expert technical recruiter. Match candidates to jobs based on SKILLS and TOOLS, not job titles.
 
-CANDIDATE:
+CANDIDATE PROFILE:
 - Name: ${candidate.name}
-- Current Title: ${candidate.current_title || 'Not specified'}
+- Skills & Tools: ${(candidate.primary_skills || []).join(', ') || 'None listed'}
 - Years of Experience: ${candidate.years_of_experience || 0}
-- Skills: ${(candidate.primary_skills || []).join(', ') || 'None listed'}
-- Expected Salary: ${candidate.expected_salary_min || 'Not specified'} - ${candidate.expected_salary_max || 'Not specified'}
-- Experience History:
+- Current Role: ${candidate.current_title || 'Not specified'}
+- Work History:
 ${experienceText}
 
-JOB POSITION:
-- Title: ${jobPosition.title}
-- Department: ${jobPosition.department || 'Not specified'}
+JOB REQUIREMENTS:
+- Position: ${jobPosition.title}
 - Required Skills: ${(jobPosition.required_skills || []).join(', ') || 'None specified'}
 - Preferred Skills: ${(jobPosition.preferred_skills || []).join(', ') || 'None specified'}
-- Experience Level Required: ${jobPosition.experience_level || 'Not specified'}
-- Salary Range: ${jobPosition.salary_range_min || 'Not specified'} - ${jobPosition.salary_range_max || 'Not specified'} ${jobPosition.currency || ''}
-- Requirements:
+- Experience Level: ${jobPosition.experience_level || 'Not specified'}
+- Other Requirements:
 ${requirementsText}
 
-SCORING GUIDELINES - RECOGNIZE RELATED ROLES:
-- 90-100: EXCEPTIONAL - Nearly perfect match OR highly related role with transferable skills
-- 80-89: STRONG - Most required skills OR closely related role (e.g., Data Scientist ↔ AI Engineer)
-- 70-79: GOOD - Related skills and experience, some gaps but trainable
-- 55-69: MODERATE - Partial match, significant training needed
-- 40-54: WEAK - Major skill gaps
-- 0-39: POOR - Completely unrelated
+=== SKILLS-FIRST MATCHING PHILOSOPHY ===
+In modern tech hiring, SKILLS > TITLES. A candidate's actual abilities matter more than what their previous company called them.
 
-CRITICAL: RECOGNIZE RELATED ROLES!
-These roles are HIGHLY RELATED (score 80+ if skills match):
-- Data Scientist ↔ AI Engineer ↔ ML Engineer ↔ Machine Learning Scientist
-- Software Engineer ↔ Backend Developer ↔ Full Stack Developer
-- DevOps ↔ SRE ↔ Platform Engineer ↔ Infrastructure Engineer
-- Frontend Developer ↔ UI Developer ↔ React Developer
-- Data Engineer ↔ Data Analyst ↔ BI Developer
-- Cloud Engineer ↔ AWS Engineer ↔ Azure Engineer
+SCORING BASED ON SKILL MATCH:
+- 90-100: Has 90%+ of required skills + relevant preferred skills
+- 80-89: Has 75%+ of required skills, can learn the rest quickly
+- 70-79: Has 60%+ of required skills, solid foundation
+- 55-69: Has 40-60% of required skills, needs training
+- 40-54: Has <40% of required skills
+- 0-39: Wrong domain entirely
 
-RETURN THIS EXACT JSON STRUCTURE:
+SKILL MATCHING RULES:
+1. EXACT MATCHES: Python = Python, React = React
+2. VARIATIONS: React.js = React = ReactJS, Node = Node.js = NodeJS
+3. VERSIONS: "TensorFlow 2.0" matches "TensorFlow", "Python 3" matches "Python"
+4. ECOSYSTEMS: AWS Lambda + S3 + DynamoDB = strong AWS skills
+5. TRANSFERABLE: SQL experience transfers across PostgreSQL/MySQL/MSSQL
+6. TOOL CATEGORIES:
+   - ML/AI: Python, TensorFlow, PyTorch, scikit-learn, Keras, MLflow, Hugging Face
+   - Backend: Node.js, Python, Java, Go, REST APIs, GraphQL
+   - Frontend: React, Vue, Angular, TypeScript, JavaScript
+   - Data: SQL, Pandas, Spark, Airflow, dbt, Snowflake
+   - Cloud: AWS, GCP, Azure, Kubernetes, Docker, Terraform
+   - DevOps: CI/CD, Jenkins, GitHub Actions, ArgoCD
+
+IGNORE JOB TITLES - Focus on: Does the candidate know the tools needed for the job?
+
+RETURN THIS JSON:
 {
-  "overall_score": <0-100 based on total fit>,
-  "skills_score": <0-100 how well skills match required/preferred>,
-  "experience_score": <0-100 how well experience level matches>,
-  "salary_score": <0-100 how well salary expectations align, 80 if unknown>,
-  "is_suitable": <true if overall_score >= 50, false otherwise>,
-  "reasoning": "<2-3 sentence explanation of the score>",
-  "matched_required_skills": ["<exact skills from required list that candidate has>"],
-  "unmatched_required_skills": ["<required skills candidate is MISSING>"],
+  "overall_score": <0-100 based on skill match percentage>,
+  "skills_score": <0-100 - THIS IS THE MOST IMPORTANT SCORE>,
+  "experience_score": <0-100 based on years + relevant projects>,
+  "salary_score": 80,
+  "is_suitable": <true if skills_score >= 60>,
+  "reasoning": "<Focus on which skills match and which are missing>",
+  "matched_required_skills": ["<skills candidate HAS from required list>"],
+  "unmatched_required_skills": ["<skills candidate is MISSING>"],
   "matched_preferred_skills": ["<preferred skills candidate has>"],
-  "strengths": ["<2-3 key strengths>"],
-  "concerns": ["<any concerns or gaps>"]
+  "strengths": ["<key technical strengths>"],
+  "concerns": ["<missing skills or gaps>"]
 }
 
-CRITICAL RULES FOR SKILL MATCHING:
-- INTELLIGENTLY match skill variations - don't be overly literal!
-- Match technologies even if named slightly differently (React.js = React = ReactJS)
-- Python, Machine Learning, TensorFlow, PyTorch are SHARED between Data Scientist and AI Engineer
-- Data Scientists typically have 80-90% of skills needed for AI Engineer roles
-- When candidate has relevant ML/AI experience, score them HIGH for AI/ML roles
-- A Data Scientist with 3+ years is WELL QUALIFIED for AI Engineer roles
-- Consider TRANSFERABLE skills: similar domains/technologies count heavily
-- Only return JSON, no other text`;
+Only return valid JSON.`;
 
       const response = await aiService.chatCompletion(prompt, {
         systemPrompt:
-          'You are an expert recruiter. Analyze candidate-job fit accurately. Return valid JSON only.',
-        temperature: 0.3,
+          'You are a skills-based technical recruiter. Match based on SKILLS and TOOLS, not job titles. A Data Scientist with Python/TensorFlow is qualified for AI Engineer roles. Return valid JSON only.',
+        temperature: 0.2,
         maxTokens: 2000,
       });
 

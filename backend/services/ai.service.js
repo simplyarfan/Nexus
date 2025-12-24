@@ -18,7 +18,8 @@ class AIService {
    * @returns {Promise<string>} - The AI response text
    */
   async chatCompletion(prompt, options = {}) {
-    const { temperature = 0.7, maxTokens = 4000, systemPrompt = null } = options;
+    // Increased maxTokens to 8000 to reduce truncation issues
+    const { temperature = 0.7, maxTokens = 8000, systemPrompt = null } = options;
 
     if (!this.apiKey) {
       throw new Error('HUGGINGFACE_API_KEY is not configured');
@@ -110,34 +111,93 @@ class AIService {
   }
 
   /**
-   * Attempt to repair truncated JSON
+   * Attempt to repair truncated JSON - robust version
+   * Handles many edge cases including incomplete array elements
    */
   repairTruncatedJson(jsonString) {
-    let repaired = jsonString;
+    let repaired = jsonString.trim();
 
-    // Count open brackets
-    const openBraces = (repaired.match(/{/g) || []).length;
-    const closeBraces = (repaired.match(/}/g) || []).length;
-    const openBrackets = (repaired.match(/\[/g) || []).length;
-    const closeBrackets = (repaired.match(/\]/g) || []).length;
+    // Step 1: Find the last complete structural element
+    // Look for truncation patterns like incomplete strings, arrays, objects
 
-    // Check if we're in an unclosed string
-    const lastColon = repaired.lastIndexOf(':');
-    const lastComma = repaired.lastIndexOf(',');
-    const afterLastStructural = Math.max(lastColon, lastComma);
+    // Remove any trailing incomplete tokens (partial numbers, booleans, nulls)
+    repaired = repaired.replace(/,\s*(true|false|null|[0-9]*)?\s*$/, '');
 
-    if (afterLastStructural > 0) {
-      const afterPart = repaired.substring(afterLastStructural);
-      const quotesAfter = (afterPart.match(/"/g) || []).length;
-      if (quotesAfter % 2 === 1) {
-        repaired += '"';
+    // Step 2: Handle incomplete strings within arrays/objects
+    // Find the last occurrence of key patterns
+    const lastOpenBracket = repaired.lastIndexOf('[');
+    const lastCloseBracket = repaired.lastIndexOf(']');
+    const lastQuote = repaired.lastIndexOf('"');
+
+    // Check if we're inside an unclosed string
+    const contentAfterLastQuote = repaired.substring(lastQuote + 1);
+    const quotesAfterLast = (contentAfterLastQuote.match(/"/g) || []).length;
+
+    if (quotesAfterLast % 2 === 1) {
+      // We have an odd number of quotes after the last quote = unclosed string
+      // Truncate at the opening quote of the incomplete string
+      const lastStructuralBeforeQuote = Math.max(
+        repaired.lastIndexOf(',', lastQuote),
+        repaired.lastIndexOf('[', lastQuote),
+        repaired.lastIndexOf('{', lastQuote),
+        repaired.lastIndexOf(':', lastQuote),
+      );
+      if (lastStructuralBeforeQuote > 0) {
+        repaired = repaired.substring(0, lastStructuralBeforeQuote + 1);
       }
     }
 
-    // Remove trailing comma
-    repaired = repaired.replace(/,\s*$/, '');
+    // Step 3: Handle incomplete array elements
+    // Check if we're in an array with an incomplete element
+    if (lastOpenBracket > lastCloseBracket) {
+      // We're inside an unclosed array
+      const arrayContent = repaired.substring(lastOpenBracket);
 
-    // Close unclosed arrays
+      // Check for incomplete object in array like [..., {"key": "val
+      const lastObjectStart = arrayContent.lastIndexOf('{');
+      const lastObjectEnd = arrayContent.lastIndexOf('}');
+
+      if (lastObjectStart > lastObjectEnd && lastObjectStart > 0) {
+        // Incomplete object in array - remove it
+        const removeFrom = lastOpenBracket + arrayContent.lastIndexOf(',', lastObjectStart);
+        if (removeFrom > lastOpenBracket) {
+          repaired = repaired.substring(0, removeFrom);
+        } else {
+          // No comma before, just close the array
+          const absPos = lastOpenBracket + lastObjectStart;
+          repaired = repaired.substring(0, absPos);
+        }
+      }
+
+      // Check for incomplete string in array like [..., "incomplete
+      const quotesInArray = (arrayContent.match(/"/g) || []).length;
+      if (quotesInArray % 2 === 1) {
+        // Find last comma in array and truncate there
+        const lastCommaInArray = arrayContent.lastIndexOf(',');
+        if (lastCommaInArray > 0) {
+          repaired = repaired.substring(0, lastOpenBracket + lastCommaInArray);
+        } else {
+          // No elements completed, empty the array
+          repaired = repaired.substring(0, lastOpenBracket + 1);
+        }
+      }
+    }
+
+    // Step 4: Clean up trailing garbage
+    // Remove trailing partial elements after comma
+    repaired = repaired.replace(/,\s*"[^"]*$/, ''); // Remove trailing incomplete string
+    repaired = repaired.replace(/,\s*{[^}]*$/, ''); // Remove trailing incomplete object
+    repaired = repaired.replace(/,\s*\[[^\]]*$/, ''); // Remove trailing incomplete array
+    repaired = repaired.replace(/,\s*$/, ''); // Remove trailing comma
+    repaired = repaired.replace(/:\s*$/, ': null'); // Add null for incomplete values
+
+    // Step 5: Count and close brackets
+    const openBraces = (repaired.match(/{/g) || []).length;
+    const closeBraces = (repaired.match(/}/g) || []).length;
+    const openBrackets = (repaired.match(/\[/g) || []).length;
+    const closeBrackets = (repaired.match(/]/g) || []).length;
+
+    // Close unclosed arrays first (they're usually nested inside objects)
     for (let i = 0; i < openBrackets - closeBrackets; i++) {
       repaired += ']';
     }
@@ -147,7 +207,56 @@ class AIService {
       repaired += '}';
     }
 
-    return repaired;
+    // Step 6: Final validation attempt - if still fails, try more aggressive repair
+    try {
+      JSON.parse(repaired);
+      return repaired;
+    } catch {
+      // More aggressive approach: find the last valid JSON subset
+      return this.findLastValidJson(jsonString);
+    }
+  }
+
+  /**
+   * Find the largest valid JSON subset by progressively truncating
+   */
+  findLastValidJson(jsonString) {
+    let str = jsonString.trim();
+
+    // Try progressively shorter substrings
+    for (let i = str.length; i > 100; i -= 50) {
+      let attempt = str.substring(0, i);
+
+      // Clean up the attempt
+      attempt = attempt.replace(/,\s*$/, '');
+      attempt = attempt.replace(/,\s*"[^"]*$/, '');
+      attempt = attempt.replace(/,\s*{[^}]*$/, '');
+
+      // Count and close brackets
+      const openBraces = (attempt.match(/{/g) || []).length;
+      const closeBraces = (attempt.match(/}/g) || []).length;
+      const openBrackets = (attempt.match(/\[/g) || []).length;
+      const closeBrackets = (attempt.match(/]/g) || []).length;
+
+      for (let j = 0; j < openBrackets - closeBrackets; j++) {
+        attempt += ']';
+      }
+      for (let j = 0; j < openBraces - closeBraces; j++) {
+        attempt += '}';
+      }
+
+      try {
+        JSON.parse(attempt);
+        console.log(`  ⚠️ JSON repaired by truncating to ${i} chars`);
+        return attempt;
+      } catch {
+        // Continue trying shorter strings
+      }
+    }
+
+    // If all else fails, return a minimal valid object
+    console.log('  ⚠️ Could not repair JSON, returning minimal object');
+    return '{"name": "Unknown", "email": null, "primary_skills": [], "education": [], "experience_timeline": []}';
   }
 
   /**

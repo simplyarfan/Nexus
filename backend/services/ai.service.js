@@ -1,28 +1,29 @@
 /**
  * CENTRALIZED AI SERVICE
- * Uses HuggingFace Router (OpenAI-compatible endpoint)
- * Model: meta-llama/Llama-3.2-3B-Instruct
+ * Uses Groq API (OpenAI-compatible endpoint)
+ * Model: llama-3.3-70b-versatile (fast & reliable)
+ * Max tokens: 5000 per CV (only uses what's needed)
  */
 
 class AIService {
   constructor() {
-    this.apiKey = process.env.HUGGINGFACE_API_KEY;
-    this.model = 'meta-llama/Llama-3.2-3B-Instruct';
-    this.apiUrl = 'https://router.huggingface.co/v1/chat/completions';
+    this.apiKey = process.env.GROQ_API_KEY;
+    this.model = 'llama-3.3-70b-versatile';
+    this.apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
   }
 
   /**
-   * Send a chat completion request via HuggingFace Router
+   * Send a chat completion request via Groq API
    * @param {string} prompt - The user prompt
    * @param {Object} options - Optional settings
    * @returns {Promise<string>} - The AI response text
    */
   async chatCompletion(prompt, options = {}) {
-    // Increased maxTokens to 8000 to reduce truncation issues
-    const { temperature = 0.7, maxTokens = 8000, systemPrompt = null } = options;
+    // Max 5000 tokens for CV analysis - only uses what's needed
+    const { temperature = 0.3, maxTokens = 5000, systemPrompt = null } = options;
 
     if (!this.apiKey) {
-      throw new Error('HUGGINGFACE_API_KEY is not configured');
+      throw new Error('GROQ_API_KEY is not configured');
     }
 
     // Build messages array for OpenAI-compatible API
@@ -43,36 +44,36 @@ class AIService {
         messages: messages,
         max_tokens: maxTokens,
         temperature: temperature,
-        top_p: 0.95,
         stream: false,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('HuggingFace API error:', errorText);
+      console.error('Groq API error:', errorText);
 
-      // Check if model is loading (503)
-      if (response.status === 503) {
-        try {
-          const data = JSON.parse(errorText);
-          const estimatedTime = data.estimated_time || 30;
-          console.log(`  ⏳ Model is loading, waiting ${estimatedTime} seconds...`);
-          await this.sleep(estimatedTime * 1000);
-          return this.chatCompletion(prompt, options); // Retry
-        } catch {
-          // Couldn't parse, just throw
-        }
+      // Handle rate limiting (429)
+      if (response.status === 429) {
+        console.log('  ⏳ Rate limited, waiting 5 seconds...');
+        await this.sleep(5000);
+        return this.chatCompletion(prompt, options); // Retry
       }
 
-      throw new Error(`HuggingFace API error: ${response.status} - ${errorText}`);
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
 
     // OpenAI-compatible format: result.choices[0].message.content
     if (result.choices && result.choices.length > 0) {
-      return result.choices[0].message?.content || '';
+      const content = result.choices[0].message?.content || '';
+      // Log token usage for monitoring
+      if (result.usage) {
+        console.log(
+          `  📊 Tokens used: ${result.usage.total_tokens} (prompt: ${result.usage.prompt_tokens}, completion: ${result.usage.completion_tokens})`,
+        );
+      }
+      return content;
     }
 
     console.error('Unexpected API response format:', result);

@@ -1,15 +1,12 @@
-const Groq = require('groq-sdk');
 const { prisma } = require('../lib/prisma');
+const aiService = require('./ai.service');
 
 /**
  * CANDIDATE MATCHING SERVICE
  * Automatically matches candidates to job positions using AI
  * Calculates position-specific match scores
+ * Uses HuggingFace AI (unlimited context)
  */
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 class CandidateMatchingService {
   /**
@@ -65,28 +62,12 @@ Scoring guidelines:
 - recommendation: Overall hiring recommendation level`;
 
     try {
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        model: 'llama-3.3-70b-versatile',
+      const response = await aiService.chatCompletion(prompt, {
         temperature: 0.2,
-        max_tokens: 1000,
+        maxTokens: 1000,
       });
 
-      const response = completion.choices[0]?.message?.content || '{}';
-
-      // Clean response (remove markdown code blocks if present)
-      let cleanedResponse = response
-        .replace(/```json\n/g, '')
-        .replace(/```\n/g, '')
-        .replace(/```/g, '')
-        .trim();
-
-      return JSON.parse(cleanedResponse);
+      return aiService.extractJson(response);
     } catch (error) {
       console.error('Error calculating match score with AI:', error);
       // Return fallback scores

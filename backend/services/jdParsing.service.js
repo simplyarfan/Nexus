@@ -1,18 +1,15 @@
-const Groq = require('groq-sdk');
 const pdf = require('pdf-parse');
 const { extractText: extractTextUnpdf } = require('unpdf');
 const mammoth = require('mammoth');
 const WordExtractor = require('word-extractor');
 const fs = require('fs').promises;
+const aiService = require('./ai.service');
 
 /**
  * JD PARSING SERVICE
  * Extracts job details from Job Description documents (PDF/DOCX) using AI
+ * Uses HuggingFace AI (unlimited context)
  */
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 class JDParsingService {
   /**
@@ -400,28 +397,12 @@ Other Guidelines:
 - Infer department, experience level, and employment type if not explicitly stated`;
 
     try {
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        model: 'llama-3.3-70b-versatile',
+      const response = await aiService.chatCompletion(prompt, {
         temperature: 0.1,
-        max_tokens: 2000,
+        maxTokens: 2000,
       });
 
-      const response = completion.choices[0]?.message?.content || '{}';
-
-      // Clean response (remove markdown code blocks if present)
-      let cleanedResponse = response
-        .replace(/```json\n/g, '')
-        .replace(/```\n/g, '')
-        .replace(/```/g, '')
-        .trim();
-
-      const parsedData = JSON.parse(cleanedResponse);
+      const parsedData = aiService.extractJson(response);
 
       // Validate required fields
       if (!parsedData.title || !parsedData.department) {

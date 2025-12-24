@@ -1,19 +1,16 @@
 const { prisma } = require('../lib/prisma');
-const Groq = require('groq-sdk');
+const aiService = require('./ai.service');
 
 /**
  * INTELLIGENT MATCHING SERVICE v2.0
  * AI-powered candidate-job matching with semantic understanding
+ * Uses HuggingFace AI (unlimited context)
  *
  * KEY CHANGES from v1:
  * - Removed hardcoded skill synonyms (AI handles semantic matching)
  * - Smart batch pre-filter: ONE AI call filters all candidates
  * - Cleaner, more maintainable code
  */
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 // Rate limiting helper
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -94,24 +91,12 @@ Return ONLY a JSON array of candidate IDs that are potentially relevant:
 
 If NO candidates are relevant, return: []`;
 
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert recruiter. Return only valid JSON arrays. Be inclusive when filtering candidates.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        model: 'llama-3.1-8b-instant', // Fast, cheap model for pre-filtering
+      const response = await aiService.chatCompletion(prompt, {
+        systemPrompt:
+          'You are an expert recruiter. Return only valid JSON arrays. Be inclusive when filtering candidates.',
         temperature: 0.2,
-        max_tokens: 2000,
+        maxTokens: 2000,
       });
-
-      const response = completion.choices[0]?.message?.content || '[]';
 
       // Clean up response and extract just the JSON array
       let cleaned = response
@@ -309,32 +294,15 @@ CRITICAL RULES FOR SKILL MATCHING:
 - Be CRITICAL on genuine gaps - but don't penalize naming variations
 - Only return JSON, no other text`;
 
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert recruiter. Analyze candidate-job fit accurately. Return valid JSON only.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        model: 'llama-3.3-70b-versatile', // Full model for detailed analysis
+      const response = await aiService.chatCompletion(prompt, {
+        systemPrompt:
+          'You are an expert recruiter. Analyze candidate-job fit accurately. Return valid JSON only.',
         temperature: 0.3,
-        max_tokens: 2000,
+        maxTokens: 2000,
       });
 
-      const response = completion.choices[0]?.message?.content || '{}';
-      const cleaned = response
-        .replace(/```json\n/g, '')
-        .replace(/```\n/g, '')
-        .replace(/```/g, '')
-        .trim();
-
       try {
-        return JSON.parse(cleaned);
+        return aiService.extractJson(response);
       } catch (e) {
         console.error('Failed to parse detailed match response:', e.message);
         return {

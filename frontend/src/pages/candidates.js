@@ -23,6 +23,21 @@ import api from '@/utils/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Helper to check if a value is valid (not null, "null", "not available", etc.)
+const isValidValue = (value) => {
+  if (!value) return false;
+  const invalidValues = ['null', 'not available', 'n/a', 'na', 'none', 'not found', 'not mentioned', ''];
+  return !invalidValues.includes(value.toString().toLowerCase().trim());
+};
+
+// Helper to format email for display (hide placeholder emails)
+const formatEmail = (email) => {
+  if (!email) return null;
+  if (email.includes('@noemail.placeholder')) return 'No email provided';
+  if (!isValidValue(email)) return null;
+  return email;
+};
+
 export default function CandidatesPage() {
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -362,23 +377,43 @@ export default function CandidatesPage() {
                           )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-2">
-                          <span>{candidate.email}</span>
-                          <span>•</span>
-                          <span>{candidate.phone}</span>
-                          <span>•</span>
-                          <span>{candidate.location}</span>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
+                          {formatEmail(candidate.email) && (
+                            <>
+                              <span>{formatEmail(candidate.email)}</span>
+                              {(isValidValue(candidate.phone) || isValidValue(candidate.location)) && <span>•</span>}
+                            </>
+                          )}
+                          {isValidValue(candidate.phone) && (
+                            <>
+                              <span>{candidate.phone}</span>
+                              {isValidValue(candidate.location) && <span>•</span>}
+                            </>
+                          )}
+                          {isValidValue(candidate.location) && (
+                            <span>{candidate.location}</span>
+                          )}
+                          {!formatEmail(candidate.email) && !isValidValue(candidate.phone) && !isValidValue(candidate.location) && (
+                            <span className="text-muted-foreground/60 italic">Contact info not provided</span>
+                          )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Briefcase className="w-4 h-4" />
-                            <span>
-                              {candidate.current_title} at {candidate.current_company}
-                            </span>
-                          </div>
-                          <span>•</span>
-                          <span>{candidate.experience}</span>
+                          {(isValidValue(candidate.current_title) || isValidValue(candidate.current_company)) && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <Briefcase className="w-4 h-4" />
+                                <span>
+                                  {isValidValue(candidate.current_title) ? candidate.current_title : 'Role not specified'}
+                                  {isValidValue(candidate.current_company) && ` at ${candidate.current_company}`}
+                                </span>
+                              </div>
+                              {isValidValue(candidate.experience) && <span>•</span>}
+                            </>
+                          )}
+                          {isValidValue(candidate.experience) && (
+                            <span>{candidate.experience}</span>
+                          )}
                         </div>
 
                         {candidate.education && Array.isArray(candidate.education) && candidate.education.length > 0 && (

@@ -1,4 +1,3 @@
-const Groq = require('groq-sdk');
 const path = require('path');
 const fs = require('fs').promises;
 const pdfParse = require('pdf-parse');
@@ -7,16 +6,14 @@ const mammoth = require('mammoth');
 const WordExtractor = require('word-extractor');
 const { prisma } = require('../lib/prisma');
 const intelligentMatching = require('./intelligentMatching.service');
+const aiService = require('./ai.service');
 
 /**
  * CANDIDATE EXTRACTION SERVICE
  * Extracts candidate information from CV/Resume PDFs
  * Creates or updates CandidateProfile records
+ * Uses HuggingFace AI for extraction (unlimited context)
  */
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 class CandidateExtractionService {
   /**
@@ -270,83 +267,21 @@ OTHER RULES:
 - Return valid JSON only, no explanations`;
 
     try {
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        model: 'llama-3.3-70b-versatile',
+      const response = await aiService.chatCompletion(prompt, {
         temperature: 0.3,
-        max_tokens: 4000, // Increased for complex CVs
+        maxTokens: 4000,
       });
 
-      const response = completion.choices[0]?.message?.content || '{}';
+      console.log('  📝 AI Raw Response (first 500 chars):', response?.substring(0, 500));
 
-      // Clean response (remove markdown code blocks if present)
-      let cleanedResponse = response
-        .replace(/```json\n/g, '')
-        .replace(/```\n/g, '')
-        .replace(/```/g, '')
-        .trim();
+      const parsed = aiService.extractJson(response);
+      console.log('  📊 Parsed Data - Name:', parsed?.name, '| Email:', parsed?.email);
 
-      // Try to parse, if truncated try to repair
-      try {
-        return JSON.parse(cleanedResponse);
-      } catch (parseError) {
-        console.log('  ⚠️ JSON parse failed, attempting repair...');
-        const repaired = this.repairTruncatedJson(cleanedResponse);
-        return JSON.parse(repaired);
-      }
+      return parsed;
     } catch (error) {
       console.error('Error extracting candidate data with AI:', error);
       throw new Error(`AI extraction failed: ${error.message}`);
     }
-  }
-
-  /**
-   * Attempt to repair truncated JSON from AI response
-   */
-  repairTruncatedJson(jsonString) {
-    let repaired = jsonString;
-
-    // Count open brackets
-    const openBraces = (repaired.match(/{/g) || []).length;
-    const closeBraces = (repaired.match(/}/g) || []).length;
-    const openBrackets = (repaired.match(/\[/g) || []).length;
-    const closeBrackets = (repaired.match(/\]/g) || []).length;
-
-    // If in the middle of a string, close it
-    const lastQuote = repaired.lastIndexOf('"');
-    const lastColon = repaired.lastIndexOf(':');
-    const lastComma = repaired.lastIndexOf(',');
-
-    // Check if we're in an unclosed string (odd number of quotes after last structural char)
-    const afterLastStructural = Math.max(lastColon, lastComma);
-    if (afterLastStructural > 0) {
-      const afterPart = repaired.substring(afterLastStructural);
-      const quotesAfter = (afterPart.match(/"/g) || []).length;
-      if (quotesAfter % 2 === 1) {
-        // Odd quotes means unclosed string - close it
-        repaired += '"';
-      }
-    }
-
-    // Remove trailing comma if present
-    repaired = repaired.replace(/,\s*$/, '');
-
-    // Close any unclosed arrays
-    for (let i = 0; i < openBrackets - closeBrackets; i++) {
-      repaired += ']';
-    }
-
-    // Close any unclosed objects
-    for (let i = 0; i < openBraces - closeBraces; i++) {
-      repaired += '}';
-    }
-
-    return repaired;
   }
 
   /**
@@ -410,9 +345,10 @@ OTHER RULES:
 
   /**
    * Check for existing candidate by email (deduplication)
+   * Skips lookup for invalid emails like "not found"
    */
   async findExistingCandidate(email) {
-    if (!email) return null;
+    if (!email || email === 'not found') return null;
 
     try {
       const existing = await prisma.candidate_profiles.findUnique({
@@ -433,17 +369,35 @@ OTHER RULES:
    */
   async createOrUpdateCandidate(candidateData, cvFilePath = null, createdByUserId = null) {
     try {
-      const email = candidateData.email?.toLowerCase();
+      // Check if email is valid (not null, not "null", not "Not available", etc.)
+      let email = candidateData.email?.toLowerCase()?.trim();
+      const invalidEmails = ['null', 'not available', 'n/a', 'na', 'none', 'not found', ''];
+      const isValidEmail = email && !invalidEmails.includes(email) && email.includes('@');
 
-      if (!email) {
-        throw new Error('Email is required to create candidate profile');
+      if (!isValidEmail) {
+        // Generate unique placeholder email using name + timestamp
+        const nameSlug = (candidateData.name || 'unknown')
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '_')
+          .replace(/_+/g, '_')
+          .substring(0, 20);
+        email = `${nameSlug}_${Date.now()}@noemail.placeholder`;
+        console.log(`  ⚠️ No valid email in CV for: ${candidateData.name || 'Unknown'} - using placeholder`);
       }
 
-      // Check for existing candidate
-      const existingCandidate = await this.findExistingCandidate(email);
+      // Check for existing candidate (only if email is a real email, not placeholder)
+      const existingCandidate = email.includes('@noemail.placeholder')
+        ? null
+        : await this.findExistingCandidate(email);
 
       // Calculate scores
       const scores = this.calculateScores(candidateData);
+
+      // Helper function to filter out null/invalid values from arrays
+      const cleanArray = (arr) => {
+        if (!Array.isArray(arr)) return [];
+        return arr.filter((item) => item !== null && item !== undefined && item !== 'null' && item !== '');
+      };
 
       const profileData = {
         name: candidateData.name || 'Unknown',
@@ -454,10 +408,10 @@ OTHER RULES:
         current_company: candidateData.current_company,
         current_title: candidateData.current_title,
         years_of_experience: candidateData.years_of_experience,
-        education: candidateData.education || [],
-        primary_skills: candidateData.primary_skills || [],
-        certifications: candidateData.certifications || [],
-        experience_timeline: candidateData.experience_timeline || [],
+        education: cleanArray(candidateData.education),
+        primary_skills: cleanArray(candidateData.primary_skills),
+        certifications: cleanArray(candidateData.certifications),
+        experience_timeline: cleanArray(candidateData.experience_timeline),
         updated_at: new Date(),
       };
 

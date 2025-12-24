@@ -775,8 +775,7 @@ router.post('/:id/candidates/chat', authenticateToken, requireHRAccess, async (r
         is_matched: false,
       }));
 
-    const Groq = require('groq-sdk');
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const aiService = require('../services/ai.service');
 
     const systemPrompt = `You are an AI assistant helping HR recruiters understand candidate matching for job positions.
 
@@ -824,18 +823,12 @@ ${unmatchedCandidates.map((c) => `- ${c.name} (${c.current_title || 'No title'},
 
 Note: Unmatched candidates were analyzed but did not pass the suitability filter based on experience level, skill relevance, or domain fit.`;
 
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: question },
-      ],
-      model: 'llama-3.1-8b-instant', // Smaller model to save tokens
-      temperature: 0.5,
-      max_tokens: 500,
-    });
-
     const answer =
-      completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+      (await aiService.chatCompletion(question, {
+        systemPrompt,
+        temperature: 0.5,
+        maxTokens: 500,
+      })) || 'Sorry, I could not generate a response.';
 
     res.json({
       success: true,

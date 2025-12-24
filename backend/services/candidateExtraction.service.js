@@ -382,7 +382,9 @@ OTHER RULES:
           .replace(/_+/g, '_')
           .substring(0, 20);
         email = `${nameSlug}_${Date.now()}@noemail.placeholder`;
-        console.log(`  ⚠️ No valid email in CV for: ${candidateData.name || 'Unknown'} - using placeholder`);
+        console.log(
+          `  ⚠️ No valid email in CV for: ${candidateData.name || 'Unknown'} - using placeholder`,
+        );
       }
 
       // Check for existing candidate (only if email is a real email, not placeholder)
@@ -396,7 +398,9 @@ OTHER RULES:
       // Helper function to filter out null/invalid values from arrays
       const cleanArray = (arr) => {
         if (!Array.isArray(arr)) return [];
-        return arr.filter((item) => item !== null && item !== undefined && item !== 'null' && item !== '');
+        return arr.filter(
+          (item) => item !== null && item !== undefined && item !== 'null' && item !== '',
+        );
       };
 
       const profileData = {

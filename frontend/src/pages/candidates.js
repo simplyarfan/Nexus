@@ -26,7 +26,16 @@ import { useAuth } from '@/contexts/AuthContext';
 // Helper to check if a value is valid (not null, "null", "not available", etc.)
 const isValidValue = (value) => {
   if (!value) return false;
-  const invalidValues = ['null', 'not available', 'n/a', 'na', 'none', 'not found', 'not mentioned', ''];
+  const invalidValues = [
+    'null',
+    'not available',
+    'n/a',
+    'na',
+    'none',
+    'not found',
+    'not mentioned',
+    '',
+  ];
   return !invalidValues.includes(value.toString().toLowerCase().trim());
 };
 
@@ -110,7 +119,7 @@ export default function CandidatesPage() {
 
         // Skills/keywords search
         const skillsMatch = candidate.primary_skills?.some((skill) =>
-          skill.toLowerCase().includes(query)
+          skill.toLowerCase().includes(query),
         );
 
         // Education search
@@ -118,7 +127,7 @@ export default function CandidatesPage() {
           (edu) =>
             edu.degree?.toLowerCase().includes(query) ||
             edu.institution?.toLowerCase().includes(query) ||
-            edu.field?.toLowerCase().includes(query)
+            edu.field?.toLowerCase().includes(query),
         );
 
         return basicMatch || skillsMatch || educationMatch;
@@ -209,7 +218,7 @@ export default function CandidatesPage() {
       if (response.data.success) {
         setUploadResults(response.data);
         toast.success(
-          `Successfully processed ${response.data.successful}/${response.data.total} CVs`
+          `Successfully processed ${response.data.successful}/${response.data.total} CVs`,
         );
 
         // Refresh candidates list after successful upload
@@ -381,7 +390,8 @@ export default function CandidatesPage() {
                           {formatEmail(candidate.email) && (
                             <>
                               <span>{formatEmail(candidate.email)}</span>
-                              {(isValidValue(candidate.phone) || isValidValue(candidate.location)) && <span>•</span>}
+                              {(isValidValue(candidate.phone) ||
+                                isValidValue(candidate.location)) && <span>•</span>}
                             </>
                           )}
                           {isValidValue(candidate.phone) && (
@@ -390,22 +400,28 @@ export default function CandidatesPage() {
                               {isValidValue(candidate.location) && <span>•</span>}
                             </>
                           )}
-                          {isValidValue(candidate.location) && (
-                            <span>{candidate.location}</span>
-                          )}
-                          {!formatEmail(candidate.email) && !isValidValue(candidate.phone) && !isValidValue(candidate.location) && (
-                            <span className="text-muted-foreground/60 italic">Contact info not provided</span>
-                          )}
+                          {isValidValue(candidate.location) && <span>{candidate.location}</span>}
+                          {!formatEmail(candidate.email) &&
+                            !isValidValue(candidate.phone) &&
+                            !isValidValue(candidate.location) && (
+                              <span className="text-muted-foreground/60 italic">
+                                Contact info not provided
+                              </span>
+                            )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                          {(isValidValue(candidate.current_title) || isValidValue(candidate.current_company)) && (
+                          {(isValidValue(candidate.current_title) ||
+                            isValidValue(candidate.current_company)) && (
                             <>
                               <div className="flex items-center gap-1">
                                 <Briefcase className="w-4 h-4" />
                                 <span>
-                                  {isValidValue(candidate.current_title) ? candidate.current_title : 'Role not specified'}
-                                  {isValidValue(candidate.current_company) && ` at ${candidate.current_company}`}
+                                  {isValidValue(candidate.current_title)
+                                    ? candidate.current_title
+                                    : 'Role not specified'}
+                                  {isValidValue(candidate.current_company) &&
+                                    ` at ${candidate.current_company}`}
                                 </span>
                               </div>
                               {isValidValue(candidate.experience) && <span>•</span>}
@@ -416,15 +432,18 @@ export default function CandidatesPage() {
                           )}
                         </div>
 
-                        {candidate.education && Array.isArray(candidate.education) && candidate.education.length > 0 && (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
-                            <GraduationCap className="w-4 h-4" />
-                            <span>
-                              {candidate.education[0].degree}
-                              {candidate.education[0].institution && ` - ${candidate.education[0].institution}`}
-                            </span>
-                          </div>
-                        )}
+                        {candidate.education &&
+                          Array.isArray(candidate.education) &&
+                          candidate.education.length > 0 && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-2">
+                              <GraduationCap className="w-4 h-4" />
+                              <span>
+                                {candidate.education[0].degree}
+                                {candidate.education[0].institution &&
+                                  ` - ${candidate.education[0].institution}`}
+                              </span>
+                            </div>
+                          )}
                         {candidate.created_by_user && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
                             <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full">
@@ -504,9 +523,7 @@ export default function CandidatesPage() {
                       <div className="relative mb-6">
                         <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                       </div>
-                      <h3 className="text-xl font-bold text-foreground mb-2">
-                        Processing CVs...
-                      </h3>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Processing CVs...</h3>
                       <p className="text-muted-foreground text-center max-w-md">
                         Extracting candidate information using AI. This may take a minute.
                       </p>
@@ -605,7 +622,9 @@ export default function CandidatesPage() {
                           <div
                             key={index}
                             className={`flex items-start gap-3 p-3 rounded-lg ${
-                              result.success ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'
+                              result.success
+                                ? 'bg-green-50 dark:bg-green-950/20'
+                                : 'bg-red-50 dark:bg-red-950/20'
                             }`}
                           >
                             {result.success ? (
@@ -617,7 +636,9 @@ export default function CandidatesPage() {
                               <p className="text-sm font-medium text-foreground truncate">
                                 {result.fileName}
                               </p>
-                              <p className={`text-xs ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                              <p
+                                className={`text-xs ${result.success ? 'text-green-600' : 'text-red-600'}`}
+                              >
                                 {result.message}
                               </p>
                               {result.candidate && (

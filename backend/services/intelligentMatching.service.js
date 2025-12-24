@@ -237,7 +237,7 @@ If NO candidates are relevant, return: []`;
       const requirementsText =
         (jobPosition.requirements || []).map((req) => `  - ${req}`).join('\n') || 'Not specified';
 
-      const prompt = `You are an expert HR recruiter. Analyze this candidate's fit for the job position CRITICALLY and ACCURATELY.
+      const prompt = `You are an expert HR recruiter. Analyze this candidate's fit for the job position.
 
 CANDIDATE:
 - Name: ${candidate.name}
@@ -258,12 +258,22 @@ JOB POSITION:
 - Requirements:
 ${requirementsText}
 
-SCORING GUIDELINES - BE STRICT AND ACCURATE:
-- 90-100: EXCEPTIONAL - Nearly perfect match, all required skills, ideal experience
-- 75-89: STRONG - Most required skills, good experience fit
-- 60-74: MODERATE - Some required skills missing, experience gap
-- 40-59: WEAK - Significant skill gaps, may need training
-- 0-39: POOR - Major mismatches, not suitable
+SCORING GUIDELINES - RECOGNIZE RELATED ROLES:
+- 90-100: EXCEPTIONAL - Nearly perfect match OR highly related role with transferable skills
+- 80-89: STRONG - Most required skills OR closely related role (e.g., Data Scientist ↔ AI Engineer)
+- 70-79: GOOD - Related skills and experience, some gaps but trainable
+- 55-69: MODERATE - Partial match, significant training needed
+- 40-54: WEAK - Major skill gaps
+- 0-39: POOR - Completely unrelated
+
+CRITICAL: RECOGNIZE RELATED ROLES!
+These roles are HIGHLY RELATED (score 80+ if skills match):
+- Data Scientist ↔ AI Engineer ↔ ML Engineer ↔ Machine Learning Scientist
+- Software Engineer ↔ Backend Developer ↔ Full Stack Developer
+- DevOps ↔ SRE ↔ Platform Engineer ↔ Infrastructure Engineer
+- Frontend Developer ↔ UI Developer ↔ React Developer
+- Data Engineer ↔ Data Analyst ↔ BI Developer
+- Cloud Engineer ↔ AWS Engineer ↔ Azure Engineer
 
 RETURN THIS EXACT JSON STRUCTURE:
 {
@@ -282,16 +292,12 @@ RETURN THIS EXACT JSON STRUCTURE:
 
 CRITICAL RULES FOR SKILL MATCHING:
 - INTELLIGENTLY match skill variations - don't be overly literal!
-- "IBM App Connect v12.0" or "IBM App Connect v13.0" = "IBM App Connect Enterprise" (SAME PRODUCT - different versions)
-- "IBM App Connect" = "IBM App Connect Enterprise" = "ACE" = "App Connect Enterprise"
-- "IBM Integration Bus" = "IIB" = "WebSphere Message Broker" = "WMB"
-- "IBM Cloud Pak for Integration" = "CP4I" = "Cloud Pak Integration"
-- Version numbers (v12, v13, etc.) indicate the candidate knows that product
-- When a job requires "X" and candidate has "X v12.0" or "X Enterprise" - that's a MATCH
 - Match technologies even if named slightly differently (React.js = React = ReactJS)
-- If candidate is missing 2+ REQUIRED skills, overall_score should be < 70
-- If candidate has < 3 years experience for senior role, experience_score < 60
-- Be CRITICAL on genuine gaps - but don't penalize naming variations
+- Python, Machine Learning, TensorFlow, PyTorch are SHARED between Data Scientist and AI Engineer
+- Data Scientists typically have 80-90% of skills needed for AI Engineer roles
+- When candidate has relevant ML/AI experience, score them HIGH for AI/ML roles
+- A Data Scientist with 3+ years is WELL QUALIFIED for AI Engineer roles
+- Consider TRANSFERABLE skills: similar domains/technologies count heavily
 - Only return JSON, no other text`;
 
       const response = await aiService.chatCompletion(prompt, {
